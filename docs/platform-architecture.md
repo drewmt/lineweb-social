@@ -26,12 +26,17 @@ The current manifest is a deploy-time declaration prototype. Its permission and 
 
 React pages consume server-produced view models rather than raw database models. New layouts should reuse those contracts or introduce versioned projections instead of querying around policies. Design tokens provide a controlled visual baseline; future themes should override semantic tokens and registered presentation components, not copy the application shell.
 
+The web post permalink now consumes a dedicated server-side conversation
+projection. It preserves Space visibility, publication, moderation, mute, block,
+profile-visibility, and report-state boundaries while exposing comments in
+chronological 20-item pages. Feed previews link into this canonical view instead
+of attempting to load an unbounded thread inline.
+
 ## Near-term contract work
 
-1. Add stable, paginated conversation projections for web, mobile, and extension clients.
-2. Add notification events and delivery preferences without coupling them to one UI.
-3. Define media ownership, processing, privacy, and deletion before adding upload controls.
-4. Add versioned API resources for native and decoupled clients.
-5. Implement and test the extension lifecycle before calling the manifest a plugin system.
+1. Add notification events and delivery preferences without coupling them to one UI.
+2. Define media ownership, processing, privacy, and deletion before adding upload controls.
+3. Add versioned API resources for native and decoupled clients, building on the stable web conversation projection.
+4. Implement and test the extension lifecycle before calling the manifest a plugin system.
 
 The goal is composability with secure defaults, not unlimited runtime code execution.

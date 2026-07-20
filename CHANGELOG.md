@@ -4,6 +4,11 @@ All notable project changes will be documented here.
 
 ## Unreleased
 
+### Added
+
+- Permanent post links with a responsive full-conversation view, chronological
+  20-comment pages, and policy-filtered access to older replies.
+
 ### Changed
 
 - Dependabot now groups only compatible minor and patch dependency updates;

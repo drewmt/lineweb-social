@@ -51,7 +51,7 @@ final class CommunityFeed
     }
 
     /**
-     * @return list<array{id: int, body: string, publishedAt: string|null, canComment: bool, canReport: bool, hasReported: bool, commentsCount: int, comments: list<array{id: int, body: string, publishedAt: string, canReport: bool, hasReported: bool, author: array{name: string, handle: string, profileVisible: bool}}>, author: array{name: string, handle: string, profileVisible: bool}, space: array{name: string, slug: string}}>
+     * @return list<array{id: int, url: string, body: string, publishedAt: string|null, canComment: bool, canReport: bool, hasReported: bool, commentsCount: int, comments: list<array{id: int, body: string, publishedAt: string, canReport: bool, hasReported: bool, author: array{name: string, handle: string, profileVisible: bool}}>, author: array{name: string, handle: string, profileVisible: bool}, space: array{name: string, slug: string}}>
      */
     public function posts(User $user, ?Space $space = null): array
     {
@@ -130,6 +130,7 @@ final class CommunityFeed
         return array_values($posts
             ->map(fn (Post $post): array => [
                 'id' => $post->id,
+                'url' => route('posts.show', $post),
                 'body' => $post->body,
                 'publishedAt' => $post->published_at?->toIso8601String(),
                 'canComment' => in_array($post->space_id, $memberSpaceIds, true),

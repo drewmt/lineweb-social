@@ -37,7 +37,8 @@ The current release is `0.1.0-alpha.1`. It is suitable for local evaluation and 
 - Expiring email invitations for restricted Spaces with hashed tokens and verified-account matching.
 - Owner transfer, moderator role changes, reason-required member removal, and an auditable management log.
 - A chronological, non-algorithmic feed.
-- Membership-protected comments with a compact responsive conversation UI.
+- Membership-protected comments with compact feed previews, permanent post
+  links, and a full visibility-filtered paginated conversation view.
 - Private post and comment reporting with allowlisted reasons, duplicate protection, and separate rate limits.
 - A unified, policy-backed moderator queue with documented decisions, content hide/restore behavior, and append-only Space audit entries.
 - Stable member handles, editable profiles with headlines, real visible

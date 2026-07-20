@@ -9,6 +9,12 @@ class PostPolicy
 {
     public function view(User $user, Post $post): bool
     {
+        if ($post->published_at === null
+            && $post->user_id !== $user->getKey()
+            && ! $user->can('moderate', $post->space)) {
+            return false;
+        }
+
         if ($post->hidden_at !== null
             && $post->user_id !== $user->getKey()
             && ! $user->can('moderate', $post->space)) {
