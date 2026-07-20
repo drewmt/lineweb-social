@@ -4,6 +4,11 @@ All notable project changes will be documented here.
 
 ## Unreleased
 
+### Changed
+
+- Dependabot now groups only compatible minor and patch dependency updates;
+  major upgrades remain isolated for focused review.
+
 ## [0.1.0-alpha.1] - 2026-07-20
 
 ### Added
