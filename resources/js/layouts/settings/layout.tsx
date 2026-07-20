@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { Palette, ShieldCheck, UserRound, UserX } from 'lucide-react';
+import { BellRing, Palette, ShieldCheck, UserRound, UserX } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
@@ -31,6 +31,11 @@ const sidebarNavItems: NavItem[] = [
         title: 'Safety',
         href: '/settings/safety',
         icon: UserX,
+    },
+    {
+        title: 'Notifications',
+        href: '/settings/notifications',
+        icon: BellRing,
     },
 ];
 

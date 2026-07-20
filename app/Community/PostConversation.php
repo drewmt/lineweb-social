@@ -8,6 +8,7 @@ use App\Models\CommentReport;
 use App\Models\Post;
 use App\Models\PostReport;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
 final class PostConversation
@@ -30,24 +31,7 @@ final class PostConversation
         ]);
         $post->space->loadCount('members');
 
-        $hiddenActorIds = DB::table('user_relationships')
-            ->select('target_id')
-            ->where('actor_id', $viewer->getKey())
-            ->whereIn('type', [
-                UserRelationshipType::Mute->value,
-                UserRelationshipType::Block->value,
-            ]);
-        $blockingActorIds = DB::table('user_relationships')
-            ->select('actor_id')
-            ->where('target_id', $viewer->getKey())
-            ->where('type', UserRelationshipType::Block);
-
-        $comments = Comment::query()
-            ->whereBelongsTo($post)
-            ->whereNotNull('published_at')
-            ->whereNull('hidden_at')
-            ->whereNotIn('user_id', clone $hiddenActorIds)
-            ->whereNotIn('user_id', clone $blockingActorIds)
+        $comments = $this->visibleComments($viewer, $post)
             ->with('author:id,name,handle')
             ->latest('published_at')
             ->latest('id')
@@ -126,5 +110,58 @@ final class PostConversation
                 ],
             ],
         ];
+    }
+
+    public function urlForComment(User $viewer, Comment $comment): ?string
+    {
+        $comment->loadMissing('post');
+        $query = $this->visibleComments($viewer, $comment->post);
+
+        if (! (clone $query)->whereKey($comment->getKey())->exists()) {
+            return null;
+        }
+
+        $newerComments = (clone $query)
+            ->where(function (Builder $newer) use ($comment): void {
+                $newer
+                    ->where('published_at', '>', $comment->published_at)
+                    ->orWhere(function (Builder $sameTime) use ($comment): void {
+                        $sameTime
+                            ->where('published_at', $comment->published_at)
+                            ->where('id', '>', $comment->id);
+                    });
+            })
+            ->count();
+        $page = intdiv($newerComments, self::COMMENTS_PER_PAGE) + 1;
+        $parameters = ['post' => $comment->post];
+
+        if ($page > 1) {
+            $parameters['page'] = $page;
+        }
+
+        return route('posts.show', $parameters).'#comment-'.$comment->id;
+    }
+
+    /** @return Builder<Comment> */
+    private function visibleComments(User $viewer, Post $post): Builder
+    {
+        $hiddenActorIds = DB::table('user_relationships')
+            ->select('target_id')
+            ->where('actor_id', $viewer->getKey())
+            ->whereIn('type', [
+                UserRelationshipType::Mute->value,
+                UserRelationshipType::Block->value,
+            ]);
+        $blockingActorIds = DB::table('user_relationships')
+            ->select('actor_id')
+            ->where('target_id', $viewer->getKey())
+            ->where('type', UserRelationshipType::Block);
+
+        return Comment::query()
+            ->whereBelongsTo($post)
+            ->whereNotNull('published_at')
+            ->whereNull('hidden_at')
+            ->whereNotIn('user_id', $hiddenActorIds)
+            ->whereNotIn('user_id', $blockingActorIds);
     }
 }

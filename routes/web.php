@@ -4,6 +4,7 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\CommentReportController;
 use App\Http\Controllers\CommentReportModerationController;
 use App\Http\Controllers\FeedController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PeopleController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\PostReportController;
@@ -22,6 +23,19 @@ Route::inertia('/', 'welcome')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('feed', FeedController::class)->name('feed');
+    Route::get('notifications', [NotificationController::class, 'index'])
+        ->name('notifications.index');
+    Route::post('notifications/{notification}/open', [NotificationController::class, 'open'])
+        ->whereUuid('notification')
+        ->middleware('throttle:notification-actions')
+        ->name('notifications.open');
+    Route::patch('notifications/{notification}/read', [NotificationController::class, 'read'])
+        ->whereUuid('notification')
+        ->middleware('throttle:notification-actions')
+        ->name('notifications.read');
+    Route::patch('notifications/read-all', [NotificationController::class, 'readAll'])
+        ->middleware('throttle:notification-actions')
+        ->name('notifications.read-all');
     Route::get('people', [PeopleController::class, 'index'])->name('people.index');
     Route::get('people/{profile:handle}', [PeopleController::class, 'show'])->name('people.show');
     Route::post('people/{profile:handle}/mute', [UserRelationshipController::class, 'mute'])
