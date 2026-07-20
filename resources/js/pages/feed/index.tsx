@@ -97,17 +97,19 @@ function SpacePulse({ spaces }: { spaces: Space[] }) {
                     <Link
                         key={space.slug}
                         href={`/spaces/${space.slug}`}
-                        className="social-card social-card-interactive social-focus group relative min-h-28 w-40 shrink-0 snap-start overflow-hidden rounded-[1.25rem] p-3.5 sm:w-[10.75rem]"
+                        className="social-card social-card-interactive social-focus group flex w-40 shrink-0 snap-start flex-col overflow-hidden rounded-[1.25rem] sm:w-44"
                     >
-                        <SpaceCover
-                            seed={space.slug}
-                            className="absolute inset-x-3 top-2 h-[4.25rem] rounded-xl transition-transform duration-300 group-hover:scale-[1.02]"
-                        />
-                        <div className="relative flex h-full flex-col justify-end pt-14">
-                            <span className="truncate text-sm font-extrabold">
+                        <div className="relative h-[4.75rem] shrink-0 overflow-hidden bg-secondary/70">
+                            <SpaceCover
+                                seed={space.slug}
+                                className="absolute inset-0 transition-transform duration-300 group-hover:scale-[1.025]"
+                            />
+                        </div>
+                        <div className="flex min-h-[4.5rem] flex-col px-3.5 py-3">
+                            <span className="line-clamp-2 text-sm leading-5 font-extrabold tracking-[-0.01em]">
                                 {space.name}
                             </span>
-                            <span className="mt-0.5 text-[0.68rem] font-semibold text-muted-foreground">
+                            <span className="mt-1.5 text-[0.68rem] leading-4 font-semibold text-muted-foreground">
                                 {space.memberCount.toLocaleString()}{' '}
                                 {space.memberCount === 1 ? 'member' : 'members'}
                             </span>
