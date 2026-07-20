@@ -1,4 +1,4 @@
-import { Head, Link, router, useForm } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import {
     ArrowRight,
     ChevronDown,
@@ -17,6 +17,7 @@ import type { SocialComment } from '@/components/social/comment-thread';
 import { CommunitySignal } from '@/components/social/community-signal';
 import { SpaceCover } from '@/components/social/space-cover';
 import { Button } from '@/components/ui/button';
+import type { Auth } from '@/types';
 
 type Space = {
     name: string;
@@ -122,6 +123,7 @@ function SpacePulse({ spaces }: { spaces: Space[] }) {
 }
 
 function Composer({ spaces }: { spaces: Space[] }) {
+    const { auth } = usePage<{ auth: Auth }>().props;
     const { data, setData, post, processing, errors, reset } = useForm({
         body: '',
         space: spaces[0]?.slug ?? '',
@@ -148,24 +150,25 @@ function Composer({ spaces }: { spaces: Space[] }) {
         <form
             id="compose"
             onSubmit={publish}
-            className="social-card scroll-mt-24 rounded-[1.35rem] p-4 sm:p-5"
+            className="social-card scroll-mt-24 overflow-hidden rounded-[1.35rem] transition-[border-color,box-shadow] focus-within:border-primary/25 focus-within:shadow-[0_1px_2px_rgba(15,23,42,0.03),0_20px_42px_-30px_rgba(37,99,235,0.24)]"
         >
-            <div className="flex gap-3">
-                <AvatarMark name="You" className="size-10 sm:size-11" />
+            <div className="flex items-center gap-3 px-4 pt-4 sm:px-5 sm:pt-5">
+                <AvatarMark name={auth.user.name} className="size-11" />
                 <div className="min-w-0 flex-1">
-                    <div className="mb-2 flex items-center justify-between gap-3">
-                        <p className="font-extrabold tracking-tight">
-                            Start a conversation
-                        </p>
-                        {spaces.length > 1 && (
-                            <label className="relative">
+                    <p className="text-sm font-black tracking-[-0.015em]">
+                        Share an update
+                    </p>
+                    <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                        <span className="shrink-0">Posting to</span>
+                        {spaces.length > 1 ? (
+                            <label className="relative -my-2 flex min-h-11 min-w-0 items-center">
                                 <span className="sr-only">Choose a space</span>
                                 <select
                                     value={data.space}
                                     onChange={(event) =>
                                         setData('space', event.target.value)
                                     }
-                                    className="social-focus h-8 max-w-36 appearance-none rounded-full border bg-secondary py-1 pr-7 pl-3 text-xs font-bold"
+                                    className="social-focus h-8 max-w-44 appearance-none rounded-lg bg-secondary/65 py-1 pr-7 pl-2 text-xs font-extrabold text-foreground"
                                 >
                                     {spaces.map((space) => (
                                         <option
@@ -177,39 +180,43 @@ function Composer({ spaces }: { spaces: Space[] }) {
                                     ))}
                                 </select>
                                 <ChevronDown
-                                    className="pointer-events-none absolute top-2 right-2 size-3.5"
+                                    className="pointer-events-none absolute top-1/2 right-2 size-3.5 -translate-y-1/2 text-muted-foreground"
                                     aria-hidden="true"
                                 />
                             </label>
+                        ) : (
+                            <span className="truncate font-extrabold text-foreground">
+                                {spaces[0]?.name}
+                            </span>
                         )}
                     </div>
-                    <textarea
-                        name="body"
-                        value={data.body}
-                        onChange={(event) =>
-                            setData('body', event.target.value)
-                        }
-                        maxLength={2000}
-                        rows={3}
-                        required
-                        placeholder="What is worth sharing today?"
-                        className="social-inset social-focus min-h-24 w-full resize-y px-4 py-3.5 text-[0.98rem] leading-6 placeholder:text-muted-foreground/75"
-                    />
-                    <InputError className="mt-2" message={errors.body} />
-                    <div className="mt-3 flex items-center justify-between gap-3">
-                        <span className="text-xs font-medium text-muted-foreground">
-                            {data.body.length.toLocaleString()} / 2,000
-                        </span>
-                        <Button
-                            type="submit"
-                            disabled={processing || data.body.trim() === ''}
-                            className="px-5"
-                        >
-                            <Send className="size-4" aria-hidden="true" />
-                            Publish
-                        </Button>
-                    </div>
                 </div>
+            </div>
+            <div className="px-4 pt-1 sm:px-5">
+                <textarea
+                    name="body"
+                    value={data.body}
+                    onChange={(event) => setData('body', event.target.value)}
+                    maxLength={2000}
+                    rows={4}
+                    required
+                    placeholder="What is worth sharing today?"
+                    className="min-h-28 w-full resize-y bg-transparent px-0 py-4 text-[1.02rem] leading-7 outline-none placeholder:text-muted-foreground/70"
+                />
+                <InputError className="pb-3" message={errors.body} />
+            </div>
+            <div className="flex items-center justify-between gap-3 border-t border-border/65 bg-secondary/28 px-4 py-3 sm:px-5">
+                <span className="text-xs font-semibold text-muted-foreground">
+                    {data.body.length.toLocaleString()} / 2,000
+                </span>
+                <Button
+                    type="submit"
+                    disabled={processing || data.body.trim() === ''}
+                    className="h-11 rounded-xl px-5"
+                >
+                    <Send className="size-4" aria-hidden="true" />
+                    Publish
+                </Button>
             </div>
         </form>
     );
