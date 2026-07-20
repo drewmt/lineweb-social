@@ -4,7 +4,7 @@ All notable project changes will be documented here.
 
 ## Unreleased
 
-## 0.1.0-alpha.1 - 2026-07-20
+## [0.1.0-alpha.1] - 2026-07-20
 
 ### Added
 
@@ -60,3 +60,6 @@ All notable project changes will be documented here.
 - Public platform-architecture guidance separating core safety invariants from
   product-specific presentation and extension-owned capabilities.
 - Feature, authorization, manifest, lint, type, and build checks.
+
+[Unreleased]: https://github.com/drewmt/lineweb-social/compare/v0.1.0-alpha.1...HEAD
+[0.1.0-alpha.1]: https://github.com/drewmt/lineweb-social/releases/tag/v0.1.0-alpha.1

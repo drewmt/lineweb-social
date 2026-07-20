@@ -1,5 +1,9 @@
 # Lineweb Social
 
+[![Tests](https://github.com/drewmt/lineweb-social/actions/workflows/tests.yml/badge.svg)](https://github.com/drewmt/lineweb-social/actions/workflows/tests.yml)
+[![License: GPL-3.0-or-later](https://img.shields.io/badge/license-GPL--3.0--or--later-254ada.svg)](LICENSE)
+[![Release: alpha](https://img.shields.io/badge/release-alpha-f97316.svg)](https://github.com/drewmt/lineweb-social/releases)
+
 Lineweb Social is a Laravel-native, self-hosted foundation for calm, branded online communities and modern social products. It is built as a complete open core: useful community fundamentals first, followed by a stable extension ecosystem only after the core contract is proven.
 
 The current release is `0.1.0-alpha.1`. It is suitable for local evaluation and community feedback, not production deployment.
@@ -32,6 +36,8 @@ This is an early development build, not a production release. Messaging, media, 
 Requirements: PHP 8.3+, Composer, Node.js, npm, and SQLite (or another Laravel-supported database).
 
 ```bash
+git clone https://github.com/drewmt/lineweb-social.git
+cd lineweb-social
 composer run setup
 composer run dev
 ```
