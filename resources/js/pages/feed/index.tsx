@@ -32,6 +32,7 @@ type Space = {
 
 type FeedPost = {
     id: number;
+    url: string;
     body: string;
     publishedAt: string | null;
     canComment: boolean;
@@ -278,12 +279,14 @@ function PostCard({
                             {item.space.name}
                         </Link>
                     </div>
-                    <time
-                        dateTime={item.publishedAt ?? undefined}
-                        className="text-xs font-medium text-muted-foreground"
+                    <Link
+                        href={item.url}
+                        className="social-focus inline-flex rounded-md text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
                     >
-                        {publishedLabel(item.publishedAt)}
-                    </time>
+                        <time dateTime={item.publishedAt ?? undefined}>
+                            {publishedLabel(item.publishedAt)}
+                        </time>
+                    </Link>
                 </div>
                 {item.hasReported ? (
                     <span className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-xl bg-secondary px-3 text-xs font-bold text-muted-foreground">
@@ -384,6 +387,7 @@ function PostCard({
             )}
             <CommentThread
                 postId={item.id}
+                postUrl={item.url}
                 comments={item.comments}
                 commentsCount={item.commentsCount}
                 canComment={item.canComment}

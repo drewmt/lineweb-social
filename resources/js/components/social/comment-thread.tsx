@@ -1,5 +1,5 @@
 import { Link, useForm } from '@inertiajs/react';
-import { Flag, MessageCircle, Send } from 'lucide-react';
+import { ArrowRight, Flag, MessageCircle, Send } from 'lucide-react';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import InputError from '@/components/input-error';
@@ -15,13 +15,14 @@ export type SocialComment = {
     author: { name: string; handle: string; profileVisible: boolean };
 };
 
-type ReportReason = {
+export type ReportReason = {
     value: string;
     label: string;
 };
 
 type CommentThreadProps = {
     postId: number;
+    postUrl: string;
     comments: SocialComment[];
     commentsCount: number;
     canComment: boolean;
@@ -123,7 +124,7 @@ function CommentReport({
     );
 }
 
-function CommentRow({
+export function CommentRow({
     comment,
     reportReasons,
 }: {
@@ -192,7 +193,7 @@ function CommentRow({
     );
 }
 
-function CommentComposer({ postId }: { postId: number }) {
+export function CommentComposer({ postId }: { postId: number }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         body: '',
     });
@@ -240,6 +241,7 @@ function CommentComposer({ postId }: { postId: number }) {
 
 export function CommentThread({
     postId,
+    postUrl,
     comments,
     commentsCount,
     canComment,
@@ -263,9 +265,13 @@ export function CommentThread({
                         : `${commentsCount.toLocaleString()} ${commentsCount === 1 ? 'comment' : 'comments'}`}
                 </button>
                 {commentsCount > comments.length && (
-                    <span className="text-xs font-semibold text-muted-foreground">
-                        Latest {comments.length}
-                    </span>
+                    <Link
+                        href={`${postUrl}#conversation`}
+                        className="social-focus inline-flex min-h-10 items-center gap-1.5 rounded-xl px-2.5 text-xs font-extrabold text-primary transition-colors hover:bg-primary/8"
+                    >
+                        View all
+                        <ArrowRight className="size-3.5" aria-hidden="true" />
+                    </Link>
                 )}
             </div>
 

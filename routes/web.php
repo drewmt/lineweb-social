@@ -84,6 +84,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('spaces/{space:slug}/posts', [PostController::class, 'store'])
         ->middleware('throttle:post-publishing')
         ->name('spaces.posts.store');
+    Route::get('posts/{post}', [PostController::class, 'show'])
+        ->name('posts.show');
     Route::post('posts/{post}/reports', [PostReportController::class, 'store'])
         ->middleware('throttle:post-reporting')
         ->name('posts.reports.store');
