@@ -8,6 +8,27 @@ Lineweb Social is a Laravel-native, self-hosted foundation for calm, branded onl
 
 The current release is `0.1.0-alpha.1`. It is suitable for local evaluation and community feedback, not production deployment.
 
+## Product preview
+
+![Lineweb Social Space discovery on desktop](docs/screenshots/spaces-desktop.jpg)
+
+<table>
+  <tr>
+    <td width="50%">
+      <img src="docs/screenshots/feed-mobile.jpg" alt="Lineweb Social chronological feed on mobile" />
+    </td>
+    <td width="50%">
+      <img src="docs/screenshots/profile-mobile.jpg" alt="Lineweb Social member profile on mobile" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Chronological community feed</sub></td>
+    <td align="center"><sub>Privacy-aware member profile</sub></td>
+  </tr>
+</table>
+
+<sub>Screenshots use a local demo dataset; no private member data is included.</sub>
+
 ## Current vertical slice
 
 - Verified accounts with passkey and two-factor support from Laravel Fortify.
