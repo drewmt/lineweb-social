@@ -29,26 +29,26 @@
         "eslint-plugin-react": "^7.37.3",
         "eslint-plugin-react-hooks": "^7.0.0",
         "prettier": "^3.4.2",
-        "prettier-plugin-tailwindcss": "^0.6.11",
-        "typescript-eslint": "^8.23.0"
+        "prettier-plugin-tailwindcss": "^0.8.1",
+        "typescript-eslint": "^8.65.0"
     },
     "dependencies": {
         "@inertiajs/react": "^3.0.0",
         "@inertiajs/vite": "^3.0.0",
         "@laravel/passkeys": "^0.2.0",
-        "@radix-ui/react-avatar": "^1.1.3",
-        "@radix-ui/react-checkbox": "^1.1.4",
-        "@radix-ui/react-collapsible": "^1.1.3",
-        "@radix-ui/react-dialog": "^1.1.6",
-        "@radix-ui/react-dropdown-menu": "^2.1.6",
-        "@radix-ui/react-label": "^2.1.2",
-        "@radix-ui/react-navigation-menu": "^1.2.5",
-        "@radix-ui/react-select": "^2.1.6",
-        "@radix-ui/react-separator": "^1.1.2",
+        "@radix-ui/react-avatar": "^1.2.3",
+        "@radix-ui/react-checkbox": "^1.3.8",
+        "@radix-ui/react-collapsible": "^1.1.17",
+        "@radix-ui/react-dialog": "^1.1.20",
+        "@radix-ui/react-dropdown-menu": "^2.1.21",
+        "@radix-ui/react-label": "^2.1.12",
+        "@radix-ui/react-navigation-menu": "^1.2.19",
+        "@radix-ui/react-select": "^2.3.4",
+        "@radix-ui/react-separator": "^1.1.12",
         "@radix-ui/react-slot": "^1.2.3",
-        "@radix-ui/react-toggle": "^1.1.2",
-        "@radix-ui/react-toggle-group": "^1.1.2",
-        "@radix-ui/react-tooltip": "^1.1.8",
+        "@radix-ui/react-toggle": "^1.1.15",
+        "@radix-ui/react-toggle-group": "^1.1.16",
+        "@radix-ui/react-tooltip": "^1.2.13",
         "@tailwindcss/vite": "^4.1.11",
         "@types/react": "^19.2.0",
         "@types/react-dom": "^19.2.0",
@@ -70,11 +70,11 @@
         "vite": "^8.0.0"
     },
     "optionalDependencies": {
-        "@rollup/rollup-linux-x64-gnu": "4.9.5",
-        "@rollup/rollup-win32-x64-msvc": "4.9.5",
+        "@rollup/rollup-linux-x64-gnu": "4.62.2",
+        "@rollup/rollup-win32-x64-msvc": "4.62.2",
         "@tailwindcss/oxide-linux-x64-gnu": "^4.0.1",
         "@tailwindcss/oxide-win32-x64-msvc": "^4.0.1",
-        "lightningcss-linux-x64-gnu": "^1.29.1",
-        "lightningcss-win32-x64-msvc": "^1.29.1"
+        "lightningcss-linux-x64-gnu": "^1.33.0",
+        "lightningcss-win32-x64-msvc": "^1.33.0"
     }
 }
