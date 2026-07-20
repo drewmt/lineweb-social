@@ -1,0 +1,11 @@
+{
+    "id": "duplicate-demo",
+    "name": "Duplicate Demo One",
+    "version": "0.1.0",
+    "license": "MIT",
+    "authors": [{"name": "Lineweb"}],
+    "core": "^0.1",
+    "provider": "Extensions\\DemoOne\\DemoServiceProvider",
+    "permissions": [],
+    "ui_slots": []
+}

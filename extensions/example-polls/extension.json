@@ -1,0 +1,23 @@
+{
+    "id": "example-polls",
+    "name": "Example Polls",
+    "version": "0.1.0",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Lineweb",
+            "url": "https://www.lineweb.gr"
+        }
+    ],
+    "core": "^0.1",
+    "provider": "Extensions\\ExamplePolls\\PollsServiceProvider",
+    "permissions": [
+        "posts.read",
+        "posts.write",
+        "spaces.read"
+    ],
+    "ui_slots": [
+        "feed.composer.after",
+        "post.actions"
+    ]
+}
