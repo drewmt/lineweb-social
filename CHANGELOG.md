@@ -12,6 +12,10 @@ All notable project changes will be documented here.
   with consistent spacing for titles and member counts.
 - The feed composer now brings identity, Space selection, writing, and publishing
   into one clear surface with accessible mobile touch targets.
+- Mobile Space cards now begin on the shared 16px content gutter while their
+  horizontal scroll rail remains edge-to-edge.
+- README product previews now show the current desktop feed, mobile feed, and
+  member-profile interfaces.
 
 ## [0.1.0-alpha.1] - 2026-07-20
 
