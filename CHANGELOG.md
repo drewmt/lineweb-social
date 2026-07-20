@@ -10,6 +10,8 @@ All notable project changes will be documented here.
   major upgrades remain isolated for focused review.
 - Mobile Space pulse cards now separate cover imagery from their text content,
   with consistent spacing for titles and member counts.
+- The feed composer now brings identity, Space selection, writing, and publishing
+  into one clear surface with accessible mobile touch targets.
 
 ## [0.1.0-alpha.1] - 2026-07-20
 
