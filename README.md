@@ -10,7 +10,7 @@ The current release is `0.1.0-alpha.1`. It is suitable for local evaluation and 
 
 ## Product preview
 
-![Lineweb Social Space discovery on desktop](docs/screenshots/spaces-desktop.jpg)
+![Lineweb Social chronological feed on desktop](docs/screenshots/feed-desktop.jpg)
 
 <table>
   <tr>
@@ -27,7 +27,7 @@ The current release is `0.1.0-alpha.1`. It is suitable for local evaluation and 
   </tr>
 </table>
 
-<sub>Screenshots use a local demo dataset; no private member data is included.</sub>
+<sub>Current desktop and mobile screenshots use a local demo dataset; no private member data is included.</sub>
 
 ## Current vertical slice
 

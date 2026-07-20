@@ -93,7 +93,7 @@ function SpacePulse({ spaces }: { spaces: Space[] }) {
                     Explore all
                 </Link>
             </div>
-            <div className="-mx-3 flex snap-x [scrollbar-width:none] gap-2.5 overflow-x-auto px-3 pb-1 sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden">
+            <div className="-mx-3 flex snap-x scroll-px-4 [scrollbar-width:none] gap-2.5 overflow-x-auto px-4 pb-1 sm:mx-0 sm:scroll-px-0 sm:px-0 [&::-webkit-scrollbar]:hidden">
                 {spaces.slice(0, 8).map((space) => (
                     <Link
                         key={space.slug}
