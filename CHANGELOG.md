@@ -8,6 +8,8 @@ All notable project changes will be documented here.
 
 - Dependabot now groups only compatible minor and patch dependency updates;
   major upgrades remain isolated for focused review.
+- Mobile Space pulse cards now separate cover imagery from their text content,
+  with consistent spacing for titles and member counts.
 
 ## [0.1.0-alpha.1] - 2026-07-20
 
