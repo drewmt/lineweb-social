@@ -11,6 +11,8 @@ The core owns invariants that an extension must not bypass:
 - Space visibility, roles, membership, invitations, and ownership;
 - chronological posts and comments;
 - report eligibility, moderation decisions, and append-only audit records;
+- in-app notification ownership, member preferences, read state, and safe
+  projections for core events;
 - rate limits, server validation, and policy authorization;
 - domain events emitted only after successful writes.
 
@@ -18,7 +20,10 @@ An Instagram-like product may render media-first cards, an X-like product may re
 
 ## Extension-owned capabilities
 
-Extensions may add new content projections, integrations, notifications, search indexes, analytics, commerce, learning, events, or alternative feed presentation. Extension data belongs in extension-owned tables and must reference core entities with explicit foreign keys.
+Extensions may add new content projections, integrations, notification channels,
+search indexes, analytics, commerce, learning, events, or alternative feed
+presentation. Extension data belongs in extension-owned tables and must reference
+core entities with explicit foreign keys.
 
 The current manifest is a deploy-time declaration prototype. Its permission and UI-slot allowlists document intent, but they are not yet a runtime sandbox or a supported marketplace API. No extension should be advertised as one-click installable until provider bootstrapping, migrations, compatibility checks, asset loading, failure isolation, and uninstall behavior are implemented and tested.
 
@@ -32,11 +37,17 @@ profile-visibility, and report-state boundaries while exposing comments in
 chronological 20-item pages. Feed previews link into this canonical view instead
 of attempting to load an unbounded thread inline.
 
+The notification center consumes a separate server-side projection over Laravel
+database notifications. Stored payloads contain identifiers only. Every render
+and open action resolves the current entity state, policy authorization, profile
+visibility, and Space role before exposing a destination. This lets a stale
+notification become unavailable without leaking deleted or newly restricted data.
+
 ## Near-term contract work
 
-1. Add notification events and delivery preferences without coupling them to one UI.
-2. Define media ownership, processing, privacy, and deletion before adding upload controls.
-3. Add versioned API resources for native and decoupled clients, building on the stable web conversation projection.
+1. Define media ownership, processing, privacy, and deletion before adding upload controls.
+2. Add versioned API resources for native and decoupled clients, building on the stable web conversation and notification projections.
+3. Define queued email and push delivery contracts without making the current web UI or database writes depend on an external transport.
 4. Implement and test the extension lifecycle before calling the manifest a plugin system.
 
 The goal is composability with secure defaults, not unlimited runtime code execution.

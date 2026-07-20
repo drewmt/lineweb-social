@@ -134,7 +134,10 @@ export function CommentRow({
     const [reporting, setReporting] = useState(false);
 
     return (
-        <article className="group/comment flex items-start gap-2.5">
+        <article
+            id={`comment-${comment.id}`}
+            className="group/comment flex scroll-mt-24 items-start gap-2.5"
+        >
             <AvatarMark name={comment.author.name} className="mt-0.5 size-8" />
             <div className="min-w-0 flex-1">
                 <div className="rounded-2xl rounded-tl-md bg-secondary/58 px-3.5 py-2.5">

@@ -1,5 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
+    Bell,
     Compass,
     Feather,
     Home,
@@ -32,6 +33,12 @@ const navItems = [
         subtitle: 'Discover members',
         href: '/people',
         icon: UsersRound,
+    },
+    {
+        title: 'Notifications',
+        subtitle: 'Updates that matter',
+        href: '/notifications',
+        icon: Bell,
     },
 ] as const;
 
@@ -97,7 +104,7 @@ function UserButton({
 }
 
 export function DesktopSocialNav() {
-    const { auth } = usePage().props;
+    const { auth, notificationSummary } = usePage().props;
     const { isCurrentOrParentUrl } = useCurrentUrl();
 
     return (
@@ -112,6 +119,10 @@ export function DesktopSocialNav() {
                     {navItems.map((item) => {
                         const active = isCurrentOrParentUrl(item.href);
                         const Icon = item.icon;
+                        const unreadCount =
+                            item.href === '/notifications'
+                                ? notificationSummary.unreadCount
+                                : 0;
 
                         return (
                             <Link
@@ -147,6 +158,11 @@ export function DesktopSocialNav() {
                                         {item.subtitle}
                                     </span>
                                 </span>
+                                {unreadCount > 0 && (
+                                    <span className="flex min-w-6 items-center justify-center rounded-full bg-coral px-1.5 py-1 text-[0.62rem] font-black text-white tabular-nums">
+                                        {unreadCount > 99 ? '99+' : unreadCount}
+                                    </span>
+                                )}
                                 {active && (
                                     <span className="absolute top-1/2 -right-3 h-7 w-1 -translate-y-1/2 rounded-l-full bg-primary" />
                                 )}
@@ -185,7 +201,7 @@ export function DesktopSocialNav() {
 }
 
 export function MobileSocialHeader() {
-    const { auth } = usePage().props;
+    const { auth, notificationSummary } = usePage().props;
 
     return (
         <header className="sticky top-0 z-40 flex h-[4.25rem] items-center justify-between border-b border-border/65 bg-card/88 px-4 backdrop-blur-xl lg:hidden">
@@ -194,7 +210,19 @@ export function MobileSocialHeader() {
                 Lineweb Social
             </span>
             {auth.user ? (
-                <UserButton user={auth.user} compact />
+                <div className="flex items-center gap-1.5">
+                    <Link
+                        href="/notifications"
+                        aria-label={`Notifications${notificationSummary.unreadCount > 0 ? `, ${notificationSummary.unreadCount} unread` : ''}`}
+                        className="social-focus relative flex size-10 items-center justify-center rounded-full text-foreground transition-colors hover:bg-secondary"
+                    >
+                        <Bell className="size-5" aria-hidden="true" />
+                        {notificationSummary.unreadCount > 0 && (
+                            <span className="absolute top-1.5 right-1.5 size-2.5 rounded-full bg-coral ring-2 ring-card" />
+                        )}
+                    </Link>
+                    <UserButton user={auth.user} compact />
+                </div>
             ) : (
                 <Link
                     href="/login"

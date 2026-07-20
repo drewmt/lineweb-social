@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Settings\NotificationPreferencesController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\SafetyController;
 use App\Http\Controllers\Settings\SecurityController;
@@ -26,6 +27,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::inertia('settings/appearance', 'settings/appearance')->name('appearance.edit');
     Route::get('settings/safety', SafetyController::class)->name('safety.edit');
+    Route::get('settings/notifications', [NotificationPreferencesController::class, 'edit'])
+        ->name('notification-preferences.edit');
+    Route::patch('settings/notifications', [NotificationPreferencesController::class, 'update'])
+        ->name('notification-preferences.update');
 });
 
 Route::get('.well-known/passkey-endpoints', function () {

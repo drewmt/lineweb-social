@@ -8,6 +8,9 @@ All notable project changes will be documented here.
 
 - Permanent post links with a responsive full-conversation view, chronological
   20-comment pages, and policy-filtered access to older replies.
+- Database-backed in-app notifications for replies and new Space moderation
+  reports, with unread state, secure destinations, and paginated history.
+- Per-member preferences for reply and moderation notification categories.
 
 ### Changed
 

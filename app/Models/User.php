@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
@@ -41,6 +42,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read int $shared_space_count
+ * @property-read NotificationPreference|null $notificationPreference
  */
 #[Fillable([
     'name',
@@ -72,6 +74,10 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             if (blank($user->handle)) {
                 $user->handle = static::availableHandle($user->name);
             }
+        });
+
+        static::deleting(function (User $user): void {
+            $user->notifications()->delete();
         });
     }
 
@@ -113,6 +119,12 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     public function comments(): HasMany
     {
         return $this->hasMany(Comment::class);
+    }
+
+    /** @return HasOne<NotificationPreference, $this> */
+    public function notificationPreference(): HasOne
+    {
+        return $this->hasOne(NotificationPreference::class);
     }
 
     /** @return HasMany<PostReport, $this> */
