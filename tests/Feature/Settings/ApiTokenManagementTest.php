@@ -59,7 +59,7 @@ class ApiTokenManagementTest extends TestCase
             ->from(route('security.edit'))
             ->post(route('api-tokens.store'), [
                 'name' => '  My phone  ',
-                'abilities' => ['profile:read', 'profiles:read'],
+                'abilities' => ['profile:read', 'profiles:read', 'spaces:read'],
             ]);
 
         $response
@@ -70,7 +70,7 @@ class ApiTokenManagementTest extends TestCase
         $flash = $response->getSession()->get(SessionKey::FLASH_DATA);
 
         $this->assertSame('My phone', $token->name);
-        $this->assertSame(['profile:read', 'profiles:read'], $token->abilities);
+        $this->assertSame(['profile:read', 'profiles:read', 'spaces:read'], $token->abilities);
         $this->assertSame(now()->addDays(30)->timestamp, $token->expires_at?->timestamp);
         $this->assertIsArray($flash);
         $this->assertSame('My phone', $flash['apiToken']['name']);

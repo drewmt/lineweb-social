@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Api\V1\CurrentProfileController;
 use App\Http\Controllers\Api\V1\ProfileController;
+use App\Http\Controllers\Api\V1\SpaceController;
+use App\Http\Controllers\Api\V1\SpaceIndexController;
 use App\Http\Middleware\AssignApiRequestId;
 use App\Http\Middleware\RequireBearerAccessToken;
 use Illuminate\Support\Facades\Route;
@@ -21,4 +23,10 @@ Route::prefix('v1')
         Route::get('profiles/{profile:handle}', ProfileController::class)
             ->middleware('abilities:profiles:read')
             ->name('api.v1.profiles.show');
+        Route::get('spaces', SpaceIndexController::class)
+            ->middleware('abilities:spaces:read')
+            ->name('api.v1.spaces.index');
+        Route::get('spaces/{space:slug}', SpaceController::class)
+            ->middleware('abilities:spaces:read')
+            ->name('api.v1.spaces.show');
     });

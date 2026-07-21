@@ -24,7 +24,7 @@ class ApiContractDocumentationTest extends TestCase
     /**
      * @throws JsonException
      */
-    public function test_first_contract_is_read_only_and_only_implemented_profiles_are_available(): void
+    public function test_first_contract_is_read_only_and_only_implemented_read_operations_are_available(): void
     {
         $contract = $this->contract();
         $expectedPaths = [
@@ -51,7 +51,7 @@ class ApiContractDocumentationTest extends TestCase
                 $path.' must remain read-only in the first contract slice.',
             );
             $this->assertSame(
-                in_array($path, ['/me', '/profiles/{handle}'], true) ? 'available' : 'planned',
+                in_array($path, ['/me', '/profiles/{handle}', '/spaces', '/spaces/{slug}'], true) ? 'available' : 'planned',
                 $pathItem['get']['x-lineweb-status'],
             );
             $this->assertArrayNotHasKey('requestBody', $pathItem['get']);
@@ -108,9 +108,14 @@ class ApiContractDocumentationTest extends TestCase
             ['id', 'kind', 'title', 'description', 'created_at', 'read_at', 'available', 'target'],
             array_keys($schemas['Notification']['properties']),
         );
+        $this->assertSame(
+            ['slug', 'name', 'description', 'visibility', 'member_count', 'viewer'],
+            array_keys($schemas['Space']['properties']),
+        );
 
         foreach (['email', 'password', 'token', 'disk', 'path', 'checksum', 'data'] as $forbidden) {
             $this->assertArrayNotHasKey($forbidden, $schemas['Profile']['properties']);
+            $this->assertArrayNotHasKey($forbidden, $schemas['Space']['properties']);
             $this->assertArrayNotHasKey($forbidden, $schemas['Media']['properties']);
             $this->assertArrayNotHasKey($forbidden, $schemas['Notification']['properties']);
         }

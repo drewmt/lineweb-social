@@ -19,12 +19,12 @@ class StoreApiTokenRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'min:2', 'max:80'],
-            'abilities' => ['required', 'array', 'min:1', 'max:2'],
+            'abilities' => ['required', 'array', 'min:1', 'max:3'],
             'abilities.*' => [
                 'required',
                 'string',
                 'distinct',
-                Rule::in(['profile:read', 'profiles:read']),
+                Rule::in(['profile:read', 'profiles:read', 'spaces:read']),
             ],
         ];
     }

@@ -78,7 +78,7 @@
         "operationId": "listSpaces",
         "summary": "List Spaces discoverable by the member",
         "tags": ["Spaces"],
-        "x-lineweb-status": "planned",
+        "x-lineweb-status": "available",
         "x-required-ability": "spaces:read",
         "parameters": [
           { "$ref": "#/components/parameters/Cursor" },
@@ -107,7 +107,7 @@
         "operationId": "getSpace",
         "summary": "Return one Space visible to the member",
         "tags": ["Spaces"],
-        "x-lineweb-status": "planned",
+        "x-lineweb-status": "available",
         "x-required-ability": "spaces:read",
         "parameters": [
           { "$ref": "#/components/parameters/SpaceSlug" }
