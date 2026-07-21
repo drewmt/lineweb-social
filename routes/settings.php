@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Settings\ApiTokenController;
 use App\Http\Controllers\Settings\NotificationPreferencesController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\SafetyController;
@@ -24,6 +25,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('settings/password', [SecurityController::class, 'update'])
         ->middleware('throttle:6,1')
         ->name('user-password.update');
+
+    Route::post('settings/api-tokens', [ApiTokenController::class, 'store'])
+        ->middleware([RequirePassword::class, 'throttle:api-token-management'])
+        ->name('api-tokens.store');
+    Route::delete('settings/api-tokens', [ApiTokenController::class, 'destroyAll'])
+        ->middleware([RequirePassword::class, 'throttle:api-token-management'])
+        ->name('api-tokens.destroy-all');
+    Route::delete('settings/api-tokens/{apiToken}', [ApiTokenController::class, 'destroy'])
+        ->whereNumber('apiToken')
+        ->middleware([RequirePassword::class, 'throttle:api-token-management'])
+        ->name('api-tokens.destroy');
 
     Route::inertia('settings/appearance', 'settings/appearance')->name('appearance.edit');
     Route::get('settings/safety', SafetyController::class)->name('safety.edit');

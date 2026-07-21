@@ -10,6 +10,7 @@ use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 use Inertia\Response;
 use Laravel\Fortify\Features;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class SecurityController extends Controller
 {
@@ -38,6 +39,22 @@ class SecurityController extends Controller
                     ->all()
                 : [],
             'passwordRules' => Password::defaults()->toPasswordRulesString(),
+            'apiTokens' => $request->user()
+                ->tokens()
+                ->latest()
+                ->limit(20)
+                ->get()
+                ->map(fn (PersonalAccessToken $token): array => [
+                    'id' => (string) $token->getKey(),
+                    'name' => $token->name,
+                    'abilities' => $token->abilities ?? [],
+                    'createdAt' => $token->created_at?->toIso8601String(),
+                    'lastUsedAt' => $token->last_used_at?->toIso8601String(),
+                    'expiresAt' => $token->expires_at?->toIso8601String(),
+                    'expired' => $token->expires_at?->isPast() ?? false,
+                ])
+                ->values()
+                ->all(),
         ];
 
         if (Features::canManageTwoFactorAuthentication()) {
@@ -58,6 +75,7 @@ class SecurityController extends Controller
         $request->user()->update([
             'password' => $request->password,
         ]);
+        $request->user()->tokens()->delete();
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Password updated.')]);
 

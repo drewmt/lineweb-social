@@ -3,10 +3,10 @@
 ## Status
 
 This document defines the first public contract for authenticated native and
-decoupled clients. The endpoints in `openapi.json` are **planned, not yet
-implemented**. Contract-first development keeps client expectations separate
-from the current Inertia view models and prevents accidental exposure of raw
-database records.
+decoupled clients. `GET /api/v1/me` is the first available operation; the other
+endpoints in `openapi.json` remain **planned, not yet implemented**.
+Contract-first development keeps client expectations separate from the current
+Inertia view models and prevents accidental exposure of raw database records.
 
 The first implementation slice is deliberately read-only. Write operations,
 interactive native login, third-party OAuth, webhooks, and realtime delivery
@@ -35,11 +35,11 @@ The existing first-party Inertia application continues to use Fortify session
 authentication, verified email, passkeys, two-factor authentication, CSRF
 protection, and the current login throttles.
 
-API v1 will use Laravel Sanctum bearer tokens for native, automation, and
-decoupled clients. The first alpha will not accept an email and password at an
-API token endpoint. Tokens will instead be created from a verified web session
-after recent authentication. This avoids creating a second login path that
-bypasses Fortify's passkey or two-factor challenges.
+API v1 uses Laravel Sanctum bearer tokens for native, automation, and decoupled
+clients. The API does not accept an email and password at a token endpoint.
+Tokens are created from the verified Security settings screen after recent
+password confirmation. This avoids creating a second login path that bypasses
+Fortify's passkey or two-factor challenges.
 
 Token rules:
 
@@ -156,15 +156,16 @@ authentication:
 | Private media delivery | 120 requests per minute plus infrastructure bandwidth limits |
 | Future writes | Separate endpoint-specific limiters, never the read bucket |
 
-Successful and throttled responses expose `RateLimit-Limit`,
-`RateLimit-Remaining`, and `RateLimit-Reset`. A `429` response also includes
-`Retry-After`. Limits are deployment defaults, not a promise that every
-installation has identical capacity.
+Successful responses expose Laravel's `X-RateLimit-Limit` and
+`X-RateLimit-Remaining` headers. A `429` response also includes
+`X-RateLimit-Reset` and `Retry-After`. Limits are deployment defaults, not a
+promise that every installation has identical capacity.
 
 ## CORS and transport
 
 - Production API traffic requires HTTPS.
-- Browser origins are an explicit environment allowlist; `*` is not a valid
+- Browser origins are an explicit `API_ALLOWED_ORIGINS` environment allowlist;
+  an empty value denies cross-origin browser access and `*` is not a valid
   production origin.
 - Bearer-token API routes do not enable credentialed cross-origin cookies.
 - The existing same-origin Inertia session remains on the web middleware stack
@@ -204,9 +205,9 @@ Public or long-lived signed media URLs are intentionally outside this draft.
 
 ## Read-only endpoint slice
 
-The first implementation contains only:
+The read-only API roadmap contains:
 
-- `GET /api/v1/me`
+- `GET /api/v1/me` — available
 - `GET /api/v1/profiles/{handle}`
 - `GET /api/v1/spaces`
 - `GET /api/v1/spaces/{slug}`
@@ -216,9 +217,10 @@ The first implementation contains only:
 - `GET /api/v1/posts/{post}/media`
 - `GET /api/v1/notifications`
 
-The OpenAPI operations carry `x-lineweb-status: planned` until their routes,
-resources, authorization, throttling, and feature tests exist. Documentation
-must never make a planned endpoint look available.
+OpenAPI operations carry `x-lineweb-status: planned` until their routes,
+resources, authorization, throttling, and feature tests exist. Only `/me`
+currently carries `x-lineweb-status: available`. Documentation must never make
+a planned endpoint look available.
 
 ## Implementation acceptance gates
 
