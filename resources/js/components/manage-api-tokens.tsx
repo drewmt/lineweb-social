@@ -184,6 +184,23 @@ export default function ManageApiTokens({ apiTokens }: Props) {
                                     </span>
                                 </span>
                             </label>
+                            <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border p-3 transition-colors hover:bg-muted/50">
+                                <input
+                                    type="checkbox"
+                                    name="abilities[]"
+                                    value="spaces:read"
+                                    className="mt-0.5 size-4 shrink-0 accent-primary"
+                                />
+                                <span>
+                                    <span className="block text-sm font-medium">
+                                        Discoverable Spaces
+                                    </span>
+                                    <span className="block text-xs text-muted-foreground">
+                                        Read public Spaces and private or hidden
+                                        Spaces where you are already a member.
+                                    </span>
+                                </span>
+                            </label>
                             <InputError message={errors.abilities} />
                         </fieldset>
 
