@@ -14,6 +14,9 @@ All notable project changes will be documented here.
   authentication, verified accounts, `profile:read`, expiring token management,
   stable request IDs/errors, explicit profile serialization, and lifecycle
   revocation.
+- Policy-safe `GET /api/v1/profiles/{handle}` access under the separate
+  `profiles:read` ability, preserving direct-link visibility, shared-Space
+  privacy, mute state, and mutual block boundaries.
 - Optional single-image post attachments with required alternative text,
   private policy-protected delivery, bounded processing, and static WebP
   normalization that discards original metadata and filenames.

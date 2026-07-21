@@ -3,8 +3,9 @@
 ## Status
 
 This document defines the first public contract for authenticated native and
-decoupled clients. `GET /api/v1/me` is the first available operation; the other
-endpoints in `openapi.json` remain **planned, not yet implemented**.
+decoupled clients. `GET /api/v1/me` and `GET /api/v1/profiles/{handle}` are
+available; the other endpoints in `openapi.json` remain **planned, not yet
+implemented**.
 Contract-first development keeps client expectations separate from the current
 Inertia view models and prevents accidental exposure of raw database records.
 
@@ -208,7 +209,7 @@ Public or long-lived signed media URLs are intentionally outside this draft.
 The read-only API roadmap contains:
 
 - `GET /api/v1/me` — available
-- `GET /api/v1/profiles/{handle}`
+- `GET /api/v1/profiles/{handle}` — available
 - `GET /api/v1/spaces`
 - `GET /api/v1/spaces/{slug}`
 - `GET /api/v1/feed`
@@ -218,9 +219,9 @@ The read-only API roadmap contains:
 - `GET /api/v1/notifications`
 
 OpenAPI operations carry `x-lineweb-status: planned` until their routes,
-resources, authorization, throttling, and feature tests exist. Only `/me`
-currently carries `x-lineweb-status: available`. Documentation must never make
-a planned endpoint look available.
+resources, authorization, throttling, and feature tests exist. Only `/me` and
+`/profiles/{handle}` currently carry `x-lineweb-status: available`.
+Documentation must never make a planned endpoint look available.
 
 ## Implementation acceptance gates
 

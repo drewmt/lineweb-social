@@ -14,6 +14,8 @@ class ProfileResource extends JsonResource
     {
         /** @var User $profile */
         $profile = $this->resource;
+        /** @var User $viewer */
+        $viewer = $request->user();
 
         return [
             'handle' => $profile->handle,
@@ -24,8 +26,8 @@ class ProfileResource extends JsonResource
             'website_url' => $profile->website_url,
             'member_since' => $profile->created_at?->toDateString(),
             'viewer' => [
-                'is_self' => true,
-                'is_muted' => false,
+                'is_self' => $viewer->is($profile),
+                'is_muted' => ! $viewer->is($profile) && $viewer->hasMuted($profile),
             ],
         ];
     }

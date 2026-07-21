@@ -57,7 +57,10 @@ class ApiTokenManagementTest extends TestCase
         $response = $this->actingAs($user)
             ->withSession(['auth.password_confirmed_at' => time()])
             ->from(route('security.edit'))
-            ->post(route('api-tokens.store'), ['name' => '  My phone  ']);
+            ->post(route('api-tokens.store'), [
+                'name' => '  My phone  ',
+                'abilities' => ['profile:read', 'profiles:read'],
+            ]);
 
         $response
             ->assertSessionHasNoErrors()
@@ -67,7 +70,7 @@ class ApiTokenManagementTest extends TestCase
         $flash = $response->getSession()->get(SessionKey::FLASH_DATA);
 
         $this->assertSame('My phone', $token->name);
-        $this->assertSame(['profile:read'], $token->abilities);
+        $this->assertSame(['profile:read', 'profiles:read'], $token->abilities);
         $this->assertSame(now()->addDays(30)->timestamp, $token->expires_at?->timestamp);
         $this->assertIsArray($flash);
         $this->assertSame('My phone', $flash['apiToken']['name']);
@@ -84,7 +87,10 @@ class ApiTokenManagementTest extends TestCase
 
         $this->actingAs($user)
             ->withSession(['auth.password_confirmed_at' => time()])
-            ->post(route('api-tokens.store'), ['name' => ' '])
+            ->post(route('api-tokens.store'), [
+                'name' => ' ',
+                'abilities' => ['profile:read'],
+            ])
             ->assertSessionHasErrors('name');
 
         for ($token = 1; $token <= 10; $token++) {
@@ -97,10 +103,35 @@ class ApiTokenManagementTest extends TestCase
 
         $this->actingAs($user)
             ->withSession(['auth.password_confirmed_at' => time()])
-            ->post(route('api-tokens.store'), ['name' => 'One too many'])
+            ->post(route('api-tokens.store'), [
+                'name' => 'One too many',
+                'abilities' => ['profile:read'],
+            ])
             ->assertSessionHasErrors('name');
 
         $this->assertCount(10, $user->tokens()->get());
+    }
+
+    public function test_token_abilities_are_required_and_limited_to_the_public_allowlist(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->withSession(['auth.password_confirmed_at' => time()])
+            ->post(route('api-tokens.store'), [
+                'name' => 'Unsafe client',
+                'abilities' => ['*'],
+            ])
+            ->assertSessionHasErrors('abilities.0');
+
+        $this->actingAs($user)
+            ->withSession(['auth.password_confirmed_at' => time()])
+            ->post(route('api-tokens.store'), [
+                'name' => 'Missing abilities',
+            ])
+            ->assertSessionHasErrors('abilities');
+
+        $this->assertDatabaseCount('personal_access_tokens', 0);
     }
 
     public function test_member_can_revoke_one_or_all_of_their_tokens_only(): void

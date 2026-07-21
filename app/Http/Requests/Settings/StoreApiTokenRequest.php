@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Settings;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreApiTokenRequest extends FormRequest
 {
@@ -18,6 +19,13 @@ class StoreApiTokenRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'min:2', 'max:80'],
+            'abilities' => ['required', 'array', 'min:1', 'max:2'],
+            'abilities.*' => [
+                'required',
+                'string',
+                'distinct',
+                Rule::in(['profile:read', 'profiles:read']),
+            ],
         ];
     }
 }

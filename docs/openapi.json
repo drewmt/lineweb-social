@@ -50,7 +50,7 @@
         "operationId": "getProfile",
         "summary": "Return a profile already visible to the member",
         "tags": ["Profiles"],
-        "x-lineweb-status": "planned",
+        "x-lineweb-status": "available",
         "x-required-ability": "profiles:read",
         "parameters": [
           { "$ref": "#/components/parameters/ProfileHandle" }
