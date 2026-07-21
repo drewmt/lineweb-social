@@ -3,6 +3,8 @@ import { useRef } from 'react';
 import SecurityController from '@/actions/App/Http/Controllers/Settings/SecurityController';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
+import ManageApiTokens from '@/components/manage-api-tokens';
+import type { ApiToken } from '@/components/manage-api-tokens';
 import type { Props as ManagePasskeysProps } from '@/components/manage-passkeys';
 import ManagePasskeys from '@/components/manage-passkeys';
 import type { Props as ManageTwoFactorProps } from '@/components/manage-two-factor';
@@ -14,6 +16,7 @@ import { edit } from '@/routes/security';
 
 type Props = {
     passwordRules: string;
+    apiTokens: ApiToken[];
 } & ManagePasskeysProps &
     ManageTwoFactorProps;
 
@@ -133,6 +136,8 @@ export default function Security(props: Props) {
                 canManagePasskeys={props.canManagePasskeys}
                 passkeys={props.passkeys}
             />
+
+            <ManageApiTokens apiTokens={props.apiTokens} />
         </>
     );
 }

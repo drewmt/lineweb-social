@@ -103,13 +103,13 @@ Post images are decoded from untrusted uploads, normalized to static WebP, kept
 on a private disk, and authorized through their parent post. See
 [`docs/media.md`](docs/media.md) for the limits, lifecycle, and storage contract.
 
-The first authenticated native/decoupled API is being developed contract-first.
-Its read-only draft fixes the `/api/v1` boundary, expiring token abilities,
-cursor pagination, throttling, CORS, stable errors, and policy-safe resources
-before any endpoint is exposed. See [`docs/api-v1.md`](docs/api-v1.md) and the
-machine-readable [`docs/openapi.json`](docs/openapi.json). Every documented
-operation remains explicitly marked `planned` until implementation and tests
-are complete.
+The authenticated native/decoupled API is being developed contract-first. Its
+first available operation, `GET /api/v1/me`, uses expiring limited bearer
+tokens created from recently confirmed Security settings. The remaining
+read-only draft fixes cursor pagination, throttling, CORS, stable errors, and
+policy-safe resources before more endpoints are exposed. See
+[`docs/api-v1.md`](docs/api-v1.md) and the machine-readable
+[`docs/openapi.json`](docs/openapi.json).
 
 The core owns identity, Spaces, visibility, safety relationships, conversations, and moderation. Product-specific experiences—photo grids, short-video feeds, professional timelines, events, commerce, or learning—should build on those boundaries through presentation layers and extensions rather than weakening core policies. See [`docs/platform-architecture.md`](docs/platform-architecture.md) for the current separation and the contracts that still need to mature.
 

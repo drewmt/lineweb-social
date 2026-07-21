@@ -3,7 +3,7 @@
   "info": {
     "title": "Lineweb Social API",
     "version": "1.0.0-draft.1",
-    "description": "Contract-first draft for the authenticated read-only API. Every operation is planned and is not available until its x-lineweb-status changes to available.",
+    "description": "Contract-first authenticated read-only API. Operations are unavailable until their x-lineweb-status changes from planned to available.",
     "license": {
       "name": "GPL-3.0-or-later",
       "identifier": "GPL-3.0-or-later"
@@ -26,7 +26,7 @@
         "operationId": "getCurrentProfile",
         "summary": "Return the authenticated member's safe profile",
         "tags": ["Profiles"],
-        "x-lineweb-status": "planned",
+        "x-lineweb-status": "available",
         "x-required-ability": "profile:read",
         "responses": {
           "200": {
@@ -387,13 +387,13 @@
           "Retry-After": {
             "schema": { "type": "integer", "minimum": 1 }
           },
-          "RateLimit-Limit": {
+          "X-RateLimit-Limit": {
             "schema": { "type": "integer", "minimum": 1 }
           },
-          "RateLimit-Remaining": {
+          "X-RateLimit-Remaining": {
             "schema": { "type": "integer", "minimum": 0 }
           },
-          "RateLimit-Reset": {
+          "X-RateLimit-Reset": {
             "schema": { "type": "integer", "minimum": 0 }
           }
         },

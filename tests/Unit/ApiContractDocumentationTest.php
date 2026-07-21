@@ -24,7 +24,7 @@ class ApiContractDocumentationTest extends TestCase
     /**
      * @throws JsonException
      */
-    public function test_first_contract_is_explicitly_read_only_and_planned(): void
+    public function test_first_contract_is_read_only_and_only_me_is_available(): void
     {
         $contract = $this->contract();
         $expectedPaths = [
@@ -50,7 +50,10 @@ class ApiContractDocumentationTest extends TestCase
                 array_keys($pathItem),
                 $path.' must remain read-only in the first contract slice.',
             );
-            $this->assertSame('planned', $pathItem['get']['x-lineweb-status']);
+            $this->assertSame(
+                $path === '/me' ? 'available' : 'planned',
+                $pathItem['get']['x-lineweb-status'],
+            );
             $this->assertArrayNotHasKey('requestBody', $pathItem['get']);
         }
     }
@@ -76,6 +79,12 @@ class ApiContractDocumentationTest extends TestCase
             $this->assertArrayHasKey('401', $operation['responses'], $path);
             $this->assertArrayHasKey('403', $operation['responses'], $path);
             $this->assertArrayHasKey('429', $operation['responses'], $path);
+        }
+
+        $throttleHeaders = $contract['components']['responses']['TooManyRequests']['headers'];
+
+        foreach (['Retry-After', 'X-RateLimit-Limit', 'X-RateLimit-Remaining', 'X-RateLimit-Reset'] as $header) {
+            $this->assertArrayHasKey($header, $throttleHeaders);
         }
     }
 

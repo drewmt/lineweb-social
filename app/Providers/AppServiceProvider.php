@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -78,6 +79,18 @@ class AppServiceProvider extends ServiceProvider
             ->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
 
         RateLimiter::for('notification-actions', fn (Request $request): Limit => Limit::perMinute(60)
+            ->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
+
+        RateLimiter::for('api-read', function (Request $request): Limit {
+            $token = $request->user()?->currentAccessToken();
+            $tokenId = $token instanceof PersonalAccessToken ? $token->getKey() : 'none';
+            $userId = $request->user()?->getAuthIdentifier() ?? 'guest';
+
+            return Limit::perMinute(120)
+                ->by("api-read:{$userId}:{$tokenId}");
+        });
+
+        RateLimiter::for('api-token-management', fn (Request $request): Limit => Limit::perMinute(10)
             ->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
     }
 }

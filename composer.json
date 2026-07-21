@@ -26,14 +26,15 @@
         "self-hosted"
     ],
     "require": {
+        "php": "^8.3",
         "ext-exif": "*",
         "ext-fileinfo": "*",
         "ext-gd": "*",
-        "php": "^8.3",
         "inertiajs/inertia-laravel": "^3.0",
         "laravel/chisel": "^0.1.0",
         "laravel/fortify": "^1.37.2",
         "laravel/framework": "^13.17",
+        "laravel/sanctum": "^4.3",
         "laravel/tinker": "^3.0",
         "laravel/wayfinder": "^0.1.14"
     },
