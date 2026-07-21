@@ -104,10 +104,11 @@ on a private disk, and authorized through their parent post. See
 [`docs/media.md`](docs/media.md) for the limits, lifecycle, and storage contract.
 
 The authenticated native/decoupled API is being developed contract-first. Its
-first available operation, `GET /api/v1/me`, uses expiring limited bearer
-tokens created from recently confirmed Security settings. The remaining
-read-only draft fixes cursor pagination, throttling, CORS, stable errors, and
-policy-safe resources before more endpoints are exposed. See
+first available operations return the current safe profile and profiles already
+visible to that member. They use expiring, explicitly scoped bearer tokens
+created from recently confirmed Security settings. The remaining read-only
+draft fixes cursor pagination, throttling, CORS, stable errors, and policy-safe
+resources before more endpoints are exposed. See
 [`docs/api-v1.md`](docs/api-v1.md) and the machine-readable
 [`docs/openapi.json`](docs/openapi.json).
 

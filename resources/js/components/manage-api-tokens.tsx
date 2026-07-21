@@ -127,8 +127,8 @@ export default function ManageApiTokens({ apiTokens }: Props) {
                 className="rounded-2xl border border-border bg-card p-4 sm:p-5"
             >
                 {({ errors, processing }) => (
-                    <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-                        <div className="grid gap-2">
+                    <div className="grid gap-5">
+                        <div className="grid gap-2 sm:max-w-xl">
                             <Label htmlFor="api-token-name">Token name</Label>
                             <Input
                                 id="api-token-name"
@@ -140,15 +140,63 @@ export default function ManageApiTokens({ apiTokens }: Props) {
                                 required
                             />
                             <InputError message={errors.name} />
-                            <p className="text-xs text-muted-foreground">
-                                Access: your safe profile only. Tokens expire
-                                after 30 days.
-                            </p>
                         </div>
-                        <Button type="submit" disabled={processing}>
-                            <KeyRound />
-                            {processing ? 'Creating...' : 'Create token'}
-                        </Button>
+
+                        <fieldset className="grid gap-3">
+                            <legend className="text-sm font-medium">
+                                Token access
+                            </legend>
+                            <input
+                                type="hidden"
+                                name="abilities[]"
+                                value="profile:read"
+                            />
+                            <label className="flex items-start gap-3 rounded-xl border border-border p-3">
+                                <span
+                                    aria-hidden="true"
+                                    className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-sm bg-primary text-primary-foreground opacity-60"
+                                >
+                                    <Check className="size-3" />
+                                </span>
+                                <span>
+                                    <span className="block text-sm font-medium">
+                                        Own safe profile
+                                    </span>
+                                    <span className="block text-xs text-muted-foreground">
+                                        Required for every token.
+                                    </span>
+                                </span>
+                            </label>
+                            <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border p-3 transition-colors hover:bg-muted/50">
+                                <input
+                                    type="checkbox"
+                                    name="abilities[]"
+                                    value="profiles:read"
+                                    className="mt-0.5 size-4 shrink-0 accent-primary"
+                                />
+                                <span>
+                                    <span className="block text-sm font-medium">
+                                        Visible member profiles
+                                    </span>
+                                    <span className="block text-xs text-muted-foreground">
+                                        Read only profiles already allowed by
+                                        their privacy and safety settings.
+                                    </span>
+                                </span>
+                            </label>
+                            <InputError message={errors.abilities} />
+                        </fieldset>
+
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <p className="text-xs text-muted-foreground">
+                                Tokens expire after 30 days. Grant only the
+                                access this client needs.
+                            </p>
+                            <Button type="submit" disabled={processing}>
+                                <KeyRound />
+                                {processing ? 'Creating...' : 'Create token'}
+                            </Button>
+                        </div>
                     </div>
                 )}
             </Form>

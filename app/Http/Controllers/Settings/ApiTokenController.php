@@ -12,8 +12,6 @@ use Inertia\Inertia;
 
 class ApiTokenController extends Controller
 {
-    private const ABILITIES = ['profile:read'];
-
     private const MAX_ACTIVE_TOKENS = 10;
 
     public function store(StoreApiTokenRequest $request): RedirectResponse
@@ -37,7 +35,7 @@ class ApiTokenController extends Controller
         $expiresAt = now()->addDays(30);
         $newToken = $user->createToken(
             $request->string('name')->toString(),
-            self::ABILITIES,
+            $request->array('abilities'),
             $expiresAt,
         );
 

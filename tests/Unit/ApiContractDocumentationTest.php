@@ -24,7 +24,7 @@ class ApiContractDocumentationTest extends TestCase
     /**
      * @throws JsonException
      */
-    public function test_first_contract_is_read_only_and_only_me_is_available(): void
+    public function test_first_contract_is_read_only_and_only_implemented_profiles_are_available(): void
     {
         $contract = $this->contract();
         $expectedPaths = [
@@ -51,7 +51,7 @@ class ApiContractDocumentationTest extends TestCase
                 $path.' must remain read-only in the first contract slice.',
             );
             $this->assertSame(
-                $path === '/me' ? 'available' : 'planned',
+                in_array($path, ['/me', '/profiles/{handle}'], true) ? 'available' : 'planned',
                 $pathItem['get']['x-lineweb-status'],
             );
             $this->assertArrayNotHasKey('requestBody', $pathItem['get']);

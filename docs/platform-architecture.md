@@ -54,8 +54,8 @@ post policy on every request. The full contract is documented in
 
 ## Near-term contract work
 
-1. Expand the authenticated read-only API beyond the available `/api/v1/me`
-   resource using the contract-first [`api-v1.md`](api-v1.md) and
+1. Expand the authenticated read-only API beyond the available profile
+   resources using the contract-first [`api-v1.md`](api-v1.md) and
    [`openapi.json`](openapi.json) draft, preserving the stable web conversation,
    notification, and media policy boundaries.
 2. Define queued email and push delivery contracts without making the current web UI or database writes depend on an external transport.
