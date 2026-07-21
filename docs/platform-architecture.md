@@ -54,7 +54,9 @@ post policy on every request. The full contract is documented in
 
 ## Near-term contract work
 
-1. Add versioned API resources for native and decoupled clients, building on the stable web conversation, notification, and media projections.
+1. Implement the read-only resources in the contract-first
+   [`api-v1.md`](api-v1.md) and [`openapi.json`](openapi.json) draft, preserving
+   the stable web conversation, notification, and media policy boundaries.
 2. Define queued email and push delivery contracts without making the current web UI or database writes depend on an external transport.
 3. Implement and test the extension lifecycle before calling the manifest a plugin system.
 4. Define quotas and asynchronous processing before expanding post media to
