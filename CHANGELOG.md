@@ -6,6 +6,10 @@ All notable project changes will be documented here.
 
 ### Added
 
+- A contract-first authenticated `/api/v1` draft with explicit token lifecycle,
+  abilities, cursor pagination, throttling, CORS, error, and policy-safe
+  serialization boundaries, plus a machine-readable OpenAPI 3.1 skeleton and
+  contract regression tests. All operations remain marked as planned.
 - Optional single-image post attachments with required alternative text,
   private policy-protected delivery, bounded processing, and static WebP
   normalization that discards original metadata and filenames.
