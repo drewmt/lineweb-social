@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 
 /**
@@ -20,11 +21,20 @@ use Illuminate\Support\Carbon;
  * @property string|null $moderation_note
  * @property-read Space $space
  * @property-read User $author
+ * @property-read PostMedia|null $media
  */
 class Post extends Model
 {
     /** @use HasFactory<PostFactory> */
     use HasFactory;
+
+    protected static function booted(): void
+    {
+        static::deleting(function (Post $post): void {
+            $post->loadMissing('media');
+            $post->media?->deleteStoredFile();
+        });
+    }
 
     protected $fillable = [
         'space_id',
@@ -73,5 +83,11 @@ class Post extends Model
     public function comments(): HasMany
     {
         return $this->hasMany(Comment::class);
+    }
+
+    /** @return HasOne<PostMedia, $this> */
+    public function media(): HasOne
+    {
+        return $this->hasOne(PostMedia::class);
     }
 }

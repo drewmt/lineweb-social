@@ -35,6 +35,15 @@ class Space extends Model
                 $space->owner_id => ['role' => SpaceRole::Owner->value],
             ]);
         });
+
+        static::deleting(function (Space $space): void {
+            PostMedia::query()
+                ->whereHas('post', fn (Builder $posts) => $posts
+                    ->where('space_id', $space->getKey()))
+                ->eachById(function (PostMedia $media): void {
+                    $media->deleteStoredFile();
+                });
+        });
     }
 
     protected $fillable = [

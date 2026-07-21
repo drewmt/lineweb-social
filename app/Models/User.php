@@ -77,6 +77,14 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         });
 
         static::deleting(function (User $user): void {
+            PostMedia::query()
+                ->whereHas('post', fn (Builder $posts) => $posts
+                    ->where('user_id', $user->getKey())
+                    ->orWhereHas('space', fn (Builder $spaces) => $spaces
+                        ->where('owner_id', $user->getKey())))
+                ->eachById(function (PostMedia $media): void {
+                    $media->deleteStoredFile();
+                });
             $user->notifications()->delete();
         });
     }

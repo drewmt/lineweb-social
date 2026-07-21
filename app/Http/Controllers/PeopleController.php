@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Community\PostMediaView;
 use App\Models\Post;
 use App\Models\Space;
 use App\Models\User;
@@ -47,7 +48,7 @@ class PeopleController extends Controller
         ]);
     }
 
-    public function show(Request $request, User $profile): Response
+    public function show(Request $request, User $profile, PostMediaView $media): Response
     {
         Gate::authorize('view', $profile);
 
@@ -87,13 +88,14 @@ class PeopleController extends Controller
         $postCount = (clone $visiblePosts)->count();
 
         $posts = $visiblePosts
-            ->with('space:id,name,slug')
+            ->with(['space:id,name,slug', 'media'])
             ->latest('published_at')
             ->limit(12)
             ->get()
             ->map(fn (Post $post): array => [
                 'id' => $post->id,
                 'body' => $post->body,
+                'media' => $media->for($post),
                 'publishedAt' => $post->published_at?->toIso8601String(),
                 'space' => [
                     'name' => $post->space->name,

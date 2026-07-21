@@ -21,6 +21,8 @@ import type {
     SocialComment,
 } from '@/components/social/comment-thread';
 import { CommunitySignal } from '@/components/social/community-signal';
+import { PostImage } from '@/components/social/post-image';
+import type { PostMedia } from '@/components/social/post-image';
 import { SpaceCover } from '@/components/social/space-cover';
 import { Button } from '@/components/ui/button';
 
@@ -28,6 +30,7 @@ type ConversationPost = {
     id: number;
     url: string;
     body: string;
+    media: PostMedia | null;
     publishedAt: string | null;
     isDraft: boolean;
     isHidden: boolean;
@@ -237,6 +240,14 @@ export default function ShowPost({
                                 <p className="mt-5 text-[1.04rem] leading-8 whitespace-pre-wrap text-foreground/92">
                                     {post.body}
                                 </p>
+
+                                {post.media && (
+                                    <PostImage
+                                        media={post.media}
+                                        className="mt-5"
+                                        eager
+                                    />
+                                )}
 
                                 {reporting && (
                                     <form

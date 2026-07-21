@@ -9,6 +9,8 @@ import {
     UsersRound,
 } from 'lucide-react';
 import { AvatarMark } from '@/components/social/avatar-mark';
+import { PostImage } from '@/components/social/post-image';
+import type { PostMedia } from '@/components/social/post-image';
 import { SpaceCover } from '@/components/social/space-cover';
 import { Button } from '@/components/ui/button';
 import { ProfileSafetyActions } from './profile-safety-actions';
@@ -40,6 +42,7 @@ type ProfileSpace = {
 type ProfilePost = {
     id: number;
     body: string;
+    media: PostMedia | null;
     publishedAt: string | null;
     space: { name: string; slug: string };
 };
@@ -420,6 +423,12 @@ export default function ShowProfile({
                                         <p className="mt-4 text-[1.01rem] leading-7 whitespace-pre-wrap text-foreground/90">
                                             {post.body}
                                         </p>
+                                        {post.media && (
+                                            <PostImage
+                                                media={post.media}
+                                                className="mt-4"
+                                            />
+                                        )}
                                     </article>
                                 ))}
                             </div>

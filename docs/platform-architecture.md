@@ -10,6 +10,8 @@ The core owns invariants that an extension must not bypass:
 - profile visibility, discovery, mute, and mutual block boundaries;
 - Space visibility, roles, membership, invitations, and ownership;
 - chronological posts and comments;
+- post-image ownership, bounded normalization, private storage, parent-policy
+  delivery, accessible projections, and lifecycle cleanup;
 - report eligibility, moderation decisions, and append-only audit records;
 - in-app notification ownership, member preferences, read state, and safe
   projections for core events;
@@ -43,11 +45,19 @@ and open action resolves the current entity state, policy authorization, profile
 visibility, and Space role before exposing a destination. This lets a stale
 notification become unavailable without leaking deleted or newly restricted data.
 
+The first post-image projection exposes only an authorized application URL,
+alternative text, and normalized dimensions. Storage disks, object paths,
+checksums, and source metadata remain server-side. Feed, permalink, and profile
+views consume this shared projection; the delivery controller rechecks the parent
+post policy on every request. The full contract is documented in
+[`media.md`](media.md).
+
 ## Near-term contract work
 
-1. Define media ownership, processing, privacy, and deletion before adding upload controls.
-2. Add versioned API resources for native and decoupled clients, building on the stable web conversation and notification projections.
-3. Define queued email and push delivery contracts without making the current web UI or database writes depend on an external transport.
-4. Implement and test the extension lifecycle before calling the manifest a plugin system.
+1. Add versioned API resources for native and decoupled clients, building on the stable web conversation, notification, and media projections.
+2. Define queued email and push delivery contracts without making the current web UI or database writes depend on an external transport.
+3. Implement and test the extension lifecycle before calling the manifest a plugin system.
+4. Define quotas and asynchronous processing before expanding post media to
+   galleries, video, direct uploads, or CDN delivery.
 
 The goal is composability with secure defaults, not unlimited runtime code execution.

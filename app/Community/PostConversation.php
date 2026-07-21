@@ -15,11 +15,13 @@ final class PostConversation
 {
     private const COMMENTS_PER_PAGE = 20;
 
+    public function __construct(private readonly PostMediaView $media) {}
+
     /**
      * Build the policy-filtered permalink projection for one post.
      *
      * @return array{
-     *     post: array{id: int, url: string, body: string, publishedAt: string|null, isDraft: bool, isHidden: bool, canComment: bool, canReport: bool, hasReported: bool, commentsCount: int, author: array{name: string, handle: string, profileVisible: bool}, space: array{name: string, slug: string, description: string|null, visibility: string, memberCount: int}},
+     *     post: array{id: int, url: string, body: string, media: array{url: string, alt: string, width: int, height: int}|null, publishedAt: string|null, isDraft: bool, isHidden: bool, canComment: bool, canReport: bool, hasReported: bool, commentsCount: int, author: array{name: string, handle: string, profileVisible: bool}, space: array{name: string, slug: string, description: string|null, visibility: string, memberCount: int}},
      *     comments: array{data: list<array{id: int, body: string, publishedAt: string, canReport: bool, hasReported: bool, author: array{name: string, handle: string, profileVisible: bool}}>, meta: array{currentPage: int, lastPage: int, perPage: int, total: int}, links: array{newer: string|null, older: string|null}}
      * }
      */
@@ -28,6 +30,7 @@ final class PostConversation
         $post->loadMissing([
             'author:id,name,handle',
             'space:id,name,slug,description,visibility',
+            'media',
         ]);
         $post->space->loadCount('members');
 
@@ -73,6 +76,7 @@ final class PostConversation
                 'id' => $post->id,
                 'url' => route('posts.show', $post),
                 'body' => $post->body,
+                'media' => $this->media->for($post),
                 'publishedAt' => $post->published_at?->toIso8601String(),
                 'isDraft' => $post->published_at === null,
                 'isHidden' => $post->hidden_at !== null,

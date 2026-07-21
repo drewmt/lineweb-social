@@ -7,6 +7,7 @@ use App\Http\Controllers\FeedController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PeopleController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\PostImageController;
 use App\Http\Controllers\PostReportController;
 use App\Http\Controllers\PostReportModerationController;
 use App\Http\Controllers\SpaceController;
@@ -100,6 +101,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('spaces.posts.store');
     Route::get('posts/{post}', [PostController::class, 'show'])
         ->name('posts.show');
+    Route::get('posts/{post}/image', PostImageController::class)
+        ->name('posts.image');
     Route::post('posts/{post}/reports', [PostReportController::class, 'store'])
         ->middleware('throttle:post-reporting')
         ->name('posts.reports.store');
