@@ -10,20 +10,48 @@ The current release is `0.1.0-alpha.1`. It is suitable for local evaluation and 
 
 ## Product preview
 
-![Lineweb Social chronological feed on desktop](docs/screenshots/feed-desktop.jpg)
+![Lineweb Social product homepage on desktop](docs/screenshots/home-desktop.jpg)
 
 <table>
   <tr>
     <td width="50%">
-      <img src="docs/screenshots/feed-mobile.jpg" alt="Lineweb Social chronological feed on mobile" />
+      <img src="docs/screenshots/feed-desktop.jpg" alt="Lineweb Social chronological feed on desktop" />
     </td>
     <td width="50%">
-      <img src="docs/screenshots/profile-mobile.jpg" alt="Lineweb Social member profile on mobile" />
+      <img src="docs/screenshots/spaces-desktop.jpg" alt="Lineweb Social searchable Spaces directory on desktop" />
     </td>
   </tr>
   <tr>
     <td align="center"><sub>Chronological community feed</sub></td>
-    <td align="center"><sub>Privacy-aware member profile</sub></td>
+    <td align="center"><sub>Searchable Spaces directory</sub></td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="docs/screenshots/space-detail-desktop.jpg" alt="Lineweb Social Space detail and publishing surface on desktop" />
+    </td>
+    <td width="50%">
+      <img src="docs/screenshots/moderation-mobile.jpg" alt="Lineweb Social moderation queue on mobile" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Space publishing and context</sub></td>
+    <td align="center"><sub>Accountable moderation queue</sub></td>
+  </tr>
+  <tr>
+    <td width="33%">
+      <img src="docs/screenshots/feed-mobile.jpg" alt="Lineweb Social chronological feed on mobile" />
+    </td>
+    <td width="33%">
+      <img src="docs/screenshots/profile-mobile.jpg" alt="Lineweb Social member profile on mobile" />
+    </td>
+    <td width="33%">
+      <img src="docs/screenshots/notifications-mobile.jpg" alt="Lineweb Social notification center on mobile" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Mobile feed</sub></td>
+    <td align="center"><sub>Privacy-aware profile</sub></td>
+    <td align="center"><sub>Low-noise notifications</sub></td>
   </tr>
 </table>
 
