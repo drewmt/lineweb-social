@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\DB;
 
 final class CommunityFeed
 {
+    public function __construct(private readonly PostMediaView $media) {}
+
     /**
      * @return list<array{name: string, slug: string, description: string|null, visibility: 'public'|'private'|'hidden', memberCount: int, isMember: bool, isOwner: bool, canManage: bool}>
      */
@@ -51,7 +53,7 @@ final class CommunityFeed
     }
 
     /**
-     * @return list<array{id: int, url: string, body: string, publishedAt: string|null, canComment: bool, canReport: bool, hasReported: bool, commentsCount: int, comments: list<array{id: int, body: string, publishedAt: string, canReport: bool, hasReported: bool, author: array{name: string, handle: string, profileVisible: bool}}>, author: array{name: string, handle: string, profileVisible: bool}, space: array{name: string, slug: string}}>
+     * @return list<array{id: int, url: string, body: string, media: array{url: string, alt: string, width: int, height: int}|null, publishedAt: string|null, canComment: bool, canReport: bool, hasReported: bool, commentsCount: int, comments: list<array{id: int, body: string, publishedAt: string, canReport: bool, hasReported: bool, author: array{name: string, handle: string, profileVisible: bool}}>, author: array{name: string, handle: string, profileVisible: bool}, space: array{name: string, slug: string}}>
      */
     public function posts(User $user, ?Space $space = null): array
     {
@@ -80,6 +82,7 @@ final class CommunityFeed
             ->with([
                 'author:id,name,handle',
                 'space:id,name,slug,visibility',
+                'media',
                 'comments' => fn ($comments) => $visibleComments($comments)
                     ->with('author:id,name,handle')
                     ->latest('published_at')
@@ -132,6 +135,7 @@ final class CommunityFeed
                 'id' => $post->id,
                 'url' => route('posts.show', $post),
                 'body' => $post->body,
+                'media' => $this->media->for($post),
                 'publishedAt' => $post->published_at?->toIso8601String(),
                 'canComment' => in_array($post->space_id, $memberSpaceIds, true),
                 'canReport' => $post->user_id !== $user->getKey(),

@@ -6,6 +6,11 @@ All notable project changes will be documented here.
 
 ### Added
 
+- Optional single-image post attachments with required alternative text,
+  private policy-protected delivery, bounded processing, and static WebP
+  normalization that discards original metadata and filenames.
+- Media lifecycle cleanup when a parent post, Space, or account is deleted,
+  plus a public contract for storage, authorization, and future extensions.
 - Permanent post links with a responsive full-conversation view, chronological
   20-comment pages, and policy-filtered access to older replies.
 - Database-backed in-app notifications for replies and new Space moderation

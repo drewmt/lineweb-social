@@ -26,6 +26,9 @@
         "self-hosted"
     ],
     "require": {
+        "ext-exif": "*",
+        "ext-fileinfo": "*",
+        "ext-gd": "*",
         "php": "^8.3",
         "inertiajs/inertia-laravel": "^3.0",
         "laravel/chisel": "^0.1.0",

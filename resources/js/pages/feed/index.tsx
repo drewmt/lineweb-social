@@ -4,17 +4,21 @@ import {
     ChevronDown,
     Flag,
     Globe2,
+    ImagePlus,
     LockKeyhole,
     Send,
     UsersRound,
+    X,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import InputError from '@/components/input-error';
 import { AvatarMark } from '@/components/social/avatar-mark';
 import { CommentThread } from '@/components/social/comment-thread';
 import type { SocialComment } from '@/components/social/comment-thread';
 import { CommunitySignal } from '@/components/social/community-signal';
+import { PostImage } from '@/components/social/post-image';
+import type { PostMedia } from '@/components/social/post-image';
 import { SpaceCover } from '@/components/social/space-cover';
 import { Button } from '@/components/ui/button';
 import type { Auth } from '@/types';
@@ -34,6 +38,7 @@ type FeedPost = {
     id: number;
     url: string;
     body: string;
+    media: PostMedia | null;
     publishedAt: string | null;
     canComment: boolean;
     canReport: boolean;
@@ -125,10 +130,49 @@ function SpacePulse({ spaces }: { spaces: Space[] }) {
 
 function Composer({ spaces }: { spaces: Space[] }) {
     const { auth } = usePage<{ auth: Auth }>().props;
-    const { data, setData, post, processing, errors, reset } = useForm({
+    const fileInput = useRef<HTMLInputElement>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const { data, setData, post, processing, errors, reset } = useForm<{
+        body: string;
+        space: string;
+        image: File | null;
+        image_alt: string;
+    }>({
         body: '',
         space: spaces[0]?.slug ?? '',
+        image: null,
+        image_alt: '',
     });
+
+    useEffect(
+        () => () => {
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl);
+            }
+        },
+        [previewUrl],
+    );
+
+    const selectImage = (file: File | null) => {
+        if (previewUrl) {
+            URL.revokeObjectURL(previewUrl);
+        }
+
+        setData('image', file);
+        setPreviewUrl(file ? URL.createObjectURL(file) : null);
+
+        if (!file) {
+            setData('image_alt', '');
+        }
+    };
+
+    const clearImage = () => {
+        selectImage(null);
+
+        if (fileInput.current) {
+            fileInput.current.value = '';
+        }
+    };
 
     const publish = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -139,7 +183,11 @@ function Composer({ spaces }: { spaces: Space[] }) {
 
         post(`/spaces/${encodeURIComponent(data.space)}/posts`, {
             preserveScroll: true,
-            onSuccess: () => reset('body'),
+            forceFormData: true,
+            onSuccess: () => {
+                clearImage();
+                reset('body', 'image', 'image_alt');
+            },
         });
     };
 
@@ -206,13 +254,84 @@ function Composer({ spaces }: { spaces: Space[] }) {
                 />
                 <InputError className="pb-3" message={errors.body} />
             </div>
+            {previewUrl && data.image && (
+                <div className="mx-4 mb-4 rounded-2xl border border-border/75 bg-background p-3 sm:mx-5 sm:p-4">
+                    <div className="flex items-start gap-3">
+                        <div className="relative size-20 shrink-0 overflow-hidden rounded-xl bg-secondary sm:size-24">
+                            <img
+                                src={previewUrl}
+                                alt=""
+                                className="size-full object-cover"
+                            />
+                            <button
+                                type="button"
+                                onClick={clearImage}
+                                aria-label="Remove selected image"
+                                className="social-focus absolute top-1.5 right-1.5 flex size-8 items-center justify-center rounded-full bg-foreground/82 text-background backdrop-blur transition-colors hover:bg-foreground"
+                            >
+                                <X className="size-4" aria-hidden="true" />
+                            </button>
+                        </div>
+                        <label className="min-w-0 flex-1 text-sm font-extrabold">
+                            Describe this image
+                            <span className="mt-0.5 block text-xs leading-5 font-medium text-muted-foreground">
+                                Required for members using screen readers.
+                            </span>
+                            <input
+                                type="text"
+                                value={data.image_alt}
+                                onChange={(event) =>
+                                    setData('image_alt', event.target.value)
+                                }
+                                required
+                                maxLength={300}
+                                placeholder="A concise description of the image"
+                                className="social-inset social-focus mt-2 h-11 w-full px-3 text-sm font-semibold"
+                            />
+                        </label>
+                    </div>
+                    <InputError className="mt-2" message={errors.image} />
+                    <InputError className="mt-2" message={errors.image_alt} />
+                </div>
+            )}
             <div className="flex items-center justify-between gap-3 border-t border-border/65 bg-secondary/28 px-4 py-3 sm:px-5">
-                <span className="text-xs font-semibold text-muted-foreground">
-                    {data.body.length.toLocaleString()} / 2,000
-                </span>
+                <div className="flex min-w-0 items-center gap-2">
+                    <input
+                        ref={fileInput}
+                        type="file"
+                        name="image"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="sr-only"
+                        onChange={(event) =>
+                            selectImage(event.target.files?.[0] ?? null)
+                        }
+                    />
+                    {!data.image && (
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            aria-label="Add image"
+                            onClick={() => fileInput.current?.click()}
+                            className="h-11 rounded-xl px-3"
+                        >
+                            <ImagePlus
+                                className="size-4.5"
+                                aria-hidden="true"
+                            />
+                            <span className="hidden sm:inline">Add image</span>
+                        </Button>
+                    )}
+                    <span className="truncate text-xs font-semibold text-muted-foreground">
+                        {data.body.length.toLocaleString()} / 2,000
+                    </span>
+                </div>
                 <Button
                     type="submit"
-                    disabled={processing || data.body.trim() === ''}
+                    disabled={
+                        processing ||
+                        data.body.trim() === '' ||
+                        (data.image !== null && data.image_alt.trim() === '')
+                    }
                     className="h-11 rounded-xl px-5"
                 >
                     <Send className="size-4" aria-hidden="true" />
@@ -310,6 +429,7 @@ function PostCard({
             <p className="mt-4 text-[1.01rem] leading-7 whitespace-pre-wrap text-foreground/92 sm:text-[1.04rem] sm:leading-8">
                 {item.body}
             </p>
+            {item.media && <PostImage media={item.media} className="mt-4" />}
             {reporting && (
                 <form
                     onSubmit={submitReport}

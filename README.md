@@ -39,6 +39,8 @@ The current release is `0.1.0-alpha.1`. It is suitable for local evaluation and 
 - A chronological, non-algorithmic feed.
 - Membership-protected comments with compact feed previews, permanent post
   links, and a full visibility-filtered paginated conversation view.
+- One optional image per post with required alternative text, private storage,
+  policy-protected delivery, and metadata-stripping WebP normalization.
 - Private post and comment reporting with allowlisted reasons, duplicate protection, and separate rate limits.
 - A unified, policy-backed moderator queue with documented decisions, content hide/restore behavior, and append-only Space audit entries.
 - A low-noise in-app notification center for replies and new moderation reports,
@@ -53,13 +55,14 @@ The current release is `0.1.0-alpha.1`. It is suitable for local evaluation and 
 - A local extension-manifest contract with explicit permission and UI-slot allowlists.
 - React 19, Inertia 3, TypeScript, Tailwind CSS 4, and Laravel 13.
 
-This is an early development build, not a production release. Messaging, media,
-email and push notification delivery, full content search, data export/deletion,
-and a supported extension lifecycle are still pending.
+This is an early development build, not a production release. Messaging,
+galleries and video, email and push notification delivery, full content search,
+data export/deletion, and a supported extension lifecycle are still pending.
 
 ## Local setup
 
-Requirements: PHP 8.3+, Composer, Node.js, npm, and SQLite (or another Laravel-supported database).
+Requirements: PHP 8.3+ with GD/WebP, EXIF, and Fileinfo, Composer, Node.js, npm,
+and SQLite (or another Laravel-supported database).
 
 ```bash
 git clone https://github.com/drewmt/lineweb-social.git
@@ -95,6 +98,10 @@ Moderation integrations can listen to after-transaction domain events. See [`doc
 The first notification contract deliberately stores identifiers rather than
 content excerpts or report details. See [`docs/notifications.md`](docs/notifications.md)
 for delivery categories, privacy boundaries, and extension guidance.
+
+Post images are decoded from untrusted uploads, normalized to static WebP, kept
+on a private disk, and authorized through their parent post. See
+[`docs/media.md`](docs/media.md) for the limits, lifecycle, and storage contract.
 
 The core owns identity, Spaces, visibility, safety relationships, conversations, and moderation. Product-specific experiences—photo grids, short-video feeds, professional timelines, events, commerce, or learning—should build on those boundaries through presentation layers and extensions rather than weakening core policies. See [`docs/platform-architecture.md`](docs/platform-architecture.md) for the current separation and the contracts that still need to mature.
 
