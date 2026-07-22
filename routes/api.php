@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Api\V1\CurrentProfileController;
+use App\Http\Controllers\Api\V1\FeedController;
+use App\Http\Controllers\Api\V1\PostMediaController;
 use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\Api\V1\SpaceController;
 use App\Http\Controllers\Api\V1\SpaceIndexController;
@@ -29,4 +31,10 @@ Route::prefix('v1')
         Route::get('spaces/{space:slug}', SpaceController::class)
             ->middleware('abilities:spaces:read')
             ->name('api.v1.spaces.show');
+        Route::get('feed', FeedController::class)
+            ->middleware('abilities:feed:read')
+            ->name('api.v1.feed');
+        Route::get('posts/{post}/media', PostMediaController::class)
+            ->middleware('abilities:feed:read')
+            ->name('api.v1.posts.media');
     });

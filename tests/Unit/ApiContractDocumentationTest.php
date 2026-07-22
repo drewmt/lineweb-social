@@ -39,6 +39,14 @@ class ApiContractDocumentationTest extends TestCase
             '/spaces/{slug}',
         ];
         $paths = array_keys($contract['paths']);
+        $availablePaths = [
+            '/feed',
+            '/me',
+            '/posts/{post}/media',
+            '/profiles/{handle}',
+            '/spaces',
+            '/spaces/{slug}',
+        ];
 
         sort($paths);
 
@@ -51,11 +59,13 @@ class ApiContractDocumentationTest extends TestCase
                 $path.' must remain read-only in the first contract slice.',
             );
             $this->assertSame(
-                in_array($path, ['/me', '/profiles/{handle}', '/spaces', '/spaces/{slug}'], true) ? 'available' : 'planned',
+                in_array($path, $availablePaths, true) ? 'available' : 'planned',
                 $pathItem['get']['x-lineweb-status'],
             );
             $this->assertArrayNotHasKey('requestBody', $pathItem['get']);
         }
+
+        $this->assertArrayHasKey('422', $contract['paths']['/feed']['get']['responses']);
     }
 
     /**
@@ -112,11 +122,21 @@ class ApiContractDocumentationTest extends TestCase
             ['slug', 'name', 'description', 'visibility', 'member_count', 'viewer'],
             array_keys($schemas['Space']['properties']),
         );
+        $this->assertSame(
+            ['id', 'body', 'published_at', 'media', 'comments_count', 'author', 'space', 'viewer'],
+            array_keys($schemas['Post']['properties']),
+        );
+        $this->assertSame(
+            ['handle', 'name', 'headline', 'profile_visible'],
+            array_keys($schemas['ProfileSummary']['properties']),
+        );
 
         foreach (['email', 'password', 'token', 'disk', 'path', 'checksum', 'data'] as $forbidden) {
             $this->assertArrayNotHasKey($forbidden, $schemas['Profile']['properties']);
             $this->assertArrayNotHasKey($forbidden, $schemas['Space']['properties']);
             $this->assertArrayNotHasKey($forbidden, $schemas['Media']['properties']);
+            $this->assertArrayNotHasKey($forbidden, $schemas['Post']['properties']);
+            $this->assertArrayNotHasKey($forbidden, $schemas['ProfileSummary']['properties']);
             $this->assertArrayNotHasKey($forbidden, $schemas['Notification']['properties']);
         }
     }

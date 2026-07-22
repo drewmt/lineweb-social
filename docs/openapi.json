@@ -135,7 +135,7 @@
         "operationId": "getFeed",
         "summary": "Return the member's policy-filtered chronological feed",
         "tags": ["Feed"],
-        "x-lineweb-status": "planned",
+        "x-lineweb-status": "available",
         "x-required-ability": "feed:read",
         "parameters": [
           { "$ref": "#/components/parameters/Cursor" },
@@ -163,6 +163,7 @@
           "401": { "$ref": "#/components/responses/Unauthenticated" },
           "403": { "$ref": "#/components/responses/Forbidden" },
           "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/ValidationFailed" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
       }
@@ -231,7 +232,7 @@
         "operationId": "getPostMedia",
         "summary": "Return the authorized normalized post image",
         "tags": ["Posts"],
-        "x-lineweb-status": "planned",
+        "x-lineweb-status": "available",
         "x-required-ability": "feed:read",
         "parameters": [
           { "$ref": "#/components/parameters/PostId" }
@@ -375,6 +376,14 @@
       },
       "NotFound": {
         "description": "The resource does not exist or is not visible to the member.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" }
+          }
+        }
+      },
+      "ValidationFailed": {
+        "description": "One or more query parameters failed validation.",
         "content": {
           "application/json": {
             "schema": { "$ref": "#/components/schemas/Error" }

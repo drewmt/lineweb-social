@@ -17,6 +17,9 @@ All notable project changes will be documented here.
 - Policy-safe `GET /api/v1/profiles/{handle}` access under the separate
   `profiles:read` ability, preserving direct-link visibility, shared-Space
   privacy, mute state, and mutual block boundaries.
+- A `feed:read` API ability with `GET /api/v1/feed`, deterministic encrypted
+  cursor pagination, optional visible-Space filtering, policy-safe post
+  resources, and bearer-authorized normalized media delivery.
 - Optional single-image post attachments with required alternative text,
   private policy-protected delivery, bounded processing, and static WebP
   normalization that discards original metadata and filenames.
