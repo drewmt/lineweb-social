@@ -193,6 +193,12 @@ final class NotificationCenter
     }
 
     /**
+     * @param array{
+     *     kind: string,
+     *     title: string,
+     *     description: string,
+     *     destination: string|null,
+     * } $resolved
      * @return array{
      *     type: string,
      *     post_id?: string,
@@ -217,7 +223,17 @@ final class NotificationCenter
     }
 
     /**
-     * @return array{type: string, post_id: string, comment_id: string}|null
+     * @param array{
+     *     kind: string,
+     *     title: string,
+     *     description: string,
+     *     destination: string|null,
+     * } $resolved
+     * @return array{
+     *     type: string,
+     *     post_id: string,
+     *     comment_id: string,
+     * }|null
      */
     private function notificationApiTargetForCommentReply(
         DatabaseNotification $notification,
@@ -247,7 +263,16 @@ final class NotificationCenter
     }
 
     /**
-     * @return array{type: string, space_slug: string}|null
+     * @param array{
+     *     kind: string,
+     *     title: string,
+     *     description: string,
+     *     destination: string|null,
+     * } $resolved
+     * @return array{
+     *     type: string,
+     *     space_slug: string,
+     * }|null
      */
     private function notificationApiTargetForSpaceModeration(
         User $viewer,
