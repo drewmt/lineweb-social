@@ -20,6 +20,8 @@ export type ReportReason = {
     label: string;
 };
 
+const COMMENT_PREVIEW_LENGTH = 180;
+
 type CommentThreadProps = {
     postId: number;
     postUrl: string;
@@ -132,6 +134,12 @@ export function CommentRow({
     reportReasons: ReportReason[];
 }) {
     const [reporting, setReporting] = useState(false);
+    const hasLongBody = comment.body.length > COMMENT_PREVIEW_LENGTH;
+    const [expanded, setExpanded] = useState(false);
+    const previewBody =
+        hasLongBody && !expanded
+            ? `${comment.body.slice(0, COMMENT_PREVIEW_LENGTH)}…`
+            : comment.body;
 
     return (
         <article
@@ -162,8 +170,18 @@ export function CommentRow({
                         </time>
                     </div>
                     <p className="mt-1 text-sm leading-6 whitespace-pre-wrap text-foreground/90">
-                        {comment.body}
+                        {previewBody}
                     </p>
+                    {hasLongBody && (
+                        <button
+                            type="button"
+                            className="social-focus mt-2 inline-flex min-h-7 items-center rounded-md px-2.5 py-0.5 text-[0.68rem] font-extrabold text-muted-foreground transition-colors hover:bg-secondary/70"
+                            onClick={() => setExpanded((open) => !open)}
+                            aria-expanded={expanded}
+                        >
+                            {expanded ? 'Show less' : 'Read more'}
+                        </button>
+                    )}
                 </div>
                 <div className="mt-1 flex min-h-7 items-center pl-2">
                     {comment.hasReported ? (
