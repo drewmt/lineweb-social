@@ -40,6 +40,13 @@ class PostPolicy
             && $post->space->hasMember($user);
     }
 
+    public function save(User $user, Post $post): bool
+    {
+        return $post->published_at !== null
+            && $post->hidden_at === null
+            && $this->view($user, $post);
+    }
+
     public function delete(User $user, Post $post): bool
     {
         return $post->user_id === $user->getKey() || $user->can('moderate', $post->space);

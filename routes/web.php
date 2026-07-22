@@ -10,6 +10,7 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\PostImageController;
 use App\Http\Controllers\PostReportController;
 use App\Http\Controllers\PostReportModerationController;
+use App\Http\Controllers\SavedPostController;
 use App\Http\Controllers\SpaceController;
 use App\Http\Controllers\SpaceInvitationAcceptanceController;
 use App\Http\Controllers\SpaceInvitationController;
@@ -24,6 +25,7 @@ Route::inertia('/', 'welcome')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('feed', FeedController::class)->name('feed');
+    Route::get('saved', [SavedPostController::class, 'index'])->name('saved.index');
     Route::get('notifications', [NotificationController::class, 'index'])
         ->name('notifications.index');
     Route::post('notifications/{notification}/open', [NotificationController::class, 'open'])
@@ -106,6 +108,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('posts/{post}/reports', [PostReportController::class, 'store'])
         ->middleware('throttle:post-reporting')
         ->name('posts.reports.store');
+    Route::put('posts/{post}/save', [SavedPostController::class, 'store'])
+        ->middleware('throttle:post-saving')
+        ->name('posts.saves.store');
+    Route::delete('posts/{post}/save', [SavedPostController::class, 'destroy'])
+        ->middleware('throttle:post-saving')
+        ->name('posts.saves.destroy');
     Route::post('posts/{post}/comments', [CommentController::class, 'store'])
         ->middleware('throttle:comment-publishing')
         ->name('posts.comments.store');

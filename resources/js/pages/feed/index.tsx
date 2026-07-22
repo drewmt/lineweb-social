@@ -1,6 +1,7 @@
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import {
     ArrowRight,
+    Bookmark,
     ChevronDown,
     Flag,
     Globe2,
@@ -46,6 +47,7 @@ type FeedPost = {
     canComment: boolean;
     canReport: boolean;
     hasReported: boolean;
+    isSaved: boolean;
     commentsCount: number;
     comments: SocialComment[];
     author: { name: string; handle: string; profileVisible: boolean };
@@ -62,6 +64,7 @@ type FeedProps = {
     posts: FeedPost[];
     reportReasons: ReportReason[];
     selectedSpace: string | null;
+    viewMode?: 'feed' | 'saved';
     status?: string;
 };
 
@@ -357,6 +360,7 @@ function PostCard({
     const [reporting, setReporting] = useState(false);
     const [copyFeedback, setCopyFeedback] = useState(false);
     const [copyTimer, setCopyTimer] = useState<number | null>(null);
+    const [saving, setSaving] = useState(false);
     const [, copy] = useClipboard();
     const { data, setData, post, processing, errors, reset } = useForm({
         reason: '',
@@ -397,6 +401,23 @@ function PostCard({
         setCopyFeedback(true);
         const timer = window.setTimeout(() => setCopyFeedback(false), 2000);
         setCopyTimer(timer);
+    };
+
+    const toggleSaved = () => {
+        const url = `/posts/${item.id}/save`;
+        const options = {
+            preserveScroll: true,
+            onStart: () => setSaving(true),
+            onFinish: () => setSaving(false),
+        };
+
+        if (item.isSaved) {
+            router.delete(url, options);
+
+            return;
+        }
+
+        router.put(url, {}, options);
     };
 
     return (
@@ -440,6 +461,23 @@ function PostCard({
                     </Link>
                 </div>
                 <div className="flex shrink-0 flex-wrap items-center gap-2">
+                    <button
+                        type="button"
+                        onClick={toggleSaved}
+                        disabled={saving}
+                        aria-pressed={item.isSaved}
+                        className={`social-focus inline-flex min-h-9 items-center gap-1.5 rounded-xl px-3 text-xs font-bold transition-colors disabled:opacity-60 ${
+                            item.isSaved
+                                ? 'bg-primary/10 text-primary hover:bg-primary/15'
+                                : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                        }`}
+                    >
+                        <Bookmark
+                            className={`size-3.5 ${item.isSaved ? 'fill-current' : ''}`}
+                            aria-hidden="true"
+                        />
+                        {item.isSaved ? 'Saved' : 'Save'}
+                    </button>
                     <button
                         type="button"
                         onClick={handleCopy}
@@ -666,8 +704,10 @@ export default function Feed({
     posts,
     reportReasons,
     selectedSpace,
+    viewMode = 'feed',
     status,
 }: FeedProps) {
+    const savedView = viewMode === 'saved';
     const selected = spaces.find((space) => space.slug === selectedSpace);
     const postingSpaces = selected
         ? selected.isMember
@@ -686,7 +726,15 @@ export default function Feed({
 
     return (
         <>
-            <Head title={selected ? selected.name : 'Home'} />
+            <Head
+                title={
+                    savedView
+                        ? 'Saved posts'
+                        : selected
+                          ? selected.name
+                          : 'Home'
+                }
+            />
             <main className="social-page">
                 <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,44rem)_20rem] xl:justify-center">
                     <div className="min-w-0">
@@ -695,19 +743,26 @@ export default function Feed({
                                 <div>
                                     <div className="flex items-center gap-2 text-xs font-extrabold tracking-[0.12em] text-primary uppercase">
                                         <CommunitySignal />
-                                        {selected
-                                            ? 'Inside this space'
-                                            : 'Your social home'}
+                                        {savedView
+                                            ? 'Your private library'
+                                            : selected
+                                              ? 'Inside this space'
+                                              : 'Your social home'}
                                     </div>
                                     <h1 className="mt-1 text-2xl font-black tracking-[-0.035em] sm:text-[2rem]">
-                                        {selected?.name ?? 'Good to see you.'}
+                                        {savedView
+                                            ? 'Saved posts'
+                                            : (selected?.name ??
+                                              'Good to see you.')}
                                     </h1>
                                     <p className="mt-1 max-w-xl text-sm leading-6 text-muted-foreground">
-                                        {selected?.description ??
-                                            'Fresh conversations from the communities you chose — always chronological.'}
+                                        {savedView
+                                            ? 'A private reading list of conversations you want to revisit.'
+                                            : (selected?.description ??
+                                              'Fresh conversations from the communities you chose — always chronological.')}
                                     </p>
                                 </div>
-                                {selected && (
+                                {selected && !savedView && (
                                     <div className="flex flex-wrap items-center gap-2">
                                         {selected.canManage && (
                                             <Button asChild variant="outline">
@@ -745,7 +800,7 @@ export default function Feed({
                             </div>
                         </header>
 
-                        {!selected && (
+                        {!selected && !savedView && (
                             <SpacePulse
                                 spaces={spaces.filter(
                                     (space) => space.isMember,
@@ -763,23 +818,35 @@ export default function Feed({
 
                         <section
                             className="space-y-3 sm:space-y-4"
-                            aria-label="Community feed"
+                            aria-label={
+                                savedView ? 'Saved posts' : 'Community feed'
+                            }
                         >
-                            <Composer spaces={postingSpaces} />
+                            {!savedView && <Composer spaces={postingSpaces} />}
                             {posts.length === 0 ? (
                                 <div className="social-card rounded-[1.35rem] px-6 py-12 text-center">
                                     <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                                        <UsersRound
-                                            className="size-6"
-                                            aria-hidden="true"
-                                        />
+                                        {savedView ? (
+                                            <Bookmark
+                                                className="size-6"
+                                                aria-hidden="true"
+                                            />
+                                        ) : (
+                                            <UsersRound
+                                                className="size-6"
+                                                aria-hidden="true"
+                                            />
+                                        )}
                                     </div>
                                     <h2 className="mt-4 text-lg font-extrabold">
-                                        The room is ready.
+                                        {savedView
+                                            ? 'Nothing saved yet.'
+                                            : 'The room is ready.'}
                                     </h2>
                                     <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
-                                        Be the first member to start a
-                                        thoughtful conversation here.
+                                        {savedView
+                                            ? 'Use Save on any post to keep it here for later.'
+                                            : 'Be the first member to start a thoughtful conversation here.'}
                                     </p>
                                 </div>
                             ) : (

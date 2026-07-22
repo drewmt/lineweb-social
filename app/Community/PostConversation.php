@@ -21,7 +21,7 @@ final class PostConversation
      * Build the policy-filtered permalink projection for one post.
      *
      * @return array{
-     *     post: array{id: int, url: string, body: string, media: array{url: string, alt: string, width: int, height: int}|null, publishedAt: string|null, isDraft: bool, isHidden: bool, canComment: bool, canReport: bool, hasReported: bool, commentsCount: int, author: array{name: string, handle: string, profileVisible: bool}, space: array{name: string, slug: string, description: string|null, visibility: string, memberCount: int}},
+     *     post: array{id: int, url: string, body: string, media: array{url: string, alt: string, width: int, height: int}|null, publishedAt: string|null, isDraft: bool, isHidden: bool, isSaved: bool, canComment: bool, canReport: bool, hasReported: bool, commentsCount: int, author: array{name: string, handle: string, profileVisible: bool}, space: array{name: string, slug: string, description: string|null, visibility: string, memberCount: int}},
      *     comments: array{data: list<array{id: int, body: string, publishedAt: string, canReport: bool, hasReported: bool, author: array{name: string, handle: string, profileVisible: bool}}>, meta: array{currentPage: int, lastPage: int, perPage: int, total: int}, links: array{newer: string|null, older: string|null}}
      * }
      */
@@ -33,6 +33,10 @@ final class PostConversation
             'media',
         ]);
         $post->space->loadCount('members');
+        $post->loadExists([
+            'saves as is_saved' => fn ($saves) => $saves
+                ->where('user_id', $viewer->getKey()),
+        ]);
 
         $comments = $this->visibleComments($viewer, $post)
             ->with('author:id,name,handle')
@@ -80,6 +84,7 @@ final class PostConversation
                 'publishedAt' => $post->published_at?->toIso8601String(),
                 'isDraft' => $post->published_at === null,
                 'isHidden' => $post->hidden_at !== null,
+                'isSaved' => (bool) $post->is_saved,
                 'canComment' => $viewer->can('comment', $post),
                 'canReport' => $viewer->can('report', $post),
                 'hasReported' => PostReport::query()
