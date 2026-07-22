@@ -201,6 +201,24 @@ export default function ManageApiTokens({ apiTokens }: Props) {
                                     </span>
                                 </span>
                             </label>
+                            <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border p-3 transition-colors hover:bg-muted/50">
+                                <input
+                                    type="checkbox"
+                                    name="abilities[]"
+                                    value="feed:read"
+                                    className="mt-0.5 size-4 shrink-0 accent-primary"
+                                />
+                                <span>
+                                    <span className="block text-sm font-medium">
+                                        Policy-filtered feed
+                                    </span>
+                                    <span className="block text-xs text-muted-foreground">
+                                        Read chronological posts and their
+                                        private images only where this account
+                                        already has access.
+                                    </span>
+                                </span>
+                            </label>
                             <InputError message={errors.abilities} />
                         </fieldset>
 

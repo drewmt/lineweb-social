@@ -7,8 +7,9 @@ import {
     Globe2,
     LockKeyhole,
     MessageCircle,
+    Share2,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import InputError from '@/components/input-error';
 import { AvatarMark } from '@/components/social/avatar-mark';
@@ -25,6 +26,7 @@ import { PostImage } from '@/components/social/post-image';
 import type { PostMedia } from '@/components/social/post-image';
 import { SpaceCover } from '@/components/social/space-cover';
 import { Button } from '@/components/ui/button';
+import { useClipboard } from '@/hooks/use-clipboard';
 
 type ConversationPost = {
     id: number;
@@ -89,6 +91,19 @@ export default function ShowPost({
     status,
 }: ShowPostProps) {
     const [reporting, setReporting] = useState(false);
+    const [copyFeedback, setCopyFeedback] = useState(false);
+    const [copyTimer, setCopyTimer] = useState<number | null>(null);
+    const [, copy] = useClipboard();
+
+    useEffect(
+        () => () => {
+            if (copyTimer !== null) {
+                window.clearTimeout(copyTimer);
+            }
+        },
+        [copyTimer],
+    );
+
     const {
         data,
         setData,
@@ -114,6 +129,24 @@ export default function ShowPost({
 
     const isLatestPage = comments.meta.currentPage === 1;
     const spaceUrl = `/spaces/${encodeURIComponent(post.space.slug)}`;
+
+    const handleCopy = async () => {
+        const copied = await copy(post.url);
+
+        if (!copied) {
+            setCopyFeedback(false);
+
+            return;
+        }
+
+        if (copyTimer !== null) {
+            window.clearTimeout(copyTimer);
+        }
+
+        setCopyFeedback(true);
+        const timer = window.setTimeout(() => setCopyFeedback(false), 2000);
+        setCopyTimer(timer);
+    };
 
     return (
         <>
@@ -207,34 +240,50 @@ export default function ShowPost({
                                             </Link>
                                         </div>
                                     </div>
-                                    {post.hasReported ? (
-                                        <span className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-xl bg-secondary px-3 text-xs font-bold text-muted-foreground">
-                                            <Flag
+                                    <div className="flex shrink-0 flex-wrap items-center gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={handleCopy}
+                                            aria-label="Copy post link"
+                                            className="social-focus inline-flex min-h-9 items-center gap-1.5 rounded-xl px-3 text-xs font-bold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                                        >
+                                            <Share2
                                                 className="size-3.5"
                                                 aria-hidden="true"
                                             />
-                                            Reported
-                                        </span>
-                                    ) : (
-                                        post.canReport && (
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    setReporting(
-                                                        (open) => !open,
-                                                    )
-                                                }
-                                                aria-expanded={reporting}
-                                                className="social-focus inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-xl px-3 text-xs font-bold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-                                            >
+                                            {copyFeedback
+                                                ? 'Copied'
+                                                : 'Copy link'}
+                                        </button>
+                                        {post.hasReported ? (
+                                            <span className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-xl bg-secondary px-3 text-xs font-bold text-muted-foreground">
                                                 <Flag
                                                     className="size-3.5"
                                                     aria-hidden="true"
                                                 />
-                                                Report
-                                            </button>
-                                        )
-                                    )}
+                                                Reported
+                                            </span>
+                                        ) : (
+                                            post.canReport && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setReporting(
+                                                            (open) => !open,
+                                                        )
+                                                    }
+                                                    aria-expanded={reporting}
+                                                    className="social-focus inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-xl px-3 text-xs font-bold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                                                >
+                                                    <Flag
+                                                        className="size-3.5"
+                                                        aria-hidden="true"
+                                                    />
+                                                    Report
+                                                </button>
+                                            )
+                                        )}
+                                    </div>
                                 </header>
 
                                 <p className="mt-5 text-[1.04rem] leading-8 whitespace-pre-wrap text-foreground/92">

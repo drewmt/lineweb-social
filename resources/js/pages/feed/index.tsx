@@ -6,6 +6,8 @@ import {
     Globe2,
     ImagePlus,
     LockKeyhole,
+    MessageCircle,
+    Share2,
     Send,
     UsersRound,
     X,
@@ -21,6 +23,7 @@ import { PostImage } from '@/components/social/post-image';
 import type { PostMedia } from '@/components/social/post-image';
 import { SpaceCover } from '@/components/social/space-cover';
 import { Button } from '@/components/ui/button';
+import { useClipboard } from '@/hooks/use-clipboard';
 import type { Auth } from '@/types';
 
 type Space = {
@@ -72,6 +75,8 @@ const publishedLabel = (value: string | null) => {
         timeStyle: 'short',
     }).format(new Date(value));
 };
+
+const FEED_PREVIEW_LENGTH = 280;
 
 function SpacePulse({ spaces }: { spaces: Space[] }) {
     if (spaces.length === 0) {
@@ -350,10 +355,19 @@ function PostCard({
     reportReasons: ReportReason[];
 }) {
     const [reporting, setReporting] = useState(false);
+    const [copyFeedback, setCopyFeedback] = useState(false);
+    const [copyTimer, setCopyTimer] = useState<number | null>(null);
+    const [, copy] = useClipboard();
     const { data, setData, post, processing, errors, reset } = useForm({
         reason: '',
         details: '',
     });
+    const hasLongBody = item.body.length > FEED_PREVIEW_LENGTH;
+    const [expanded, setExpanded] = useState(false);
+    const previewBody =
+        hasLongBody && !expanded
+            ? `${item.body.slice(0, FEED_PREVIEW_LENGTH)}…`
+            : item.body;
 
     const submitReport = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -365,6 +379,24 @@ function PostCard({
                 setReporting(false);
             },
         });
+    };
+
+    const handleCopy = async () => {
+        const copied = await copy(item.url);
+
+        if (!copied) {
+            setCopyFeedback(false);
+
+            return;
+        }
+
+        if (copyTimer !== null) {
+            window.clearTimeout(copyTimer);
+        }
+
+        setCopyFeedback(true);
+        const timer = window.setTimeout(() => setCopyFeedback(false), 2000);
+        setCopyTimer(timer);
     };
 
     return (
@@ -407,28 +439,61 @@ function PostCard({
                         </time>
                     </Link>
                 </div>
-                {item.hasReported ? (
-                    <span className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-xl bg-secondary px-3 text-xs font-bold text-muted-foreground">
-                        <Flag className="size-3.5" aria-hidden="true" />
-                        Reported
-                    </span>
-                ) : (
-                    item.canReport && (
-                        <button
-                            type="button"
-                            onClick={() => setReporting((open) => !open)}
-                            aria-expanded={reporting}
-                            className="social-focus inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-xl px-3 text-xs font-bold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-                        >
+                <div className="flex shrink-0 flex-wrap items-center gap-2">
+                    <button
+                        type="button"
+                        onClick={handleCopy}
+                        aria-label="Copy post link"
+                        className="social-focus inline-flex min-h-9 items-center gap-1.5 rounded-xl px-3 text-xs font-bold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                    >
+                        <Share2 className="size-3.5" aria-hidden="true" />
+                        {copyFeedback ? 'Copied' : 'Copy link'}
+                    </button>
+                    <Link
+                        href={`${item.url}#conversation`}
+                        className="social-focus inline-flex min-h-9 items-center gap-1.5 rounded-xl px-3 text-xs font-bold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                    >
+                        <MessageCircle
+                            className="size-3.5"
+                            aria-hidden="true"
+                        />
+                        {item.commentsCount > 0
+                            ? `${item.commentsCount.toLocaleString()} ${item.commentsCount === 1 ? 'comment' : 'comments'}`
+                            : 'Start conversation'}
+                    </Link>
+                    {item.hasReported ? (
+                        <span className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-xl bg-secondary px-3 text-xs font-bold text-muted-foreground">
                             <Flag className="size-3.5" aria-hidden="true" />
-                            Report
-                        </button>
-                    )
-                )}
+                            Reported
+                        </span>
+                    ) : (
+                        item.canReport && (
+                            <button
+                                type="button"
+                                onClick={() => setReporting((open) => !open)}
+                                aria-expanded={reporting}
+                                className="social-focus inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-xl px-3 text-xs font-bold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                            >
+                                <Flag className="size-3.5" aria-hidden="true" />
+                                Report
+                            </button>
+                        )
+                    )}
+                </div>
             </header>
             <p className="mt-4 text-[1.01rem] leading-7 whitespace-pre-wrap text-foreground/92 sm:text-[1.04rem] sm:leading-8">
-                {item.body}
+                {previewBody}
             </p>
+            {hasLongBody && (
+                <button
+                    type="button"
+                    className="social-focus mt-2 inline-flex min-h-9 items-center rounded-lg px-3 text-xs font-bold text-muted-foreground transition-colors hover:bg-secondary/70"
+                    onClick={() => setExpanded((open) => !open)}
+                    aria-expanded={expanded}
+                >
+                    {expanded ? 'Show less' : 'Read more'}
+                </button>
+            )}
             {item.media && <PostImage media={item.media} className="mt-4" />}
             {reporting && (
                 <form
