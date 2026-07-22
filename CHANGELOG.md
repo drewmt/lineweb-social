@@ -29,7 +29,14 @@ All notable project changes will be documented here.
   20-comment pages, and policy-filtered access to older replies.
 - Database-backed in-app notifications for replies and new Space moderation
   reports, with unread state, secure destinations, and paginated history.
+- Notification mutation support for native clients: `PATCH
+  /api/v1/notifications/{notification}/read` and `PATCH
+  /api/v1/notifications/read-all`, preserving owner scope and policy-safe
+  mark-read behavior.
 - Per-member preferences for reply and moderation notification categories.
+- Cursor-paginated post detail and comments APIs for native clients with
+  policy-enforced access: `GET /api/v1/posts/{post}` and
+  `GET /api/v1/posts/{post}/comments`.
 
 ### Changed
 
