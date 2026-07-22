@@ -1,6 +1,7 @@
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
     ArrowLeft,
+    Bookmark,
     ChevronLeft,
     ChevronRight,
     Flag,
@@ -36,6 +37,7 @@ type ConversationPost = {
     publishedAt: string | null;
     isDraft: boolean;
     isHidden: boolean;
+    isSaved: boolean;
     canComment: boolean;
     canReport: boolean;
     hasReported: boolean;
@@ -93,6 +95,7 @@ export default function ShowPost({
     const [reporting, setReporting] = useState(false);
     const [copyFeedback, setCopyFeedback] = useState(false);
     const [copyTimer, setCopyTimer] = useState<number | null>(null);
+    const [saving, setSaving] = useState(false);
     const [, copy] = useClipboard();
 
     useEffect(
@@ -146,6 +149,23 @@ export default function ShowPost({
         setCopyFeedback(true);
         const timer = window.setTimeout(() => setCopyFeedback(false), 2000);
         setCopyTimer(timer);
+    };
+
+    const toggleSaved = () => {
+        const url = `/posts/${post.id}/save`;
+        const options = {
+            preserveScroll: true,
+            onStart: () => setSaving(true),
+            onFinish: () => setSaving(false),
+        };
+
+        if (post.isSaved) {
+            router.delete(url, options);
+
+            return;
+        }
+
+        router.put(url, {}, options);
     };
 
     return (
@@ -241,6 +261,23 @@ export default function ShowPost({
                                         </div>
                                     </div>
                                     <div className="flex shrink-0 flex-wrap items-center gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={toggleSaved}
+                                            disabled={saving}
+                                            aria-pressed={post.isSaved}
+                                            className={`social-focus inline-flex min-h-9 items-center gap-1.5 rounded-xl px-3 text-xs font-bold transition-colors disabled:opacity-60 ${
+                                                post.isSaved
+                                                    ? 'bg-primary/10 text-primary hover:bg-primary/15'
+                                                    : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                                            }`}
+                                        >
+                                            <Bookmark
+                                                className={`size-3.5 ${post.isSaved ? 'fill-current' : ''}`}
+                                                aria-hidden="true"
+                                            />
+                                            {post.isSaved ? 'Saved' : 'Save'}
+                                        </button>
                                         <button
                                             type="button"
                                             onClick={handleCopy}

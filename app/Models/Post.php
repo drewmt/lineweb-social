@@ -22,6 +22,7 @@ use Illuminate\Support\Carbon;
  * @property-read Space $space
  * @property-read User $author
  * @property-read PostMedia|null $media
+ * @property-read int $is_saved
  */
 class Post extends Model
 {
@@ -83,6 +84,12 @@ class Post extends Model
     public function comments(): HasMany
     {
         return $this->hasMany(Comment::class);
+    }
+
+    /** @return HasMany<PostSave, $this> */
+    public function saves(): HasMany
+    {
+        return $this->hasMany(PostSave::class);
     }
 
     /** @return HasOne<PostMedia, $this> */

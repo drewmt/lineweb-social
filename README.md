@@ -65,6 +65,8 @@ The current release is `0.1.0-alpha.1`. It is suitable for local evaluation and 
 - Expiring email invitations for restricted Spaces with hashed tokens and verified-account matching.
 - Owner transfer, moderator role changes, reason-required member removal, and an auditable management log.
 - A chronological, non-algorithmic feed.
+- Private Saved Posts with policy-filtered retrieval and quick access from the
+  desktop rail and mobile header.
 - Membership-protected comments with compact feed previews, permanent post
   links, and a full visibility-filtered paginated conversation view.
 - One optional image per post with required alternative text, private storage,

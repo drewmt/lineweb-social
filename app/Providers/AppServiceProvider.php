@@ -81,6 +81,9 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('notification-actions', fn (Request $request): Limit => Limit::perMinute(60)
             ->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
 
+        RateLimiter::for('post-saving', fn (Request $request): Limit => Limit::perMinute(60)
+            ->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
+
         RateLimiter::for('api-read', function (Request $request): Limit {
             $token = $request->user()?->currentAccessToken();
             $tokenId = $token instanceof PersonalAccessToken ? $token->getKey() : 'none';

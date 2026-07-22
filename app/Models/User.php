@@ -125,6 +125,12 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         return $this->hasMany(Post::class);
     }
 
+    /** @return HasMany<PostSave, $this> */
+    public function postSaves(): HasMany
+    {
+        return $this->hasMany(PostSave::class);
+    }
+
     /** @return HasMany<Comment, $this> */
     public function comments(): HasMany
     {

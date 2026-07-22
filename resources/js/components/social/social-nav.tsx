@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
     Bell,
+    Bookmark,
     Compass,
     Feather,
     Home,
@@ -33,6 +34,12 @@ const navItems = [
         subtitle: 'Discover members',
         href: '/people',
         icon: UsersRound,
+    },
+    {
+        title: 'Saved',
+        subtitle: 'Your private reading list',
+        href: '/saved',
+        icon: Bookmark,
     },
     {
         title: 'Notifications',
@@ -211,6 +218,13 @@ export function MobileSocialHeader() {
             </span>
             {auth.user ? (
                 <div className="flex items-center gap-1.5">
+                    <Link
+                        href="/saved"
+                        aria-label="Saved posts"
+                        className="social-focus flex size-10 items-center justify-center rounded-full text-foreground transition-colors hover:bg-secondary"
+                    >
+                        <Bookmark className="size-5" aria-hidden="true" />
+                    </Link>
                     <Link
                         href="/notifications"
                         aria-label={`Notifications${notificationSummary.unreadCount > 0 ? `, ${notificationSummary.unreadCount} unread` : ''}`}

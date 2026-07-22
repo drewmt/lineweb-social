@@ -37,6 +37,10 @@ All notable project changes will be documented here.
 - Cursor-paginated post detail and comments APIs for native clients with
   policy-enforced access: `GET /api/v1/posts/{post}` and
   `GET /api/v1/posts/{post}/comments`.
+- Private Saved Posts with idempotent save/remove actions, current-visibility
+  filtering, and a dedicated responsive reading-list view.
+- Accessible feed-card actions for copying a permanent link and opening the
+  full conversation directly.
 
 ### Changed
 
@@ -50,6 +54,8 @@ All notable project changes will be documented here.
   horizontal scroll rail remains edge-to-edge.
 - README product previews now show the current desktop feed, mobile feed, and
   member-profile interfaces.
+- Long feed posts, comments, and Space-card descriptions now stay compact with
+  explicit read-more controls that preserve the complete content on demand.
 
 ## [0.1.0-alpha.1] - 2026-07-20
 

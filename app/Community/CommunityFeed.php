@@ -53,9 +53,9 @@ final class CommunityFeed
     }
 
     /**
-     * @return list<array{id: int, url: string, body: string, media: array{url: string, alt: string, width: int, height: int}|null, publishedAt: string|null, canComment: bool, canReport: bool, hasReported: bool, commentsCount: int, comments: list<array{id: int, body: string, publishedAt: string, canReport: bool, hasReported: bool, author: array{name: string, handle: string, profileVisible: bool}}>, author: array{name: string, handle: string, profileVisible: bool}, space: array{name: string, slug: string}}>
+     * @return list<array{id: int, url: string, body: string, media: array{url: string, alt: string, width: int, height: int}|null, publishedAt: string|null, isSaved: bool, canComment: bool, canReport: bool, hasReported: bool, commentsCount: int, comments: list<array{id: int, body: string, publishedAt: string, canReport: bool, hasReported: bool, author: array{name: string, handle: string, profileVisible: bool}}>, author: array{name: string, handle: string, profileVisible: bool}, space: array{name: string, slug: string}}>
      */
-    public function posts(User $user, ?Space $space = null): array
+    public function posts(User $user, ?Space $space = null, bool $savedOnly = false): array
     {
         $hiddenActorIds = DB::table('user_relationships')
             ->select('target_id')
@@ -75,10 +75,10 @@ final class CommunityFeed
             ->whereNotIn('user_id', clone $blockingActorIds);
 
         $query = Post::query()
-            ->whereNotNull('published_at')
-            ->whereNull('hidden_at')
-            ->whereNotIn('user_id', clone $hiddenActorIds)
-            ->whereNotIn('user_id', clone $blockingActorIds)
+            ->whereNotNull('posts.published_at')
+            ->whereNull('posts.hidden_at')
+            ->whereNotIn('posts.user_id', clone $hiddenActorIds)
+            ->whereNotIn('posts.user_id', clone $blockingActorIds)
             ->with([
                 'author:id,name,handle',
                 'space:id,name,slug,visibility',
@@ -89,22 +89,42 @@ final class CommunityFeed
                     ->latest('id')
                     ->limit(6),
             ])
-            ->withCount(['comments as comments_count' => $visibleComments]);
+            ->withCount(['comments as comments_count' => $visibleComments])
+            ->withExists([
+                'saves as is_saved' => fn ($saves) => $saves
+                    ->where('user_id', $user->getKey()),
+            ]);
+
+        if ($savedOnly) {
+            $query
+                ->join('post_saves', function ($join) use ($user): void {
+                    $join
+                        ->on('post_saves.post_id', '=', 'posts.id')
+                        ->where('post_saves.user_id', $user->getKey());
+                })
+                ->addSelect('posts.*');
+        }
 
         if ($space instanceof Space) {
             $query->whereBelongsTo($space);
         } else {
             $query->whereIn(
-                'space_id',
+                'posts.space_id',
                 Space::query()->discoverableBy($user)->select('id'),
             );
         }
 
-        $posts = $query
-            ->latest('published_at')
-            ->latest('id')
-            ->limit(30)
-            ->get();
+        if ($savedOnly) {
+            $query
+                ->orderByDesc('post_saves.created_at')
+                ->orderByDesc('post_saves.id');
+        } else {
+            $query
+                ->latest('posts.published_at')
+                ->latest('posts.id');
+        }
+
+        $posts = $query->limit(30)->get();
 
         $comments = $posts->flatMap(fn (Post $post) => $post->comments);
         $visibleAuthorIds = User::query()
@@ -137,6 +157,7 @@ final class CommunityFeed
                 'body' => $post->body,
                 'media' => $this->media->for($post),
                 'publishedAt' => $post->published_at?->toIso8601String(),
+                'isSaved' => (bool) $post->is_saved,
                 'canComment' => in_array($post->space_id, $memberSpaceIds, true),
                 'canReport' => $post->user_id !== $user->getKey(),
                 'hasReported' => in_array($post->getKey(), $reportedPostIds, true),
