@@ -6,6 +6,7 @@ import {
     Globe2,
     ImagePlus,
     LockKeyhole,
+    Share2,
     Send,
     UsersRound,
     X,
@@ -21,6 +22,7 @@ import { PostImage } from '@/components/social/post-image';
 import type { PostMedia } from '@/components/social/post-image';
 import { SpaceCover } from '@/components/social/space-cover';
 import { Button } from '@/components/ui/button';
+import { useClipboard } from '@/hooks/use-clipboard';
 import type { Auth } from '@/types';
 
 type Space = {
@@ -350,6 +352,9 @@ function PostCard({
     reportReasons: ReportReason[];
 }) {
     const [reporting, setReporting] = useState(false);
+    const [copyFeedback, setCopyFeedback] = useState(false);
+    const [copyTimer, setCopyTimer] = useState<number | null>(null);
+    const [, copy] = useClipboard();
     const { data, setData, post, processing, errors, reset } = useForm({
         reason: '',
         details: '',
@@ -365,6 +370,24 @@ function PostCard({
                 setReporting(false);
             },
         });
+    };
+
+    const handleCopy = async () => {
+        const copied = await copy(item.url);
+
+        if (!copied) {
+            setCopyFeedback(false);
+
+            return;
+        }
+
+        if (copyTimer !== null) {
+            window.clearTimeout(copyTimer);
+        }
+
+        setCopyFeedback(true);
+        const timer = window.setTimeout(() => setCopyFeedback(false), 2000);
+        setCopyTimer(timer);
     };
 
     return (
@@ -407,24 +430,35 @@ function PostCard({
                         </time>
                     </Link>
                 </div>
-                {item.hasReported ? (
-                    <span className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-xl bg-secondary px-3 text-xs font-bold text-muted-foreground">
-                        <Flag className="size-3.5" aria-hidden="true" />
-                        Reported
-                    </span>
-                ) : (
-                    item.canReport && (
-                        <button
-                            type="button"
-                            onClick={() => setReporting((open) => !open)}
-                            aria-expanded={reporting}
-                            className="social-focus inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-xl px-3 text-xs font-bold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-                        >
+                <div className="flex shrink-0 flex-wrap items-center gap-2">
+                    <button
+                        type="button"
+                        onClick={handleCopy}
+                        aria-label="Copy post link"
+                        className="social-focus inline-flex min-h-9 items-center gap-1.5 rounded-xl px-3 text-xs font-bold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                    >
+                        <Share2 className="size-3.5" aria-hidden="true" />
+                        {copyFeedback ? 'Copied' : 'Copy link'}
+                    </button>
+                    {item.hasReported ? (
+                        <span className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-xl bg-secondary px-3 text-xs font-bold text-muted-foreground">
                             <Flag className="size-3.5" aria-hidden="true" />
-                            Report
-                        </button>
-                    )
-                )}
+                            Reported
+                        </span>
+                    ) : (
+                        item.canReport && (
+                            <button
+                                type="button"
+                                onClick={() => setReporting((open) => !open)}
+                                aria-expanded={reporting}
+                                className="social-focus inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-xl px-3 text-xs font-bold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                            >
+                                <Flag className="size-3.5" aria-hidden="true" />
+                                Report
+                            </button>
+                        )
+                    )}
+                </div>
             </header>
             <p className="mt-4 text-[1.01rem] leading-7 whitespace-pre-wrap text-foreground/92 sm:text-[1.04rem] sm:leading-8">
                 {item.body}
