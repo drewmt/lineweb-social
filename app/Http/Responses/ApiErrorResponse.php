@@ -2,6 +2,7 @@
 
 namespace App\Http\Responses;
 
+use App\Exceptions\InvalidApiCursorException;
 use App\Http\Middleware\AssignApiRequestId;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
@@ -29,6 +30,15 @@ final class ApiErrorResponse
                 'validation_failed',
                 422,
                 $exception->errors(),
+            );
+        }
+
+        if ($exception instanceof InvalidApiCursorException) {
+            return self::make(
+                $request,
+                'The cursor is invalid for this request.',
+                'invalid_cursor',
+                400,
             );
         }
 
