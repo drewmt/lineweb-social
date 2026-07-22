@@ -4,14 +4,15 @@
 
 This document defines the first public contract for authenticated native and
 decoupled clients. `GET /api/v1/me`, `GET /api/v1/profiles/{handle}`,
-`GET /api/v1/spaces`, and `GET /api/v1/spaces/{slug}` are available; the
-other endpoints in `openapi.json` remain **planned, not yet implemented**.
+`GET /api/v1/spaces`, `GET /api/v1/spaces/{slug}`, `GET /api/v1/feed`,
+`GET /api/v1/posts/{post}`, `GET /api/v1/posts/{post}/comments`, 
+`GET /api/v1/posts/{post}/media`, `GET /api/v1/notifications`,
+`PATCH /api/v1/notifications/{notification}/read`, and
+`PATCH /api/v1/notifications/read-all` are available;
+the remaining endpoints in
+`openapi.json` are planned.
 Contract-first development keeps client expectations separate from the current
 Inertia view models and prevents accidental exposure of raw database records.
-
-The first implementation slice is deliberately read-only. Write operations,
-interactive native login, third-party OAuth, webhooks, and realtime delivery
-need separate reviews before they enter the contract.
 
 ## Compatibility boundary
 
@@ -60,7 +61,7 @@ member's password inside another application.
 
 ## Token abilities
 
-The read-only slice recognizes these abilities:
+The current slice recognizes these abilities:
 
 | Ability | Access |
 | --- | --- |
@@ -68,15 +69,16 @@ The read-only slice recognizes these abilities:
 | `profiles:read` | Profiles already visible to the member. |
 | `spaces:read` | Discoverable Spaces and viewer membership state. |
 | `feed:read` | Policy-filtered feed, posts, comments, and private post media. |
-| `notifications:read` | The member's policy-resolved notification history. |
+| `notifications:read` | Read the member's policy-resolved notification history. |
+| `notifications:write` | Mark one or all notifications as read. |
 
 Abilities are an additional boundary, not authorization by themselves. Every
 request must still pass the same policies, visibility scopes, membership rules,
 mute/block boundaries, and moderation state as the web application.
 
 Future write abilities are reserved but are not granted or accepted by the
-first slice: `posts:write`, `comments:write`, `memberships:write`,
-`relationships:write`, and `notifications:write`.
+current slice: `posts:write`, `comments:write`, `memberships:write`,
+and `relationships:write`.
 
 ## Response shape
 
@@ -129,7 +131,8 @@ contain exception messages, stack traces, SQL, filesystem paths, internal model
 names, or policy details. Responses include the same opaque `X-Request-ID` in
 the header for support correlation.
 
-Standard status codes are `200`, `400`, `401`, `403`, `404`, `422`, and `429`.
+Standard status codes are `200`, `204`, `400`, `401`, `403`, `404`, `422`, and
+`429`.
 The API uses `404` instead of confirming that inaccessible private content
 exists when that distinction would leak information.
 
@@ -204,24 +207,28 @@ must fetch the image with its API client and render a local object URL; placing
 the API URL directly in an `<img>` element will not attach the bearer token.
 Public or long-lived signed media URLs are intentionally outside this draft.
 
-## Read-only endpoint slice
+## Endpoint implementation status
 
-The read-only API roadmap contains:
+The implemented API roadmap contains:
 
 - `GET /api/v1/me` — available
 - `GET /api/v1/profiles/{handle}` — available
 - `GET /api/v1/spaces` — available
 - `GET /api/v1/spaces/{slug}` — available
-- `GET /api/v1/feed`
-- `GET /api/v1/posts/{post}`
-- `GET /api/v1/posts/{post}/comments`
-- `GET /api/v1/posts/{post}/media`
-- `GET /api/v1/notifications`
+- `GET /api/v1/feed` — available
+- `GET /api/v1/posts/{post}` — available
+- `GET /api/v1/posts/{post}/comments` — available
+- `GET /api/v1/posts/{post}/media` — available
+- `GET /api/v1/notifications` — available
+- `PATCH /api/v1/notifications/{notification}/read` — available
+- `PATCH /api/v1/notifications/read-all` — available
 
 OpenAPI operations carry `x-lineweb-status: planned` until their routes,
-resources, authorization, throttling, and feature tests exist. Only `/me` and
-`/profiles/{handle}`, `/spaces`, and `/spaces/{slug}` currently carry
-`x-lineweb-status: available`.
+resources, authorization, throttling, and feature tests exist. `/me`,
+`/profiles/{handle}`, `/spaces`, `/spaces/{slug}`, `/feed`,
+`/posts/{post}`, `/posts/{post}/comments`, `/posts/{post}/media`, and
+`/notifications`, `/notifications/{notification}/read`, and `/notifications/read-all`
+currently carry `x-lineweb-status: available`.
 Documentation must never make a planned endpoint look available.
 
 ## Implementation acceptance gates
