@@ -19,6 +19,39 @@ final class NotificationCenter
 
     /**
      * @return array{
+     *     id: string,
+     *     kind: string,
+     *     title: string,
+     *     description: string,
+     *     created_at: string,
+     *     read_at: string|null,
+     *     available: bool,
+     *     target: array{
+     *         type: string,
+     *         post_id?: string,
+     *         comment_id?: string,
+     *         space_slug?: string,
+     *     }|null
+     * }
+     */
+    public function apiItem(User $viewer, DatabaseNotification $notification): array
+    {
+        $resolved = $this->resolve($viewer, $notification);
+
+        return [
+            'id' => (string) $notification->getKey(),
+            'kind' => $resolved['kind'],
+            'title' => $resolved['title'],
+            'description' => $resolved['description'],
+            'created_at' => $notification->created_at->toIso8601String(),
+            'read_at' => $notification->read_at?->toIso8601String(),
+            'available' => $resolved['destination'] !== null,
+            'target' => $this->notificationApiTarget($viewer, $notification, $resolved),
+        ];
+    }
+
+    /**
+     * @return array{
      *     items: list<array{id: string, kind: string, title: string, description: string, createdAt: string, readAt: string|null, available: bool}>,
      *     meta: array{currentPage: int, lastPage: int, perPage: int, total: int},
      *     links: array{previous: string|null, next: string|null}
@@ -156,6 +189,101 @@ final class NotificationCenter
             'title' => 'New '.$reportKind.' report',
             'description' => 'Review the moderation queue in '.$space->name.'.',
             'destination' => route('spaces.moderation.index', $space),
+        ];
+    }
+
+    /**
+     * @return array{
+     *     type: string,
+     *     post_id?: string,
+     *     comment_id?: string,
+     *     space_slug?: string,
+     * }|null
+     */
+    private function notificationApiTarget(
+        User $viewer,
+        DatabaseNotification $notification,
+        array $resolved,
+    ): ?array {
+        return match (NotificationType::tryFrom($notification->type)) {
+            NotificationType::CommentReply => $this->notificationApiTargetForCommentReply($notification, $resolved),
+            NotificationType::SpaceModeration => $this->notificationApiTargetForSpaceModeration(
+                $viewer,
+                $notification,
+                $resolved,
+            ),
+            default => null,
+        };
+    }
+
+    /**
+     * @return array{type: string, post_id: string, comment_id: string}|null
+     */
+    private function notificationApiTargetForCommentReply(
+        DatabaseNotification $notification,
+        array $resolved,
+    ): ?array {
+        if ($resolved['destination'] === null) {
+            return null;
+        }
+
+        $commentId = $this->integer($notification, 'comment_id');
+
+        if ($commentId === null) {
+            return null;
+        }
+
+        $comment = Comment::query()
+            ->with(['post'])
+            ->find($commentId);
+
+        return $comment instanceof Comment
+            ? [
+                'type' => 'post',
+                'post_id' => (string) $comment->post_id,
+                'comment_id' => (string) $comment->getKey(),
+            ]
+            : null;
+    }
+
+    /**
+     * @return array{type: string, space_slug: string}|null
+     */
+    private function notificationApiTargetForSpaceModeration(
+        User $viewer,
+        DatabaseNotification $notification,
+        array $resolved,
+    ): ?array {
+        if ($resolved['destination'] === null) {
+            return null;
+        }
+
+        $spaceId = $this->integer($notification, 'space_id');
+        $reportId = $this->integer($notification, 'report_id');
+        $reportKind = $notification->data['report_kind'] ?? null;
+
+        if ($spaceId === null || $reportId === null || ! in_array($reportKind, ['post', 'comment'], true)) {
+            return null;
+        }
+
+        $space = Space::query()->find($spaceId);
+
+        if (! $space instanceof Space
+            || Gate::forUser($viewer)->denies('moderate', $space)) {
+            return null;
+        }
+
+        $reportExists = $reportKind === 'post'
+            ? PostReport::query()->whereKey($reportId)->whereBelongsTo($space)->exists()
+            : CommentReport::query()->whereKey($reportId)->whereBelongsTo($space)->exists();
+
+        if (! $reportExists) {
+            return null;
+        }
+
+        return [
+            'type' => 'space_moderation',
+            'space_slug' => $space->slug,
         ];
     }
 

@@ -21,131 +21,31 @@
     }
   ],
   "paths": {
-    "/me": {
-      "get": {
-        "operationId": "getCurrentProfile",
-        "summary": "Return the authenticated member's safe profile",
-        "tags": ["Profiles"],
-        "x-lineweb-status": "available",
-        "x-required-ability": "profile:read",
-        "responses": {
-          "200": {
-            "description": "Current profile",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProfileResponse"
-                }
-              }
-            }
-          },
-          "401": { "$ref": "#/components/responses/Unauthenticated" },
-          "403": { "$ref": "#/components/responses/Forbidden" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      }
-    },
-    "/profiles/{handle}": {
-      "get": {
-        "operationId": "getProfile",
-        "summary": "Return a profile already visible to the member",
-        "tags": ["Profiles"],
-        "x-lineweb-status": "available",
-        "x-required-ability": "profiles:read",
-        "parameters": [
-          { "$ref": "#/components/parameters/ProfileHandle" }
-        ],
-        "responses": {
-          "200": {
-            "description": "Visible profile",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProfileResponse"
-                }
-              }
-            }
-          },
-          "401": { "$ref": "#/components/responses/Unauthenticated" },
-          "403": { "$ref": "#/components/responses/Forbidden" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      }
-    },
-    "/spaces": {
-      "get": {
-        "operationId": "listSpaces",
-        "summary": "List Spaces discoverable by the member",
-        "tags": ["Spaces"],
-        "x-lineweb-status": "available",
-        "x-required-ability": "spaces:read",
-        "parameters": [
-          { "$ref": "#/components/parameters/Cursor" },
-          { "$ref": "#/components/parameters/Limit" }
-        ],
-        "responses": {
-          "200": {
-            "description": "Discoverable Spaces",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SpaceCollection"
-                }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthenticated" },
-          "403": { "$ref": "#/components/responses/Forbidden" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      }
-    },
-    "/spaces/{slug}": {
-      "get": {
-        "operationId": "getSpace",
-        "summary": "Return one Space visible to the member",
-        "tags": ["Spaces"],
-        "x-lineweb-status": "available",
-        "x-required-ability": "spaces:read",
-        "parameters": [
-          { "$ref": "#/components/parameters/SpaceSlug" }
-        ],
-        "responses": {
-          "200": {
-            "description": "Visible Space",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SpaceResponse"
-                }
-              }
-            }
-          },
-          "401": { "$ref": "#/components/responses/Unauthenticated" },
-          "403": { "$ref": "#/components/responses/Forbidden" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      }
-    },
     "/feed": {
       "get": {
         "operationId": "getFeed",
         "summary": "Return the member's policy-filtered chronological feed",
-        "tags": ["Feed"],
+        "tags": [
+          "Feed"
+        ],
         "x-lineweb-status": "available",
         "x-required-ability": "feed:read",
         "parameters": [
-          { "$ref": "#/components/parameters/Cursor" },
-          { "$ref": "#/components/parameters/Limit" },
+          {
+            "$ref": "#/components/parameters/Cursor"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
           {
             "name": "space",
             "in": "query",
             "required": false,
             "description": "Optional visible Space slug.",
-            "schema": { "type": "string", "maxLength": 120 }
+            "schema": {
+              "type": "string",
+              "maxLength": 120
+            }
           }
         ],
         "responses": {
@@ -159,105 +59,56 @@
               }
             }
           },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthenticated" },
-          "403": { "$ref": "#/components/responses/Forbidden" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "422": { "$ref": "#/components/responses/ValidationFailed" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      }
-    },
-    "/posts/{post}": {
-      "get": {
-        "operationId": "getPost",
-        "summary": "Return one visible post",
-        "tags": ["Posts"],
-        "x-lineweb-status": "planned",
-        "x-required-ability": "feed:read",
-        "parameters": [
-          { "$ref": "#/components/parameters/PostId" }
-        ],
-        "responses": {
-          "200": {
-            "description": "Visible post",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PostResponse"
-                }
-              }
-            }
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           },
-          "401": { "$ref": "#/components/responses/Unauthenticated" },
-          "403": { "$ref": "#/components/responses/Forbidden" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      }
-    },
-    "/posts/{post}/comments": {
-      "get": {
-        "operationId": "listPostComments",
-        "summary": "Return visible comments in chronological order",
-        "tags": ["Posts"],
-        "x-lineweb-status": "planned",
-        "x-required-ability": "feed:read",
-        "parameters": [
-          { "$ref": "#/components/parameters/PostId" },
-          { "$ref": "#/components/parameters/Cursor" },
-          { "$ref": "#/components/parameters/Limit" }
-        ],
-        "responses": {
-          "200": {
-            "description": "Chronological visible comments",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CommentCollection"
-                }
-              }
-            }
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
           },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthenticated" },
-          "403": { "$ref": "#/components/responses/Forbidden" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationFailed"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
         }
       }
     },
-    "/posts/{post}/media": {
+    "/me": {
       "get": {
-        "operationId": "getPostMedia",
-        "summary": "Return the authorized normalized post image",
-        "tags": ["Posts"],
+        "operationId": "getCurrentProfile",
+        "summary": "Return the authenticated member's safe profile",
+        "tags": [
+          "Profiles"
+        ],
         "x-lineweb-status": "available",
-        "x-required-ability": "feed:read",
-        "parameters": [
-          { "$ref": "#/components/parameters/PostId" }
-        ],
+        "x-required-ability": "profile:read",
         "responses": {
           "200": {
-            "description": "Static normalized WebP image",
-            "headers": {
-              "Content-Type": {
-                "schema": { "type": "string", "const": "image/webp" }
-              },
-              "Cross-Origin-Resource-Policy": {
-                "schema": { "type": "string", "enum": ["same-site"] }
-              }
-            },
+            "description": "Current profile",
             "content": {
-              "image/webp": {
-                "schema": { "type": "string", "contentEncoding": "binary" }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileResponse"
+                }
               }
             }
           },
-          "401": { "$ref": "#/components/responses/Unauthenticated" },
-          "403": { "$ref": "#/components/responses/Forbidden" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
         }
       }
     },
@@ -265,19 +116,28 @@
       "get": {
         "operationId": "listNotifications",
         "summary": "Return the member's policy-resolved notifications",
-        "tags": ["Notifications"],
-        "x-lineweb-status": "planned",
+        "tags": [
+          "Notifications"
+        ],
+        "x-lineweb-status": "available",
         "x-required-ability": "notifications:read",
         "parameters": [
-          { "$ref": "#/components/parameters/Cursor" },
-          { "$ref": "#/components/parameters/Limit" },
+          {
+            "$ref": "#/components/parameters/Cursor"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
           {
             "name": "filter",
             "in": "query",
             "required": false,
             "schema": {
               "type": "string",
-              "enum": ["all", "unread"],
+              "enum": [
+                "all",
+                "unread"
+              ],
               "default": "all"
             }
           }
@@ -293,10 +153,455 @@
               }
             }
           },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthenticated" },
-          "403": { "$ref": "#/components/responses/Forbidden" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationFailed"
+          }
+        }
+      }
+    },
+    "/notifications/read-all": {
+      "patch": {
+        "operationId": "markAllNotificationsRead",
+        "summary": "Mark all notifications as read",
+        "tags": [
+          "Notifications"
+        ],
+        "x-lineweb-status": "available",
+        "x-required-ability": "notifications:write",
+        "responses": {
+          "204": {
+            "description": "All unread notifications marked as read"
+          },
+          "401": {
+            "description": "Missing, expired, or revoked token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The verified member or token ability cannot perform this request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "The current rate limit was exceeded.",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "X-RateLimit-Limit": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Reset": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/notifications/{notification}/read": {
+      "patch": {
+        "operationId": "markNotificationRead",
+        "summary": "Mark one notification as read",
+        "tags": [
+          "Notifications"
+        ],
+        "x-lineweb-status": "available",
+        "x-required-ability": "notifications:write",
+        "parameters": [
+          {
+            "name": "notification",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Database notification id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Notification marked as read"
+          },
+          "401": {
+            "description": "Missing, expired, or revoked token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The verified member or token ability cannot perform this request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested notification does not exist or is not accessible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "The current rate limit was exceeded.",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "X-RateLimit-Limit": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Reset": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/posts/{post}": {
+      "get": {
+        "operationId": "getPost",
+        "summary": "Return one visible post",
+        "tags": [
+          "Posts"
+        ],
+        "x-lineweb-status": "available",
+        "x-required-ability": "feed:read",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PostId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Visible post",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/posts/{post}/comments": {
+      "get": {
+        "operationId": "listPostComments",
+        "summary": "Return visible comments in chronological order",
+        "tags": [
+          "Posts"
+        ],
+        "x-lineweb-status": "available",
+        "x-required-ability": "feed:read",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PostId"
+          },
+          {
+            "$ref": "#/components/parameters/Cursor"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Chronological visible comments",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentCollection"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/posts/{post}/media": {
+      "get": {
+        "operationId": "getPostMedia",
+        "summary": "Return the authorized normalized post image",
+        "tags": [
+          "Posts"
+        ],
+        "x-lineweb-status": "available",
+        "x-required-ability": "feed:read",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PostId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Static normalized WebP image",
+            "headers": {
+              "Content-Type": {
+                "schema": {
+                  "type": "string",
+                  "const": "image/webp"
+                }
+              },
+              "Cross-Origin-Resource-Policy": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "same-site"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "image/webp": {
+                "schema": {
+                  "type": "string",
+                  "contentEncoding": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/profiles/{handle}": {
+      "get": {
+        "operationId": "getProfile",
+        "summary": "Return a profile already visible to the member",
+        "tags": [
+          "Profiles"
+        ],
+        "x-lineweb-status": "available",
+        "x-required-ability": "profiles:read",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ProfileHandle"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Visible profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/spaces": {
+      "get": {
+        "operationId": "listSpaces",
+        "summary": "List Spaces discoverable by the member",
+        "tags": [
+          "Spaces"
+        ],
+        "x-lineweb-status": "available",
+        "x-required-ability": "spaces:read",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Cursor"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Discoverable Spaces",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpaceCollection"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/spaces/{slug}": {
+      "get": {
+        "operationId": "getSpace",
+        "summary": "Return one Space visible to the member",
+        "tags": [
+          "Spaces"
+        ],
+        "x-lineweb-status": "available",
+        "x-required-ability": "spaces:read",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SpaceSlug"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Visible Space",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpaceResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
         }
       }
     }
@@ -316,7 +621,10 @@
         "in": "query",
         "required": false,
         "description": "Opaque cursor returned by the previous response.",
-        "schema": { "type": "string", "maxLength": 2048 }
+        "schema": {
+          "type": "string",
+          "maxLength": 2048
+        }
       },
       "Limit": {
         "name": "limit",
@@ -333,20 +641,31 @@
         "name": "handle",
         "in": "path",
         "required": true,
-        "schema": { "type": "string", "minLength": 1, "maxLength": 50 }
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 50
+        }
       },
       "SpaceSlug": {
         "name": "slug",
         "in": "path",
         "required": true,
-        "schema": { "type": "string", "minLength": 1, "maxLength": 120 }
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        }
       },
       "PostId": {
         "name": "post",
         "in": "path",
         "required": true,
         "description": "Opaque post identifier.",
-        "schema": { "type": "string", "minLength": 1 }
+        "schema": {
+          "type": "string",
+          "minLength": 1
+        }
       }
     },
     "responses": {
@@ -354,7 +673,9 @@
         "description": "Malformed input or a cursor used outside its original query.",
         "content": {
           "application/json": {
-            "schema": { "$ref": "#/components/schemas/Error" }
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
           }
         }
       },
@@ -362,7 +683,9 @@
         "description": "Missing, expired, or revoked token.",
         "content": {
           "application/json": {
-            "schema": { "$ref": "#/components/schemas/Error" }
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
           }
         }
       },
@@ -370,7 +693,9 @@
         "description": "The verified member or token ability cannot perform this request.",
         "content": {
           "application/json": {
-            "schema": { "$ref": "#/components/schemas/Error" }
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
           }
         }
       },
@@ -378,7 +703,9 @@
         "description": "The resource does not exist or is not visible to the member.",
         "content": {
           "application/json": {
-            "schema": { "$ref": "#/components/schemas/Error" }
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
           }
         }
       },
@@ -386,7 +713,9 @@
         "description": "One or more query parameters failed validation.",
         "content": {
           "application/json": {
-            "schema": { "$ref": "#/components/schemas/Error" }
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
           }
         }
       },
@@ -394,21 +723,35 @@
         "description": "The current rate limit was exceeded.",
         "headers": {
           "Retry-After": {
-            "schema": { "type": "integer", "minimum": 1 }
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
           },
           "X-RateLimit-Limit": {
-            "schema": { "type": "integer", "minimum": 1 }
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
           },
           "X-RateLimit-Remaining": {
-            "schema": { "type": "integer", "minimum": 0 }
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
           },
           "X-RateLimit-Reset": {
-            "schema": { "type": "integer", "minimum": 0 }
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
           }
         },
         "content": {
           "application/json": {
-            "schema": { "$ref": "#/components/schemas/Error" }
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
           }
         }
       }
@@ -417,16 +760,30 @@
       "Error": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["message", "code", "request_id"],
+        "required": [
+          "message",
+          "code",
+          "request_id"
+        ],
         "properties": {
-          "message": { "type": "string" },
-          "code": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
-          "request_id": { "type": "string", "format": "uuid" },
+          "message": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          },
           "errors": {
             "type": "object",
             "additionalProperties": {
               "type": "array",
-              "items": { "type": "string" }
+              "items": {
+                "type": "string"
+              }
             }
           }
         }
@@ -434,51 +791,134 @@
       "PaginationLinks": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["next"],
+        "required": [
+          "next"
+        ],
         "properties": {
-          "next": { "type": ["string", "null"], "format": "uri-reference" }
+          "next": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri-reference"
+          }
         }
       },
       "PaginationMeta": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["next_cursor", "has_more", "limit"],
+        "required": [
+          "next_cursor",
+          "has_more",
+          "limit"
+        ],
         "properties": {
-          "next_cursor": { "type": ["string", "null"] },
-          "has_more": { "type": "boolean" },
-          "limit": { "type": "integer", "minimum": 1, "maximum": 50 }
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "has_more": {
+            "type": "boolean"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          }
         }
       },
       "ProfileSummary": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["handle", "name", "headline", "profile_visible"],
+        "required": [
+          "handle",
+          "name",
+          "headline",
+          "profile_visible"
+        ],
         "properties": {
-          "handle": { "type": "string" },
-          "name": { "type": "string" },
-          "headline": { "type": ["string", "null"] },
-          "profile_visible": { "type": "boolean" }
+          "handle": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "headline": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "profile_visible": {
+            "type": "boolean"
+          }
         }
       },
       "Profile": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["handle", "name", "headline", "bio", "location", "website_url", "member_since", "viewer"],
+        "required": [
+          "handle",
+          "name",
+          "headline",
+          "bio",
+          "location",
+          "website_url",
+          "member_since",
+          "viewer"
+        ],
         "properties": {
-          "handle": { "type": "string" },
-          "name": { "type": "string" },
-          "headline": { "type": ["string", "null"] },
-          "bio": { "type": ["string", "null"] },
-          "location": { "type": ["string", "null"] },
-          "website_url": { "type": ["string", "null"], "format": "uri" },
-          "member_since": { "type": "string", "format": "date" },
+          "handle": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "headline": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "bio": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "location": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "website_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "member_since": {
+            "type": "string",
+            "format": "date"
+          },
           "viewer": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["is_self", "is_muted"],
+            "required": [
+              "is_self",
+              "is_muted"
+            ],
             "properties": {
-              "is_self": { "type": "boolean" },
-              "is_muted": { "type": "boolean" }
+              "is_self": {
+                "type": "boolean"
+              },
+              "is_muted": {
+                "type": "boolean"
+              }
             }
           }
         }
@@ -486,29 +926,78 @@
       "ProfileResponse": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["data"],
+        "required": [
+          "data"
+        ],
         "properties": {
-          "data": { "$ref": "#/components/schemas/Profile" }
+          "data": {
+            "$ref": "#/components/schemas/Profile"
+          }
         }
       },
       "Space": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["slug", "name", "description", "visibility", "member_count", "viewer"],
+        "required": [
+          "slug",
+          "name",
+          "description",
+          "visibility",
+          "member_count",
+          "viewer"
+        ],
         "properties": {
-          "slug": { "type": "string" },
-          "name": { "type": "string" },
-          "description": { "type": ["string", "null"] },
-          "visibility": { "type": "string", "enum": ["public", "private", "hidden"] },
-          "member_count": { "type": "integer", "minimum": 0 },
+          "slug": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "visibility": {
+            "type": "string",
+            "enum": [
+              "public",
+              "private",
+              "hidden"
+            ]
+          },
+          "member_count": {
+            "type": "integer",
+            "minimum": 0
+          },
           "viewer": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["is_member", "role", "can_manage"],
+            "required": [
+              "is_member",
+              "role",
+              "can_manage"
+            ],
             "properties": {
-              "is_member": { "type": "boolean" },
-              "role": { "type": ["string", "null"], "enum": ["owner", "moderator", "member", null] },
-              "can_manage": { "type": "boolean" }
+              "is_member": {
+                "type": "boolean"
+              },
+              "role": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "owner",
+                  "moderator",
+                  "member",
+                  null
+                ]
+              },
+              "can_manage": {
+                "type": "boolean"
+              }
             }
           }
         }
@@ -516,49 +1005,111 @@
       "SpaceResponse": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["data"],
+        "required": [
+          "data"
+        ],
         "properties": {
-          "data": { "$ref": "#/components/schemas/Space" }
+          "data": {
+            "$ref": "#/components/schemas/Space"
+          }
         }
       },
       "SpaceCollection": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["data", "links", "meta"],
+        "required": [
+          "data",
+          "links",
+          "meta"
+        ],
         "properties": {
-          "data": { "type": "array", "items": { "$ref": "#/components/schemas/Space" } },
-          "links": { "$ref": "#/components/schemas/PaginationLinks" },
-          "meta": { "$ref": "#/components/schemas/PaginationMeta" }
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Space"
+            }
+          },
+          "links": {
+            "$ref": "#/components/schemas/PaginationLinks"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
         }
       },
       "Media": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["url", "alt", "width", "height", "mime_type"],
+        "required": [
+          "url",
+          "alt",
+          "width",
+          "height",
+          "mime_type"
+        ],
         "properties": {
-          "url": { "type": "string", "format": "uri-reference" },
-          "alt": { "type": "string" },
-          "width": { "type": "integer", "minimum": 1, "maximum": 2048 },
-          "height": { "type": "integer", "minimum": 1, "maximum": 2048 },
-          "mime_type": { "type": "string", "const": "image/webp" }
+          "url": {
+            "type": "string",
+            "format": "uri-reference"
+          },
+          "alt": {
+            "type": "string"
+          },
+          "width": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2048
+          },
+          "height": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2048
+          },
+          "mime_type": {
+            "type": "string",
+            "const": "image/webp"
+          }
         }
       },
       "Comment": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "body", "published_at", "author", "viewer"],
+        "required": [
+          "id",
+          "body",
+          "published_at",
+          "author",
+          "viewer"
+        ],
         "properties": {
-          "id": { "type": "string" },
-          "body": { "type": "string", "maxLength": 1000 },
-          "published_at": { "type": "string", "format": "date-time" },
-          "author": { "$ref": "#/components/schemas/ProfileSummary" },
+          "id": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string",
+            "maxLength": 1000
+          },
+          "published_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "author": {
+            "$ref": "#/components/schemas/ProfileSummary"
+          },
           "viewer": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["can_report", "has_reported"],
+            "required": [
+              "can_report",
+              "has_reported"
+            ],
             "properties": {
-              "can_report": { "type": "boolean" },
-              "has_reported": { "type": "boolean" }
+              "can_report": {
+                "type": "boolean"
+              },
+              "has_reported": {
+                "type": "boolean"
+              }
             }
           }
         }
@@ -566,28 +1117,66 @@
       "Post": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "body", "published_at", "media", "comments_count", "author", "space", "viewer"],
+        "required": [
+          "id",
+          "body",
+          "published_at",
+          "media",
+          "comments_count",
+          "author",
+          "space",
+          "viewer"
+        ],
         "properties": {
-          "id": { "type": "string" },
-          "body": { "type": "string", "maxLength": 2000 },
-          "published_at": { "type": "string", "format": "date-time" },
+          "id": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "published_at": {
+            "type": "string",
+            "format": "date-time"
+          },
           "media": {
             "anyOf": [
-              { "$ref": "#/components/schemas/Media" },
-              { "type": "null" }
+              {
+                "$ref": "#/components/schemas/Media"
+              },
+              {
+                "type": "null"
+              }
             ]
           },
-          "comments_count": { "type": "integer", "minimum": 0 },
-          "author": { "$ref": "#/components/schemas/ProfileSummary" },
-          "space": { "$ref": "#/components/schemas/Space" },
+          "comments_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "author": {
+            "$ref": "#/components/schemas/ProfileSummary"
+          },
+          "space": {
+            "$ref": "#/components/schemas/Space"
+          },
           "viewer": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["can_comment", "can_report", "has_reported"],
+            "required": [
+              "can_comment",
+              "can_report",
+              "has_reported"
+            ],
             "properties": {
-              "can_comment": { "type": "boolean" },
-              "can_report": { "type": "boolean" },
-              "has_reported": { "type": "boolean" }
+              "can_comment": {
+                "type": "boolean"
+              },
+              "can_report": {
+                "type": "boolean"
+              },
+              "has_reported": {
+                "type": "boolean"
+              }
             }
           }
         }
@@ -595,58 +1184,139 @@
       "PostResponse": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["data"],
+        "required": [
+          "data"
+        ],
         "properties": {
-          "data": { "$ref": "#/components/schemas/Post" }
+          "data": {
+            "$ref": "#/components/schemas/Post"
+          }
         }
       },
       "PostCollection": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["data", "links", "meta"],
+        "required": [
+          "data",
+          "links",
+          "meta"
+        ],
         "properties": {
-          "data": { "type": "array", "items": { "$ref": "#/components/schemas/Post" } },
-          "links": { "$ref": "#/components/schemas/PaginationLinks" },
-          "meta": { "$ref": "#/components/schemas/PaginationMeta" }
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Post"
+            }
+          },
+          "links": {
+            "$ref": "#/components/schemas/PaginationLinks"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
         }
       },
       "CommentCollection": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["data", "links", "meta"],
+        "required": [
+          "data",
+          "links",
+          "meta"
+        ],
         "properties": {
-          "data": { "type": "array", "items": { "$ref": "#/components/schemas/Comment" } },
-          "links": { "$ref": "#/components/schemas/PaginationLinks" },
-          "meta": { "$ref": "#/components/schemas/PaginationMeta" }
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Comment"
+            }
+          },
+          "links": {
+            "$ref": "#/components/schemas/PaginationLinks"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
         }
       },
       "NotificationTarget": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["type"],
+        "required": [
+          "type"
+        ],
         "properties": {
-          "type": { "type": "string", "enum": ["post", "space_moderation"] },
-          "post_id": { "type": "string" },
-          "comment_id": { "type": "string" },
-          "space_slug": { "type": "string" }
+          "type": {
+            "type": "string",
+            "enum": [
+              "post",
+              "space_moderation"
+            ]
+          },
+          "post_id": {
+            "type": "string"
+          },
+          "comment_id": {
+            "type": "string"
+          },
+          "space_slug": {
+            "type": "string"
+          }
         }
       },
       "Notification": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "kind", "title", "description", "created_at", "read_at", "available", "target"],
+        "required": [
+          "id",
+          "kind",
+          "title",
+          "description",
+          "created_at",
+          "read_at",
+          "available",
+          "target"
+        ],
         "properties": {
-          "id": { "type": "string" },
-          "kind": { "type": "string", "enum": ["comment_reply", "space_moderation", "unavailable"] },
-          "title": { "type": "string" },
-          "description": { "type": "string" },
-          "created_at": { "type": "string", "format": "date-time" },
-          "read_at": { "type": ["string", "null"], "format": "date-time" },
-          "available": { "type": "boolean" },
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "comment_reply",
+              "space_moderation",
+              "unavailable"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "read_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "available": {
+            "type": "boolean"
+          },
           "target": {
             "anyOf": [
-              { "$ref": "#/components/schemas/NotificationTarget" },
-              { "type": "null" }
+              {
+                "$ref": "#/components/schemas/NotificationTarget"
+              },
+              {
+                "type": "null"
+              }
             ]
           }
         }
@@ -654,11 +1324,24 @@
       "NotificationCollection": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["data", "links", "meta"],
+        "required": [
+          "data",
+          "links",
+          "meta"
+        ],
         "properties": {
-          "data": { "type": "array", "items": { "$ref": "#/components/schemas/Notification" } },
-          "links": { "$ref": "#/components/schemas/PaginationLinks" },
-          "meta": { "$ref": "#/components/schemas/PaginationMeta" }
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Notification"
+            }
+          },
+          "links": {
+            "$ref": "#/components/schemas/PaginationLinks"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
         }
       }
     }
