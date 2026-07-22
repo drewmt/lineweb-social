@@ -6,6 +6,7 @@ import {
     Globe2,
     ImagePlus,
     LockKeyhole,
+    MessageCircle,
     Share2,
     Send,
     UsersRound,
@@ -440,6 +441,18 @@ function PostCard({
                         <Share2 className="size-3.5" aria-hidden="true" />
                         {copyFeedback ? 'Copied' : 'Copy link'}
                     </button>
+                    <Link
+                        href={`${item.url}#conversation`}
+                        className="social-focus inline-flex min-h-9 items-center gap-1.5 rounded-xl px-3 text-xs font-bold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                    >
+                        <MessageCircle
+                            className="size-3.5"
+                            aria-hidden="true"
+                        />
+                        {item.commentsCount > 0
+                            ? `${item.commentsCount.toLocaleString()} ${item.commentsCount === 1 ? 'comment' : 'comments'}`
+                            : 'Start conversation'}
+                    </Link>
                     {item.hasReported ? (
                         <span className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-xl bg-secondary px-3 text-xs font-bold text-muted-foreground">
                             <Flag className="size-3.5" aria-hidden="true" />
