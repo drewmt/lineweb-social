@@ -60,11 +60,13 @@ function SpaceCard({
     const descriptionFallback =
         'A focused home for useful conversations and shared interests.';
     const description = space.description ?? descriptionFallback;
-    const hasLongDescription = description.length > SPACE_DESCRIPTION_PREVIEW_LENGTH;
+    const hasLongDescription =
+        description.length > SPACE_DESCRIPTION_PREVIEW_LENGTH;
     const [expanded, setExpanded] = useState(false);
-    const previewDescription = hasLongDescription && !expanded
-        ? `${description.slice(0, SPACE_DESCRIPTION_PREVIEW_LENGTH)}…`
-        : description;
+    const previewDescription =
+        hasLongDescription && !expanded
+            ? `${description.slice(0, SPACE_DESCRIPTION_PREVIEW_LENGTH)}…`
+            : description;
 
     return (
         <article className="social-card social-card-interactive group flex min-h-64 flex-col overflow-hidden rounded-[1.35rem]">
