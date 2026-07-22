@@ -46,6 +46,8 @@ const visibilityCopy = {
     },
 } as const;
 
+const SPACE_DESCRIPTION_PREVIEW_LENGTH = 160;
+
 function SpaceCard({
     space,
     onJoin,
@@ -55,6 +57,16 @@ function SpaceCard({
 }) {
     const visibility = visibilityCopy[space.visibility];
     const VisibilityIcon = visibility.icon;
+    const descriptionFallback =
+        'A focused home for useful conversations and shared interests.';
+    const description = space.description ?? descriptionFallback;
+    const hasLongDescription =
+        description.length > SPACE_DESCRIPTION_PREVIEW_LENGTH;
+    const [expanded, setExpanded] = useState(false);
+    const previewDescription =
+        hasLongDescription && !expanded
+            ? `${description.slice(0, SPACE_DESCRIPTION_PREVIEW_LENGTH)}…`
+            : description;
 
     return (
         <article className="social-card social-card-interactive group flex min-h-64 flex-col overflow-hidden rounded-[1.35rem]">
@@ -72,10 +84,19 @@ function SpaceCard({
                 <h3 className="text-lg font-black tracking-[-0.025em]">
                     {space.name}
                 </h3>
-                <p className="mt-1.5 line-clamp-2 text-sm leading-6 text-muted-foreground">
-                    {space.description ??
-                        'A focused home for useful conversations and shared interests.'}
+                <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
+                    {previewDescription}
                 </p>
+                {hasLongDescription && (
+                    <button
+                        type="button"
+                        className="social-focus mt-2 inline-flex min-h-7 items-center rounded-md px-2.5 py-0.5 text-[0.68rem] font-extrabold text-muted-foreground transition-colors hover:bg-secondary/70"
+                        onClick={() => setExpanded((open) => !open)}
+                        aria-expanded={expanded}
+                    >
+                        {expanded ? 'Show less' : 'Read more'}
+                    </button>
+                )}
                 <div className="mt-auto flex items-center justify-between gap-3 pt-5">
                     <span className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground">
                         <UsersRound className="size-3.5" aria-hidden="true" />
