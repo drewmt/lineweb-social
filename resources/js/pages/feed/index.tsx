@@ -76,6 +76,8 @@ const publishedLabel = (value: string | null) => {
     }).format(new Date(value));
 };
 
+const FEED_PREVIEW_LENGTH = 280;
+
 function SpacePulse({ spaces }: { spaces: Space[] }) {
     if (spaces.length === 0) {
         return null;
@@ -360,6 +362,12 @@ function PostCard({
         reason: '',
         details: '',
     });
+    const hasLongBody = item.body.length > FEED_PREVIEW_LENGTH;
+    const [expanded, setExpanded] = useState(false);
+    const previewBody =
+        hasLongBody && !expanded
+            ? `${item.body.slice(0, FEED_PREVIEW_LENGTH)}…`
+            : item.body;
 
     const submitReport = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -474,8 +482,18 @@ function PostCard({
                 </div>
             </header>
             <p className="mt-4 text-[1.01rem] leading-7 whitespace-pre-wrap text-foreground/92 sm:text-[1.04rem] sm:leading-8">
-                {item.body}
+                {previewBody}
             </p>
+            {hasLongBody && (
+                <button
+                    type="button"
+                    className="social-focus mt-2 inline-flex min-h-9 items-center rounded-lg px-3 text-xs font-bold text-muted-foreground transition-colors hover:bg-secondary/70"
+                    onClick={() => setExpanded((open) => !open)}
+                    aria-expanded={expanded}
+                >
+                    {expanded ? 'Show less' : 'Read more'}
+                </button>
+            )}
             {item.media && <PostImage media={item.media} className="mt-4" />}
             {reporting && (
                 <form
