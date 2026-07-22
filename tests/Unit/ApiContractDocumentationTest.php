@@ -24,10 +24,24 @@ class ApiContractDocumentationTest extends TestCase
     /**
      * @throws JsonException
      */
-    public function test_first_contract_is_read_only_and_only_implemented_read_operations_are_available(): void
+    public function test_contract_is_available_for_only_implemented_operations(): void
     {
         $contract = $this->contract();
         $expectedPaths = [
+            '/feed',
+            '/me',
+            '/notifications',
+            '/notifications/read-all',
+            '/notifications/{notification}/read',
+            '/posts/{post}',
+            '/posts/{post}/comments',
+            '/posts/{post}/media',
+            '/profiles/{handle}',
+            '/spaces',
+            '/spaces/{slug}',
+        ];
+        $paths = array_keys($contract['paths']);
+        $availableGetPaths = [
             '/feed',
             '/me',
             '/notifications',
@@ -38,24 +52,39 @@ class ApiContractDocumentationTest extends TestCase
             '/spaces',
             '/spaces/{slug}',
         ];
-        $paths = array_keys($contract['paths']);
+        $availablePatchPaths = [
+            '/notifications/{notification}/read',
+            '/notifications/read-all',
+        ];
 
         sort($paths);
 
         $this->assertSame($expectedPaths, $paths);
 
         foreach ($contract['paths'] as $path => $pathItem) {
+            $methods = array_keys($pathItem);
+            $availableMethods = in_array($path, $availableGetPaths, true)
+                ? ['get']
+                : ['patch'];
+
             $this->assertSame(
-                ['get'],
-                array_keys($pathItem),
-                $path.' must remain read-only in the first contract slice.',
+                $availableMethods,
+                $methods,
+                $path.' methods must match the implemented slice.',
             );
-            $this->assertSame(
-                in_array($path, ['/me', '/profiles/{handle}', '/spaces', '/spaces/{slug}'], true) ? 'available' : 'planned',
-                $pathItem['get']['x-lineweb-status'],
-            );
-            $this->assertArrayNotHasKey('requestBody', $pathItem['get']);
+
+            foreach ($methods as $method) {
+                $operation = $pathItem[$method];
+                $isAvailable = in_array($path, [...$availableGetPaths, ...$availablePatchPaths], true);
+                $this->assertSame(
+                    $isAvailable ? 'available' : 'planned',
+                    $operation['x-lineweb-status'],
+                );
+                $this->assertArrayNotHasKey('requestBody', $operation);
+            }
         }
+
+        $this->assertArrayHasKey('422', $contract['paths']['/feed']['get']['responses']);
     }
 
     /**
@@ -70,15 +99,16 @@ class ApiContractDocumentationTest extends TestCase
             'spaces:read',
             'feed:read',
             'notifications:read',
+            'notifications:write',
         ];
 
         foreach ($contract['paths'] as $path => $pathItem) {
-            $operation = $pathItem['get'];
-
-            $this->assertContains($operation['x-required-ability'], $allowedAbilities);
-            $this->assertArrayHasKey('401', $operation['responses'], $path);
-            $this->assertArrayHasKey('403', $operation['responses'], $path);
-            $this->assertArrayHasKey('429', $operation['responses'], $path);
+            foreach ($pathItem as $method => $operation) {
+                $this->assertContains($operation['x-required-ability'], $allowedAbilities, $path.' '.$method);
+                $this->assertArrayHasKey('401', $operation['responses'], $path.' '.$method);
+                $this->assertArrayHasKey('403', $operation['responses'], $path.' '.$method);
+                $this->assertArrayHasKey('429', $operation['responses'], $path.' '.$method);
+            }
         }
 
         $throttleHeaders = $contract['components']['responses']['TooManyRequests']['headers'];
@@ -112,11 +142,21 @@ class ApiContractDocumentationTest extends TestCase
             ['slug', 'name', 'description', 'visibility', 'member_count', 'viewer'],
             array_keys($schemas['Space']['properties']),
         );
+        $this->assertSame(
+            ['id', 'body', 'published_at', 'media', 'comments_count', 'author', 'space', 'viewer'],
+            array_keys($schemas['Post']['properties']),
+        );
+        $this->assertSame(
+            ['handle', 'name', 'headline', 'profile_visible'],
+            array_keys($schemas['ProfileSummary']['properties']),
+        );
 
         foreach (['email', 'password', 'token', 'disk', 'path', 'checksum', 'data'] as $forbidden) {
             $this->assertArrayNotHasKey($forbidden, $schemas['Profile']['properties']);
             $this->assertArrayNotHasKey($forbidden, $schemas['Space']['properties']);
             $this->assertArrayNotHasKey($forbidden, $schemas['Media']['properties']);
+            $this->assertArrayNotHasKey($forbidden, $schemas['Post']['properties']);
+            $this->assertArrayNotHasKey($forbidden, $schemas['ProfileSummary']['properties']);
             $this->assertArrayNotHasKey($forbidden, $schemas['Notification']['properties']);
         }
     }
