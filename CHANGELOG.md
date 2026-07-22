@@ -17,6 +17,9 @@ All notable project changes will be documented here.
 - Policy-safe `GET /api/v1/profiles/{handle}` access under the separate
   `profiles:read` ability, preserving direct-link visibility, shared-Space
   privacy, mute state, and mutual block boundaries.
+- A `feed:read` API ability with `GET /api/v1/feed`, deterministic encrypted
+  cursor pagination, optional visible-Space filtering, policy-safe post
+  resources, and bearer-authorized normalized media delivery.
 - Optional single-image post attachments with required alternative text,
   private policy-protected delivery, bounded processing, and static WebP
   normalization that discards original metadata and filenames.
@@ -26,7 +29,14 @@ All notable project changes will be documented here.
   20-comment pages, and policy-filtered access to older replies.
 - Database-backed in-app notifications for replies and new Space moderation
   reports, with unread state, secure destinations, and paginated history.
+- Notification mutation support for native clients: `PATCH
+  /api/v1/notifications/{notification}/read` and `PATCH
+  /api/v1/notifications/read-all`, preserving owner scope and policy-safe
+  mark-read behavior.
 - Per-member preferences for reply and moderation notification categories.
+- Cursor-paginated post detail and comments APIs for native clients with
+  policy-enforced access: `GET /api/v1/posts/{post}` and
+  `GET /api/v1/posts/{post}/comments`.
 
 ### Changed
 

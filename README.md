@@ -132,11 +132,12 @@ on a private disk, and authorized through their parent post. See
 [`docs/media.md`](docs/media.md) for the limits, lifecycle, and storage contract.
 
 The authenticated native/decoupled API is being developed contract-first. Its
-first available operations return the current safe profile and profiles already
-visible to that member. They use expiring, explicitly scoped bearer tokens
-created from recently confirmed Security settings. The remaining read-only
-draft fixes cursor pagination, throttling, CORS, stable errors, and policy-safe
-resources before more endpoints are exposed. See
+available operations expose the member's safe profile, visible profiles and
+Spaces, and a policy-filtered chronological feed with bearer-protected private
+images. Expiring, explicitly scoped tokens are created from recently confirmed
+Security settings. Cursor pagination, throttling, CORS, stable errors, and
+allowlisted resources are enforced before each planned endpoint becomes
+available. See
 [`docs/api-v1.md`](docs/api-v1.md) and the machine-readable
 [`docs/openapi.json`](docs/openapi.json).
 
