@@ -46,6 +46,20 @@
               "type": "string",
               "maxLength": 120
             }
+          },
+          {
+            "name": "source",
+            "in": "query",
+            "required": false,
+            "description": "Timeline source. Following cannot be combined with a Space filter.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "community",
+                "following"
+              ],
+              "default": "community"
+            }
           }
         ],
         "responses": {
@@ -826,6 +840,13 @@
             "type": "integer",
             "minimum": 1,
             "maximum": 50
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "community",
+              "following"
+            ]
           }
         }
       },
@@ -867,6 +888,7 @@
           "location",
           "website_url",
           "member_since",
+          "stats",
           "viewer"
         ],
         "properties": {
@@ -905,18 +927,44 @@
             "type": "string",
             "format": "date"
           },
+          "stats": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "followers",
+              "following"
+            ],
+            "properties": {
+              "followers": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "following": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          },
           "viewer": {
             "type": "object",
             "additionalProperties": false,
             "required": [
               "is_self",
-              "is_muted"
+              "is_muted",
+              "is_following",
+              "can_follow"
             ],
             "properties": {
               "is_self": {
                 "type": "boolean"
               },
               "is_muted": {
+                "type": "boolean"
+              },
+              "is_following": {
+                "type": "boolean"
+              },
+              "can_follow": {
                 "type": "boolean"
               }
             }

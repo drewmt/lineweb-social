@@ -6,6 +6,9 @@ All notable project changes will be documented here.
 
 ### Added
 
+- Idempotent Follow/Unfollow relationships with aggregate-only profile counts,
+  mutual-block cleanup, after-write extension events, and a separate
+  chronological Following feed across web and read-only API surfaces.
 - A contract-first authenticated `/api/v1` foundation with explicit token
   lifecycle, abilities, cursor pagination, throttling, CORS, error, and
   policy-safe serialization boundaries, plus a machine-readable OpenAPI 3.1

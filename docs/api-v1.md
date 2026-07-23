@@ -113,6 +113,12 @@ equivalent creation timestamp. Conversation comments use
 `(published_at ASC, id ASC)`. The identifier is always the deterministic
 tie-breaker.
 
+`GET /api/v1/feed` accepts `source=community` (the default) or
+`source=following`. Following results contain only currently visible posts from
+profiles the member follows and remain chronological. A cursor is bound to its
+viewer, Space filter, and source; it cannot be reused across those contexts.
+`source=following` cannot be combined with a Space filter.
+
 Validation and other errors use one stable envelope:
 
 ```json
@@ -188,7 +194,9 @@ projection objects. Returning Eloquent models, database notifications, or
 The first resources expose only allowlisted fields:
 
 - profiles exclude email, verification state, privacy configuration, login
-  metadata, relationship rows, and undiscoverable membership;
+  metadata, relationship rows, follower identities, and undiscoverable
+  membership; they expose only aggregate follow counts and the current viewer's
+  follow state;
 - Spaces exclude invitation recipients, audit records, and hidden membership;
 - posts and comments exclude storage paths, report details, moderator notes,
   hidden timestamps, and author account identifiers; nullable `edited_at`

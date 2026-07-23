@@ -13,6 +13,7 @@ import { PostImage } from '@/components/social/post-image';
 import type { PostMedia } from '@/components/social/post-image';
 import { SpaceCover } from '@/components/social/space-cover';
 import { Button } from '@/components/ui/button';
+import { ProfileFollowButton } from './profile-follow-button';
 import { ProfileSafetyActions } from './profile-safety-actions';
 
 type Profile = {
@@ -25,11 +26,15 @@ type Profile = {
     memberSince: string | null;
     isSelf: boolean;
     isMuted: boolean;
+    isFollowing: boolean;
+    canFollow: boolean;
 };
 
 type ProfileStats = {
     visibleSpaces: number;
     visiblePosts: number;
+    followers: number;
+    following: number;
 };
 
 type ProfileSpace = {
@@ -122,10 +127,20 @@ export default function ShowProfile({
                                         </Link>
                                     </Button>
                                 ) : (
-                                    <ProfileSafetyActions
-                                        handle={profile.handle}
-                                        isMuted={profile.isMuted}
-                                    />
+                                    <>
+                                        {profile.canFollow && (
+                                            <ProfileFollowButton
+                                                handle={profile.handle}
+                                                isFollowing={
+                                                    profile.isFollowing
+                                                }
+                                            />
+                                        )}
+                                        <ProfileSafetyActions
+                                            handle={profile.handle}
+                                            isMuted={profile.isMuted}
+                                        />
+                                    </>
                                 )}
                             </div>
                         </div>
@@ -155,6 +170,22 @@ export default function ShowProfile({
                         </div>
 
                         <dl className="mt-6 flex flex-wrap gap-x-8 gap-y-3 border-t border-border/65 py-5">
+                            <div className="flex items-baseline gap-2">
+                                <dt className="text-sm font-semibold text-muted-foreground">
+                                    Followers
+                                </dt>
+                                <dd className="text-xl font-black tracking-tight">
+                                    {stats.followers.toLocaleString()}
+                                </dd>
+                            </div>
+                            <div className="flex items-baseline gap-2">
+                                <dt className="text-sm font-semibold text-muted-foreground">
+                                    Following
+                                </dt>
+                                <dd className="text-xl font-black tracking-tight">
+                                    {stats.following.toLocaleString()}
+                                </dd>
+                            </div>
                             <div className="flex items-baseline gap-2">
                                 <dt className="text-sm font-semibold text-muted-foreground">
                                     Visible posts

@@ -12,8 +12,11 @@ use Illuminate\Support\Facades\DB;
 final class VisiblePostQuery
 {
     /** @return Builder<Post> */
-    public function forFeed(User $viewer, ?Space $space = null): Builder
-    {
+    public function forFeed(
+        User $viewer,
+        ?Space $space = null,
+        bool $followingOnly = false,
+    ): Builder {
         $hiddenActorIds = $this->hiddenActorIds($viewer);
         $blockingActorIds = $this->blockingActorIds($viewer);
         $visibleComments = fn (Builder $comments): Builder => $comments
@@ -22,7 +25,7 @@ final class VisiblePostQuery
             ->whereNotIn('user_id', clone $hiddenActorIds)
             ->whereNotIn('user_id', clone $blockingActorIds);
 
-        return $this->base($viewer, $space)
+        $query = $this->base($viewer, $space)
             ->with([
                 'author:id,name,handle,headline',
                 'media',
@@ -41,6 +44,17 @@ final class VisiblePostQuery
                     ->withCount('members'),
             ])
             ->withCount(['comments as comments_count' => $visibleComments]);
+
+        if ($followingOnly) {
+            $query->whereIn(
+                'posts.user_id',
+                DB::table('user_follows')
+                    ->select('followed_id')
+                    ->where('follower_id', $viewer->getKey()),
+            );
+        }
+
+        return $query;
     }
 
     public function findVisible(User $viewer, int|string $postId): Post

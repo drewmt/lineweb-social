@@ -185,6 +185,48 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         return $this->hasMany(UserRelationship::class, 'target_id');
     }
 
+    /** @return HasMany<UserFollow, $this> */
+    public function outgoingFollows(): HasMany
+    {
+        return $this->hasMany(UserFollow::class, 'follower_id');
+    }
+
+    /** @return HasMany<UserFollow, $this> */
+    public function incomingFollows(): HasMany
+    {
+        return $this->hasMany(UserFollow::class, 'followed_id');
+    }
+
+    /**
+     * Profiles followed by this user.
+     *
+     * @return BelongsToMany<User, $this>
+     */
+    public function following(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            User::class,
+            'user_follows',
+            'follower_id',
+            'followed_id',
+        )->withTimestamps();
+    }
+
+    /**
+     * Profiles following this user.
+     *
+     * @return BelongsToMany<User, $this>
+     */
+    public function followers(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            User::class,
+            'user_follows',
+            'followed_id',
+            'follower_id',
+        )->withTimestamps();
+    }
+
     /**
      * Limit profiles to those the viewer may open directly.
      *
@@ -276,6 +318,13 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         return $this->outgoingRelationships()
             ->whereBelongsTo($target, 'target')
             ->where('type', UserRelationshipType::Block)
+            ->exists();
+    }
+
+    public function isFollowing(User $profile): bool
+    {
+        return $this->outgoingFollows()
+            ->whereBelongsTo($profile, 'followed')
             ->exists();
     }
 

@@ -17,6 +17,8 @@ require a queue worker. Email, web push, mobile push, digests, mentions, and
 per-reaction notifications are not part of this release. Typed post reactions
 emit `PostReactionChanged` for extensions, but the core deliberately avoids a
 notification for every reaction.
+Follow changes similarly emit `UserFollowChanged` for extensions, but the core
+does not create a notification for every follow in this release.
 
 ## Privacy and authorization
 

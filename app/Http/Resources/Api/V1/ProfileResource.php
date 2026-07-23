@@ -25,9 +25,16 @@ class ProfileResource extends JsonResource
             'location' => $profile->location,
             'website_url' => $profile->website_url,
             'member_since' => $profile->created_at?->toDateString(),
+            'stats' => [
+                'followers' => (int) $profile->followers_count,
+                'following' => (int) $profile->following_count,
+            ],
             'viewer' => [
                 'is_self' => $viewer->is($profile),
                 'is_muted' => ! $viewer->is($profile) && $viewer->hasMuted($profile),
+                'is_following' => ! $viewer->is($profile) && $viewer->isFollowing($profile),
+                'can_follow' => ! $viewer->is($profile)
+                    && $viewer->can('follow', $profile),
             ],
         ];
     }

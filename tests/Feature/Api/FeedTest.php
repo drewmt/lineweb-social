@@ -11,6 +11,7 @@ use App\Models\PostReaction;
 use App\Models\PostReport;
 use App\Models\Space;
 use App\Models\User;
+use App\Models\UserFollow;
 use App\Models\UserRelationship;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
@@ -205,12 +206,67 @@ class FeedTest extends TestCase
             ->assertBadRequest()
             ->assertJsonPath('code', 'invalid_cursor');
 
+        $this->withToken($this->token($viewer))
+            ->getJson(route('api.v1.feed', [
+                'source' => 'following',
+                'cursor' => $cursor,
+            ]))
+            ->assertBadRequest()
+            ->assertJsonPath('code', 'invalid_cursor');
+
         foreach ([0, 51] as $limit) {
             $this->withToken($this->token($viewer))
                 ->getJson(route('api.v1.feed', ['limit' => $limit]))
                 ->assertUnprocessable()
                 ->assertJsonPath('code', 'validation_failed');
         }
+    }
+
+    public function test_following_source_is_chronological_and_reuses_visibility_rules(): void
+    {
+        $viewer = User::factory()->create();
+        $followed = User::factory()->create();
+        $muted = User::factory()->create();
+        $other = User::factory()->create();
+        $public = Space::factory()->create();
+        $private = Space::factory()->private()->create();
+
+        $older = Post::factory()->for($public)->for($followed, 'author')->create([
+            'published_at' => now()->subMinutes(2),
+        ]);
+        $newer = Post::factory()->for($public)->for($followed, 'author')->create([
+            'published_at' => now()->subMinute(),
+        ]);
+        Post::factory()->for($private)->for($followed, 'author')->create();
+        Post::factory()->for($public)->for($muted, 'author')->create();
+        Post::factory()->for($public)->for($other, 'author')->create();
+
+        foreach ([$followed, $muted] as $profile) {
+            UserFollow::query()->create([
+                'follower_id' => $viewer->getKey(),
+                'followed_id' => $profile->getKey(),
+            ]);
+        }
+        $viewer->outgoingRelationships()->create([
+            'target_id' => $muted->getKey(),
+            'type' => UserRelationshipType::Mute,
+        ]);
+
+        $this->withToken($this->token($viewer))
+            ->getJson(route('api.v1.feed', ['source' => 'following']))
+            ->assertOk()
+            ->assertJsonPath('meta.source', 'following')
+            ->assertJsonPath('data.0.id', (string) $newer->getKey())
+            ->assertJsonPath('data.1.id', (string) $older->getKey())
+            ->assertJsonCount(2, 'data');
+
+        $this->withToken($this->token($viewer))
+            ->getJson(route('api.v1.feed', [
+                'source' => 'following',
+                'space' => $public->slug,
+            ]))
+            ->assertUnprocessable()
+            ->assertJsonPath('code', 'validation_failed');
     }
 
     public function test_feed_requires_its_scope_and_hides_inaccessible_space_filters(): void

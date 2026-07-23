@@ -58,6 +58,21 @@ The current release is `0.1.0-alpha.1`. It is suitable for local evaluation and 
 <table>
   <tr>
     <td width="68%">
+      <img src="docs/screenshots/following-desktop.jpg" alt="Lineweb Social chronological Following feed on desktop" />
+    </td>
+    <td width="32%">
+      <img src="docs/screenshots/following-mobile.jpg" alt="Lineweb Social chronological Following feed on mobile" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Privacy-aware Following timeline</sub></td>
+    <td align="center"><sub>Mobile Following feed</sub></td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td width="68%">
       <img src="docs/screenshots/search-desktop.jpg" alt="Lineweb Social policy-filtered global search on desktop" />
     </td>
     <td width="32%">
@@ -80,6 +95,9 @@ The current release is `0.1.0-alpha.1`. It is suitable for local evaluation and 
 - Expiring email invitations for restricted Spaces with hashed tokens and verified-account matching.
 - Owner transfer, moderator role changes, reason-required member removal, and an auditable management log.
 - A chronological, non-algorithmic feed.
+- Idempotent Follow/Unfollow relationships with aggregate-only profile counts
+  and a separate chronological Following feed that preserves every privacy,
+  mute, block, moderation, and Space visibility boundary.
 - Policy-filtered global search across visible posts, accessible Spaces, and
   discoverable people, with dedicated desktop and mobile entry points.
 - Private Saved Posts with policy-filtered retrieval and quick access from the
@@ -166,7 +184,13 @@ available. See
 [`docs/api-v1.md`](docs/api-v1.md) and the machine-readable
 [`docs/openapi.json`](docs/openapi.json).
 
-The core owns identity, Spaces, visibility, safety relationships, conversations, and moderation. Product-specific experiences—photo grids, short-video feeds, professional timelines, events, commerce, or learning—should build on those boundaries through presentation layers and extensions rather than weakening core policies. See [`docs/platform-architecture.md`](docs/platform-architecture.md) for the current separation and the contracts that still need to mature.
+The core owns identity, Spaces, visibility, follow and safety relationships,
+conversations, and moderation. Product-specific experiences—photo grids,
+short-video feeds, professional timelines, events, commerce, or
+learning—should build on those boundaries through presentation layers and
+extensions rather than weakening core policies. See
+[`docs/platform-architecture.md`](docs/platform-architecture.md) for the current
+separation and the contracts that still need to mature.
 
 ## Contributing
 
