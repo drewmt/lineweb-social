@@ -52,6 +52,16 @@ final class VisiblePostQuery
     }
 
     /** @return Builder<Post> */
+    public function forSearch(User $viewer): Builder
+    {
+        return $this->base($viewer)
+            ->with([
+                'author:id,name,handle',
+                'space:id,name,slug',
+            ]);
+    }
+
+    /** @return Builder<Post> */
     private function base(User $viewer, ?Space $space = null): Builder
     {
         $query = Post::query()
