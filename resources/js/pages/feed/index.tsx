@@ -16,6 +16,7 @@ import {
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import InputError from '@/components/input-error';
+import { AuthoredContentMenu } from '@/components/social/authored-content-menu';
 import { AvatarMark } from '@/components/social/avatar-mark';
 import { CommentThread } from '@/components/social/comment-thread';
 import type { SocialComment } from '@/components/social/comment-thread';
@@ -44,8 +45,11 @@ type FeedPost = {
     body: string;
     media: PostMedia | null;
     publishedAt: string | null;
+    editedAt: string | null;
     canComment: boolean;
     canReport: boolean;
+    canEdit: boolean;
+    canDelete: boolean;
     hasReported: boolean;
     isSaved: boolean;
     commentsCount: number;
@@ -458,9 +462,23 @@ function PostCard({
                         <time dateTime={item.publishedAt ?? undefined}>
                             {publishedLabel(item.publishedAt)}
                         </time>
+                        {item.editedAt && (
+                            <span className="ml-1.5" aria-label="Edited post">
+                                · Edited
+                            </span>
+                        )}
                     </Link>
                 </div>
                 <div className="flex shrink-0 flex-wrap items-center gap-2">
+                    <AuthoredContentMenu
+                        body={item.body}
+                        canEdit={item.canEdit}
+                        canDelete={item.canDelete}
+                        contentType="post"
+                        updateUrl={`/posts/${item.id}`}
+                        deleteUrl={`/posts/${item.id}`}
+                        maxLength={2000}
+                    />
                     <button
                         type="button"
                         onClick={toggleSaved}

@@ -11,6 +11,9 @@ This contract is pre-release and may receive additive changes before the first t
 3. Space owners and moderators can move an open report into review, hide the content, or dismiss the report.
 4. Hiding removes the content from community surfaces. Reopening restores it only when no other resolved report still requires it to remain hidden.
 5. Review, hide, dismiss, and reopen actions append a `SpaceAuditLog` entry with report and content identifiers. Reporter identity is not copied into the general audit log.
+6. Authors may edit or delete their own visible content, except while any report
+   is open or under review. This prevents content or evidence from changing
+   during an active moderation decision.
 
 Current states are `open`, `reviewing`, `resolved`, and `dismissed`. Current moderator actions are `review`, `hide`, `dismiss`, and `reopen`.
 
@@ -38,14 +41,17 @@ Listeners should be idempotent and queued when they perform I/O. Treat report de
 
 ## Authorization and integrity boundaries
 
-- `PostPolicy` controls post visibility, commenting, reporting, and deletion.
-- `CommentPolicy` controls comment visibility, reporting, and deletion.
+- `PostPolicy` controls post visibility, commenting, reporting, author editing,
+  and deletion.
+- `CommentPolicy` controls comment visibility, reporting, author editing, and
+  deletion.
 - `SpacePolicy::moderate` controls queue access and decisions.
 - Form Requests and transaction-backed domain services both enforce authorization.
 - Moderator routes use scoped nested binding; services repeat Space/report/content relationship checks under row locks.
 - Reason and action values are backed by shared enums; clients cannot invent workflow states.
 - Report `space_id` values are derived from content on the server and are never accepted from client input.
-- Post and comment publishing/reporting use separate per-user rate limiters.
+- Post and comment publishing/reporting use separate per-user rate limiters;
+  author edit/delete mutations share a dedicated per-user limiter.
 
 Frontend visibility is only a convenience. Extensions must never treat a hidden button or a client-provided Space identifier as authorization.
 

@@ -27,9 +27,15 @@ class CommentPolicy
             && $this->view($user, $comment);
     }
 
-    public function delete(User $user, Comment $comment): bool
+    public function update(User $user, Comment $comment): bool
     {
         return $comment->user_id === $user->getKey()
-            || $user->can('moderate', $comment->post->space);
+            && $comment->hidden_at === null
+            && $comment->post->hidden_at === null;
+    }
+
+    public function delete(User $user, Comment $comment): bool
+    {
+        return $this->update($user, $comment);
     }
 }

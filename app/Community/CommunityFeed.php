@@ -2,6 +2,7 @@
 
 namespace App\Community;
 
+use App\Enums\ReportStatus;
 use App\Enums\SpaceRole;
 use App\Enums\UserRelationshipType;
 use App\Models\Comment;
@@ -53,7 +54,7 @@ final class CommunityFeed
     }
 
     /**
-     * @return list<array{id: int, url: string, body: string, media: array{url: string, alt: string, width: int, height: int}|null, publishedAt: string|null, isSaved: bool, canComment: bool, canReport: bool, hasReported: bool, commentsCount: int, comments: list<array{id: int, body: string, publishedAt: string, canReport: bool, hasReported: bool, author: array{name: string, handle: string, profileVisible: bool}}>, author: array{name: string, handle: string, profileVisible: bool}, space: array{name: string, slug: string}}>
+     * @return list<array{id: int, url: string, body: string, media: array{url: string, alt: string, width: int, height: int}|null, publishedAt: string|null, editedAt: string|null, isSaved: bool, canComment: bool, canReport: bool, canEdit: bool, canDelete: bool, hasReported: bool, commentsCount: int, comments: list<array{id: int, body: string, publishedAt: string, editedAt: string|null, canReport: bool, canEdit: bool, canDelete: bool, hasReported: bool, author: array{name: string, handle: string, profileVisible: bool}}>, author: array{name: string, handle: string, profileVisible: bool}, space: array{name: string, slug: string}}>
      */
     public function posts(User $user, ?Space $space = null, bool $savedOnly = false): array
     {
@@ -145,6 +146,21 @@ final class CommunityFeed
             ->pluck('comment_id')
             ->all();
 
+        $activeStatuses = [
+            ReportStatus::Open->value,
+            ReportStatus::Reviewing->value,
+        ];
+        $lockedPostIds = PostReport::query()
+            ->whereIn('post_id', $posts->modelKeys())
+            ->whereIn('status', $activeStatuses)
+            ->pluck('post_id')
+            ->all();
+        $lockedCommentIds = CommentReport::query()
+            ->whereIn('comment_id', $comments->pluck('id')->all())
+            ->whereIn('status', $activeStatuses)
+            ->pluck('comment_id')
+            ->all();
+
         $memberSpaceIds = DB::table('space_members')
             ->where('user_id', $user->getKey())
             ->pluck('space_id')
@@ -157,9 +173,14 @@ final class CommunityFeed
                 'body' => $post->body,
                 'media' => $this->media->for($post),
                 'publishedAt' => $post->published_at?->toIso8601String(),
+                'editedAt' => $post->edited_at?->toIso8601String(),
                 'isSaved' => (bool) $post->is_saved,
                 'canComment' => in_array($post->space_id, $memberSpaceIds, true),
                 'canReport' => $post->user_id !== $user->getKey(),
+                'canEdit' => $post->user_id === $user->getKey()
+                    && ! in_array($post->getKey(), $lockedPostIds, true),
+                'canDelete' => $post->user_id === $user->getKey()
+                    && ! in_array($post->getKey(), $lockedPostIds, true),
                 'hasReported' => in_array($post->getKey(), $reportedPostIds, true),
                 'commentsCount' => (int) $post->comments_count,
                 'comments' => array_values($post->comments
@@ -168,7 +189,12 @@ final class CommunityFeed
                         'id' => $comment->getKey(),
                         'body' => $comment->body,
                         'publishedAt' => $comment->published_at->toIso8601String(),
+                        'editedAt' => $comment->edited_at?->toIso8601String(),
                         'canReport' => $comment->user_id !== $user->getKey(),
+                        'canEdit' => $comment->user_id === $user->getKey()
+                            && ! in_array($comment->getKey(), $lockedCommentIds, true),
+                        'canDelete' => $comment->user_id === $user->getKey()
+                            && ! in_array($comment->getKey(), $lockedCommentIds, true),
                         'hasReported' => in_array($comment->getKey(), $reportedCommentIds, true),
                         'author' => [
                             'name' => $comment->author->name,

@@ -107,6 +107,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('spaces.posts.store');
     Route::get('posts/{post}', [PostController::class, 'show'])
         ->name('posts.show');
+    Route::patch('posts/{post}', [PostController::class, 'update'])
+        ->middleware('throttle:content-management')
+        ->name('posts.update');
+    Route::delete('posts/{post}', [PostController::class, 'destroy'])
+        ->middleware('throttle:content-management')
+        ->name('posts.destroy');
     Route::get('posts/{post}/image', PostImageController::class)
         ->name('posts.image');
     Route::post('posts/{post}/reports', [PostReportController::class, 'store'])
@@ -121,6 +127,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('posts/{post}/comments', [CommentController::class, 'store'])
         ->middleware('throttle:comment-publishing')
         ->name('posts.comments.store');
+    Route::patch('comments/{comment}', [CommentController::class, 'update'])
+        ->middleware('throttle:content-management')
+        ->name('comments.update');
+    Route::delete('comments/{comment}', [CommentController::class, 'destroy'])
+        ->middleware('throttle:content-management')
+        ->name('comments.destroy');
     Route::post('comments/{comment}/reports', [CommentReportController::class, 'store'])
         ->middleware('throttle:comment-reporting')
         ->name('comments.reports.store');

@@ -2,6 +2,7 @@
 
 namespace App\Community;
 
+use App\Enums\ReportStatus;
 use App\Enums\UserRelationshipType;
 use App\Models\Comment;
 use App\Models\CommentReport;
@@ -21,8 +22,8 @@ final class PostConversation
      * Build the policy-filtered permalink projection for one post.
      *
      * @return array{
-     *     post: array{id: int, url: string, body: string, media: array{url: string, alt: string, width: int, height: int}|null, publishedAt: string|null, isDraft: bool, isHidden: bool, isSaved: bool, canComment: bool, canReport: bool, hasReported: bool, commentsCount: int, author: array{name: string, handle: string, profileVisible: bool}, space: array{name: string, slug: string, description: string|null, visibility: string, memberCount: int}},
-     *     comments: array{data: list<array{id: int, body: string, publishedAt: string, canReport: bool, hasReported: bool, author: array{name: string, handle: string, profileVisible: bool}}>, meta: array{currentPage: int, lastPage: int, perPage: int, total: int}, links: array{newer: string|null, older: string|null}}
+     *     post: array{id: int, url: string, body: string, media: array{url: string, alt: string, width: int, height: int}|null, publishedAt: string|null, editedAt: string|null, isDraft: bool, isHidden: bool, isSaved: bool, canComment: bool, canReport: bool, canEdit: bool, canDelete: bool, hasReported: bool, commentsCount: int, author: array{name: string, handle: string, profileVisible: bool}, space: array{name: string, slug: string, description: string|null, visibility: string, memberCount: int}},
+     *     comments: array{data: list<array{id: int, body: string, publishedAt: string, editedAt: string|null, canReport: bool, canEdit: bool, canDelete: bool, hasReported: bool, author: array{name: string, handle: string, profileVisible: bool}}>, meta: array{currentPage: int, lastPage: int, perPage: int, total: int}, links: array{newer: string|null, older: string|null}}
      * }
      */
     public function for(User $viewer, Post $post): array
@@ -56,6 +57,19 @@ final class PostConversation
             ->whereIn('comment_id', $commentModels->pluck('id')->all())
             ->pluck('comment_id')
             ->all();
+        $activeStatuses = [
+            ReportStatus::Open->value,
+            ReportStatus::Reviewing->value,
+        ];
+        $postIsLocked = PostReport::query()
+            ->where('post_id', $post->getKey())
+            ->whereIn('status', $activeStatuses)
+            ->exists();
+        $lockedCommentIds = CommentReport::query()
+            ->whereIn('comment_id', $commentModels->pluck('id')->all())
+            ->whereIn('status', $activeStatuses)
+            ->pluck('comment_id')
+            ->all();
 
         $commentData = [];
 
@@ -65,7 +79,12 @@ final class PostConversation
                 'id' => $comment->id,
                 'body' => $comment->body,
                 'publishedAt' => $comment->published_at->toIso8601String(),
+                'editedAt' => $comment->edited_at?->toIso8601String(),
                 'canReport' => $viewer->can('report', $comment),
+                'canEdit' => $viewer->can('update', $comment)
+                    && ! in_array($comment->getKey(), $lockedCommentIds, true),
+                'canDelete' => $viewer->can('delete', $comment)
+                    && ! in_array($comment->getKey(), $lockedCommentIds, true),
                 'hasReported' => in_array($comment->id, $reportedCommentIds, true),
                 'author' => [
                     'name' => $comment->author->name,
@@ -82,11 +101,14 @@ final class PostConversation
                 'body' => $post->body,
                 'media' => $this->media->for($post),
                 'publishedAt' => $post->published_at?->toIso8601String(),
+                'editedAt' => $post->edited_at?->toIso8601String(),
                 'isDraft' => $post->published_at === null,
                 'isHidden' => $post->hidden_at !== null,
                 'isSaved' => (bool) $post->is_saved,
                 'canComment' => $viewer->can('comment', $post),
                 'canReport' => $viewer->can('report', $post),
+                'canEdit' => $viewer->can('update', $post) && ! $postIsLocked,
+                'canDelete' => $viewer->can('delete', $post) && ! $postIsLocked,
                 'hasReported' => PostReport::query()
                     ->where('post_id', $post->getKey())
                     ->where('reporter_id', $viewer->getKey())

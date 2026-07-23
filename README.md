@@ -86,6 +86,9 @@ The current release is `0.1.0-alpha.1`. It is suitable for local evaluation and 
   desktop rail and mobile header.
 - Membership-protected comments with compact feed previews, permanent post
   links, and a full visibility-filtered paginated conversation view.
+- Author-controlled editing and deletion for posts and comments, with visible
+  edited state and content changes locked while an active moderation review is
+  in progress.
 - One optional image per post with required alternative text, private storage,
   policy-protected delivery, and metadata-stripping WebP normalization.
 - Private post and comment reporting with allowlisted reasons, duplicate protection, and separate rate limits.

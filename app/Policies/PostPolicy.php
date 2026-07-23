@@ -47,8 +47,15 @@ class PostPolicy
             && $this->view($user, $post);
     }
 
+    public function update(User $user, Post $post): bool
+    {
+        return $post->user_id === $user->getKey()
+            && $post->published_at !== null
+            && $post->hidden_at === null;
+    }
+
     public function delete(User $user, Post $post): bool
     {
-        return $post->user_id === $user->getKey() || $user->can('moderate', $post->space);
+        return $this->update($user, $post);
     }
 }

@@ -119,7 +119,7 @@ class FeedTest extends TestCase
             ->assertHeader('X-RateLimit-Limit', '120');
 
         $this->assertSame(
-            ['id', 'body', 'published_at', 'media', 'comments_count', 'author', 'space', 'viewer'],
+            ['id', 'body', 'published_at', 'edited_at', 'media', 'comments_count', 'author', 'space', 'viewer'],
             array_keys($response->json('data.0')),
         );
         $this->assertSame(

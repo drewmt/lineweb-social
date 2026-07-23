@@ -21,6 +21,7 @@ class PostResource extends JsonResource
             'id' => (string) $post->getKey(),
             'body' => $post->body,
             'published_at' => $post->published_at?->toIso8601String(),
+            'edited_at' => $post->edited_at?->toIso8601String(),
             'media' => $media instanceof PostMedia ? [
                 'url' => route('api.v1.posts.media', $post),
                 'alt' => $media->alt_text,

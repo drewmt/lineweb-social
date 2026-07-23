@@ -1078,6 +1078,7 @@
           "id",
           "body",
           "published_at",
+          "edited_at",
           "author",
           "viewer"
         ],
@@ -1091,6 +1092,13 @@
           },
           "published_at": {
             "type": "string",
+            "format": "date-time"
+          },
+          "edited_at": {
+            "type": [
+              "string",
+              "null"
+            ],
             "format": "date-time"
           },
           "author": {
@@ -1121,6 +1129,7 @@
           "id",
           "body",
           "published_at",
+          "edited_at",
           "media",
           "comments_count",
           "author",
@@ -1137,6 +1146,13 @@
           },
           "published_at": {
             "type": "string",
+            "format": "date-time"
+          },
+          "edited_at": {
+            "type": [
+              "string",
+              "null"
+            ],
             "format": "date-time"
           },
           "media": {
