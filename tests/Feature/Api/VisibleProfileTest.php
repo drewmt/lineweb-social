@@ -6,6 +6,7 @@ use App\Enums\ProfileVisibility;
 use App\Enums\UserRelationshipType;
 use App\Models\Space;
 use App\Models\User;
+use App\Models\UserFollow;
 use App\Models\UserRelationship;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
@@ -31,6 +32,10 @@ class VisibleProfileTest extends TestCase
             'target_id' => $profile->getKey(),
             'type' => UserRelationshipType::Mute,
         ]);
+        UserFollow::query()->create([
+            'follower_id' => $viewer->getKey(),
+            'followed_id' => $profile->getKey(),
+        ]);
 
         $response = $this->withToken($this->token($viewer, ['profiles:read']))
             ->getJson(route('api.v1.profiles.show', $profile));
@@ -41,12 +46,16 @@ class VisibleProfileTest extends TestCase
             ->assertJsonPath('data.name', 'Visible Member')
             ->assertJsonPath('data.viewer.is_self', false)
             ->assertJsonPath('data.viewer.is_muted', true)
+            ->assertJsonPath('data.viewer.is_following', true)
+            ->assertJsonPath('data.viewer.can_follow', true)
+            ->assertJsonPath('data.stats.followers', 1)
+            ->assertJsonPath('data.stats.following', 0)
             ->assertJsonMissingPath('data.email')
             ->assertJsonMissingPath('data.profile_visibility')
             ->assertJsonMissingPath('data.is_discoverable');
 
         $this->assertSame(
-            ['handle', 'name', 'headline', 'bio', 'location', 'website_url', 'member_since', 'viewer'],
+            ['handle', 'name', 'headline', 'bio', 'location', 'website_url', 'member_since', 'stats', 'viewer'],
             array_keys($response->json('data')),
         );
     }
@@ -125,7 +134,9 @@ class VisibleProfileTest extends TestCase
             ->getJson(route('api.v1.profiles.show', $viewer))
             ->assertOk()
             ->assertJsonPath('data.viewer.is_self', true)
-            ->assertJsonPath('data.viewer.is_muted', false);
+            ->assertJsonPath('data.viewer.is_muted', false)
+            ->assertJsonPath('data.viewer.is_following', false)
+            ->assertJsonPath('data.viewer.can_follow', false);
     }
 
     public function test_missing_profile_uses_the_stable_not_found_envelope(): void

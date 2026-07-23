@@ -16,6 +16,8 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class FeedController extends Controller
 {
@@ -27,23 +29,41 @@ class FeedController extends Controller
     ): JsonResponse {
         /** @var User $viewer */
         $viewer = $request->user();
-        /** @var array{cursor?: string, limit?: int, space?: string} $validated */
+        /** @var array{cursor?: string, limit?: int, space?: string, source?: string} $validated */
         $validated = $request->validate([
             'cursor' => ['sometimes', 'string', 'max:2048'],
             'limit' => ['sometimes', 'integer', 'min:1', 'max:50'],
             'space' => ['sometimes', 'string', 'max:120'],
+            'source' => ['sometimes', Rule::in(['community', 'following'])],
         ]);
         $limit = (int) ($validated['limit'] ?? 20);
+        $source = $validated['source'] ?? 'community';
+
+        if ($source === 'following' && isset($validated['space'])) {
+            throw ValidationException::withMessages([
+                'space' => 'A space filter cannot be combined with the following source.',
+            ]);
+        }
+
         $space = isset($validated['space'])
             ? Space::query()
                 ->discoverableBy($viewer)
                 ->where('slug', $validated['space'])
                 ->firstOrFail()
             : null;
-        $query = $visiblePosts->forFeed($viewer, $space);
+        $query = $visiblePosts->forFeed(
+            $viewer,
+            $space,
+            followingOnly: $source === 'following',
+        );
 
         if (isset($validated['cursor'])) {
-            $cursor = $cursors->decode($validated['cursor'], $viewer, $space);
+            $cursor = $cursors->decode(
+                $validated['cursor'],
+                $viewer,
+                $space,
+                $source,
+            );
 
             $query->where(function (Builder $posts) use ($cursor): void {
                 $posts
@@ -69,13 +89,14 @@ class FeedController extends Controller
 
         $lastPost = $posts->last();
         $nextCursor = $hasMore && $lastPost instanceof Post
-            ? $cursors->encode($viewer, $space, $lastPost)
+            ? $cursors->encode($viewer, $space, $lastPost, $source)
             : null;
         $next = $nextCursor !== null
             ? route('api.v1.feed', array_filter([
                 'cursor' => $nextCursor,
                 'limit' => $limit,
                 'space' => $space?->slug,
+                'source' => $source === 'following' ? $source : null,
             ], fn (mixed $value): bool => $value !== null))
             : null;
 
@@ -90,6 +111,7 @@ class FeedController extends Controller
                 'next_cursor' => $nextCursor,
                 'has_more' => $hasMore,
                 'limit' => $limit,
+                'source' => $source,
             ],
         ]);
     }

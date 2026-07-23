@@ -54,6 +54,7 @@ class PeopleController extends Controller
 
         /** @var User $viewer */
         $viewer = $request->user();
+        $profile->loadCount(['followers', 'following']);
 
         $visibleSpaceIds = Space::query()
             ->discoverableBy($viewer)
@@ -116,10 +117,14 @@ class PeopleController extends Controller
                 'memberSince' => $profile->created_at?->toDateString(),
                 'isSelf' => $profile->is($viewer),
                 'isMuted' => $viewer->hasMuted($profile),
+                'isFollowing' => $viewer->isFollowing($profile),
+                'canFollow' => Gate::forUser($viewer)->allows('follow', $profile),
             ],
             'stats' => [
                 'visibleSpaces' => $spaceCount,
                 'visiblePosts' => $postCount,
+                'followers' => (int) $profile->followers_count,
+                'following' => (int) $profile->following_count,
             ],
             'spaces' => $spaces,
             'posts' => $posts,

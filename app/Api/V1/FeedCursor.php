@@ -16,8 +16,12 @@ final class FeedCursor
     /**
      * @return array{published_at: CarbonImmutable, post_id: int}
      */
-    public function decode(string $cursor, User $viewer, ?Space $space): array
-    {
+    public function decode(
+        string $cursor,
+        User $viewer,
+        ?Space $space,
+        string $source = 'community',
+    ): array {
         try {
             /** @var mixed $decoded */
             $decoded = json_decode(
@@ -31,10 +35,11 @@ final class FeedCursor
         }
 
         if (! is_array($decoded)
-            || array_keys($decoded) !== ['version', 'viewer_id', 'space_slug', 'published_at', 'post_id']
-            || $decoded['version'] !== 1
+            || array_keys($decoded) !== ['version', 'viewer_id', 'space_slug', 'source', 'published_at', 'post_id']
+            || $decoded['version'] !== 2
             || $decoded['viewer_id'] !== $viewer->getKey()
             || $decoded['space_slug'] !== $space?->slug
+            || $decoded['source'] !== $source
             || ! is_int($decoded['published_at'])
             || $decoded['published_at'] < 1
             || ! is_int($decoded['post_id'])
@@ -48,8 +53,12 @@ final class FeedCursor
         ];
     }
 
-    public function encode(User $viewer, ?Space $space, Post $post): string
-    {
+    public function encode(
+        User $viewer,
+        ?Space $space,
+        Post $post,
+        string $source = 'community',
+    ): string {
         $publishedAt = $post->published_at;
 
         if ($publishedAt === null) {
@@ -58,9 +67,10 @@ final class FeedCursor
 
         try {
             $payload = json_encode([
-                'version' => 1,
+                'version' => 2,
                 'viewer_id' => $viewer->getKey(),
                 'space_slug' => $space?->slug,
+                'source' => $source,
                 'published_at' => $publishedAt->getTimestamp(),
                 'post_id' => $post->getKey(),
             ], JSON_THROW_ON_ERROR);

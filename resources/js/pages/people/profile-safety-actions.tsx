@@ -32,24 +32,28 @@ export function ProfileSafetyActions({
                 <Button
                     type="button"
                     variant="outline"
-                    className="bg-card"
+                    className="size-10 bg-card p-0 sm:h-11 sm:w-auto sm:px-3.5"
                     onClick={toggleMute}
+                    aria-label={isMuted ? 'Unmute' : 'Mute'}
                 >
                     {isMuted ? (
                         <Volume2 className="size-4" aria-hidden="true" />
                     ) : (
                         <EyeOff className="size-4" aria-hidden="true" />
                     )}
-                    {isMuted ? 'Unmute' : 'Mute'}
+                    <span className="sr-only sm:not-sr-only">
+                        {isMuted ? 'Unmute' : 'Mute'}
+                    </span>
                 </Button>
                 <Button
                     type="button"
                     variant="ghost"
-                    className="bg-card/80 text-destructive hover:text-destructive"
+                    className="size-10 bg-card/80 p-0 text-destructive hover:text-destructive sm:h-11 sm:w-auto sm:px-3.5"
                     onClick={() => setConfirmingBlock(true)}
+                    aria-label="Block"
                 >
                     <ShieldX className="size-4" aria-hidden="true" />
-                    Block
+                    <span className="sr-only sm:not-sr-only">Block</span>
                 </Button>
             </div>
             {confirmingBlock && (

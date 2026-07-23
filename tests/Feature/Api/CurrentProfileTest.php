@@ -39,10 +39,14 @@ class CurrentProfileTest extends TestCase
             ->assertJsonPath('data.member_since', $user->created_at?->toDateString())
             ->assertJsonPath('data.viewer.is_self', true)
             ->assertJsonPath('data.viewer.is_muted', false)
+            ->assertJsonPath('data.viewer.is_following', false)
+            ->assertJsonPath('data.viewer.can_follow', false)
+            ->assertJsonPath('data.stats.followers', 0)
+            ->assertJsonPath('data.stats.following', 0)
             ->assertHeader('X-RateLimit-Limit', '120');
 
         $this->assertSame(
-            ['handle', 'name', 'headline', 'bio', 'location', 'website_url', 'member_since', 'viewer'],
+            ['handle', 'name', 'headline', 'bio', 'location', 'website_url', 'member_since', 'stats', 'viewer'],
             array_keys($response->json('data')),
         );
         $this->assertRequestId($response->headers->get('X-Request-ID'));

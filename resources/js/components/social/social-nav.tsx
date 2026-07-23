@@ -8,6 +8,7 @@ import {
     Search,
     Settings2,
     UserRound,
+    UserRoundCheck,
     UsersRound,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -24,6 +25,12 @@ import { SocialLogo } from './social-logo';
 
 const navItems = [
     { title: 'Home', subtitle: 'Your timeline', href: '/feed', icon: Home },
+    {
+        title: 'Following',
+        subtitle: 'People you chose',
+        href: '/following',
+        icon: UserRoundCheck,
+    },
     {
         title: 'Search',
         subtitle: 'Across your community',

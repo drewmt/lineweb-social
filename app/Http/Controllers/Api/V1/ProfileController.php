@@ -12,6 +12,7 @@ class ProfileController extends Controller
     public function __invoke(User $profile): ProfileResource
     {
         Gate::authorize('view', $profile);
+        $profile->loadCount(['followers', 'following']);
 
         return new ProfileResource($profile);
     }

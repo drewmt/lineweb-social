@@ -10,6 +10,7 @@ import {
     MessageCircle,
     Share2,
     Send,
+    UserRoundCheck,
     UsersRound,
     X,
 } from 'lucide-react';
@@ -75,7 +76,7 @@ type FeedProps = {
     reportReasons: ReportReason[];
     reactionTypes: ReactionType[];
     selectedSpace: string | null;
-    viewMode?: 'feed' | 'saved';
+    viewMode?: 'feed' | 'saved' | 'following';
     status?: string;
 };
 
@@ -741,6 +742,7 @@ export default function Feed({
     status,
 }: FeedProps) {
     const savedView = viewMode === 'saved';
+    const followingView = viewMode === 'following';
     const selected = spaces.find((space) => space.slug === selectedSpace);
     const postingSpaces = selected
         ? selected.isMember
@@ -763,9 +765,11 @@ export default function Feed({
                 title={
                     savedView
                         ? 'Saved posts'
-                        : selected
-                          ? selected.name
-                          : 'Home'
+                        : followingView
+                          ? 'Following'
+                          : selected
+                            ? selected.name
+                            : 'Home'
                 }
             />
             <main className="social-page">
@@ -778,21 +782,27 @@ export default function Feed({
                                         <CommunitySignal />
                                         {savedView
                                             ? 'Your private library'
-                                            : selected
-                                              ? 'Inside this space'
-                                              : 'Your social home'}
+                                            : followingView
+                                              ? 'People you chose'
+                                              : selected
+                                                ? 'Inside this space'
+                                                : 'Your social home'}
                                     </div>
                                     <h1 className="mt-1 text-2xl font-black tracking-[-0.035em] sm:text-[2rem]">
                                         {savedView
                                             ? 'Saved posts'
-                                            : (selected?.name ??
-                                              'Good to see you.')}
+                                            : followingView
+                                              ? 'Following'
+                                              : (selected?.name ??
+                                                'Good to see you.')}
                                     </h1>
                                     <p className="mt-1 max-w-xl text-sm leading-6 text-muted-foreground">
                                         {savedView
                                             ? 'A private reading list of conversations you want to revisit.'
-                                            : (selected?.description ??
-                                              'Fresh conversations from the communities you chose — always chronological.')}
+                                            : followingView
+                                              ? 'Recent posts from people you follow — in chronological order.'
+                                              : (selected?.description ??
+                                                'Fresh conversations from the communities you chose — always chronological.')}
                                     </p>
                                 </div>
                                 {selected && !savedView && (
@@ -834,6 +844,40 @@ export default function Feed({
                         </header>
 
                         {!selected && !savedView && (
+                            <nav
+                                className="mb-4 flex w-fit rounded-full bg-secondary/70 p-1"
+                                aria-label="Choose timeline"
+                            >
+                                <Link
+                                    href="/feed"
+                                    aria-current={
+                                        !followingView ? 'page' : undefined
+                                    }
+                                    className={`social-focus rounded-full px-4 py-2 text-sm font-extrabold transition-colors ${
+                                        !followingView
+                                            ? 'bg-card text-foreground shadow-sm'
+                                            : 'text-muted-foreground hover:text-foreground'
+                                    }`}
+                                >
+                                    Community
+                                </Link>
+                                <Link
+                                    href="/following"
+                                    aria-current={
+                                        followingView ? 'page' : undefined
+                                    }
+                                    className={`social-focus rounded-full px-4 py-2 text-sm font-extrabold transition-colors ${
+                                        followingView
+                                            ? 'bg-card text-foreground shadow-sm'
+                                            : 'text-muted-foreground hover:text-foreground'
+                                    }`}
+                                >
+                                    Following
+                                </Link>
+                            </nav>
+                        )}
+
+                        {!selected && !savedView && !followingView && (
                             <SpacePulse
                                 spaces={spaces.filter(
                                     (space) => space.isMember,
@@ -852,15 +896,26 @@ export default function Feed({
                         <section
                             className="space-y-3 sm:space-y-4"
                             aria-label={
-                                savedView ? 'Saved posts' : 'Community feed'
+                                savedView
+                                    ? 'Saved posts'
+                                    : followingView
+                                      ? 'Following feed'
+                                      : 'Community feed'
                             }
                         >
-                            {!savedView && <Composer spaces={postingSpaces} />}
+                            {!savedView && !followingView && (
+                                <Composer spaces={postingSpaces} />
+                            )}
                             {posts.length === 0 ? (
                                 <div className="social-card rounded-[1.35rem] px-6 py-12 text-center">
                                     <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                                         {savedView ? (
                                             <Bookmark
+                                                className="size-6"
+                                                aria-hidden="true"
+                                            />
+                                        ) : followingView ? (
+                                            <UserRoundCheck
                                                 className="size-6"
                                                 aria-hidden="true"
                                             />
@@ -874,13 +929,28 @@ export default function Feed({
                                     <h2 className="mt-4 text-lg font-extrabold">
                                         {savedView
                                             ? 'Nothing saved yet.'
-                                            : 'The room is ready.'}
+                                            : followingView
+                                              ? 'Your Following feed is ready.'
+                                              : 'The room is ready.'}
                                     </h2>
                                     <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
                                         {savedView
                                             ? 'Use Save on any post to keep it here for later.'
-                                            : 'Be the first member to start a thoughtful conversation here.'}
+                                            : followingView
+                                              ? 'Follow people from their profiles to see their visible posts here.'
+                                              : 'Be the first member to start a thoughtful conversation here.'}
                                     </p>
+                                    {followingView && (
+                                        <Button
+                                            asChild
+                                            variant="outline"
+                                            className="mt-5 rounded-full"
+                                        >
+                                            <Link href="/people">
+                                                Discover people
+                                            </Link>
+                                        </Button>
+                                    )}
                                 </div>
                             ) : (
                                 posts.map((item) => (

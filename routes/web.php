@@ -4,6 +4,7 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\CommentReportController;
 use App\Http\Controllers\CommentReportModerationController;
 use App\Http\Controllers\FeedController;
+use App\Http\Controllers\FollowingFeedController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PeopleController;
 use App\Http\Controllers\PostController;
@@ -20,6 +21,7 @@ use App\Http\Controllers\SpaceManagementController;
 use App\Http\Controllers\SpaceMemberController;
 use App\Http\Controllers\SpaceMembershipController;
 use App\Http\Controllers\SpaceModerationController;
+use App\Http\Controllers\UserFollowController;
 use App\Http\Controllers\UserRelationshipController;
 use Illuminate\Support\Facades\Route;
 
@@ -27,6 +29,7 @@ Route::inertia('/', 'welcome')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('feed', FeedController::class)->name('feed');
+    Route::get('following', FollowingFeedController::class)->name('following.index');
     Route::get('saved', [SavedPostController::class, 'index'])->name('saved.index');
     Route::get('search', SearchController::class)
         ->middleware('throttle:community-search')
@@ -46,6 +49,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('notifications.read-all');
     Route::get('people', [PeopleController::class, 'index'])->name('people.index');
     Route::get('people/{profile:handle}', [PeopleController::class, 'show'])->name('people.show');
+    Route::put('people/{profile:handle}/follow', [UserFollowController::class, 'store'])
+        ->middleware('throttle:user-following')
+        ->name('people.follow');
+    Route::delete('people/{profile:handle}/follow', [UserFollowController::class, 'destroy'])
+        ->middleware('throttle:user-following')
+        ->name('people.unfollow');
     Route::post('people/{profile:handle}/mute', [UserRelationshipController::class, 'mute'])
         ->middleware('throttle:user-safety')
         ->name('people.mute');

@@ -7,9 +7,12 @@ The project is a community engine, not a fixed social-network clone. The core sh
 The core owns invariants that an extension must not bypass:
 
 - account identity, verification, authentication, and recovery;
-- profile visibility, discovery, mute, and mutual block boundaries;
+- profile visibility, discovery, idempotent follows, mute, and mutual block
+  boundaries;
 - Space visibility, roles, membership, invitations, and ownership;
 - chronological posts and comments;
+- a separate chronological Following projection that reapplies current profile,
+  Space, moderation, mute, and block visibility;
 - one allowlisted post reaction per member, aggregate-only public projections,
   and after-transaction reaction change events;
 - post-image ownership, bounded normalization, private storage, parent-policy
@@ -60,6 +63,13 @@ reaction per member and post, serializes changes with the parent post, and emits
 projections expose aggregate counts plus the current viewer's type; they never
 expose reactor identities. Extensions may listen to the event for analytics or
 batched notifications, but must recheck post visibility before delivery.
+
+Follow relationships are distinct from safety relationships. Blocking removes
+follows in both directions inside the same serialized transaction, while muting
+keeps the relationship but removes that member's content from the viewer's
+feeds. `UserFollowChanged` is emitted only after a real committed change.
+Profiles expose aggregate counts and current-viewer state, never follower lists
+in this initial contract.
 
 ## Near-term contract work
 

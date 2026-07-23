@@ -13,6 +13,7 @@ class CurrentProfileController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
+        $user->loadCount(['followers', 'following']);
 
         return new ProfileResource($user);
     }

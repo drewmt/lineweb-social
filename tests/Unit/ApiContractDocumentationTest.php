@@ -127,8 +127,16 @@ class ApiContractDocumentationTest extends TestCase
         $schemas = $contract['components']['schemas'];
 
         $this->assertSame(
-            ['handle', 'name', 'headline', 'bio', 'location', 'website_url', 'member_since', 'viewer'],
+            ['handle', 'name', 'headline', 'bio', 'location', 'website_url', 'member_since', 'stats', 'viewer'],
             array_keys($schemas['Profile']['properties']),
+        );
+        $this->assertSame(
+            ['followers', 'following'],
+            array_keys($schemas['Profile']['properties']['stats']['properties']),
+        );
+        $this->assertSame(
+            ['is_self', 'is_muted', 'is_following', 'can_follow'],
+            array_keys($schemas['Profile']['properties']['viewer']['properties']),
         );
         $this->assertSame(
             ['url', 'alt', 'width', 'height', 'mime_type'],

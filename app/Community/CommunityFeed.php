@@ -59,8 +59,12 @@ final class CommunityFeed
     /**
      * @return list<array{id: int, url: string, body: string, media: array{url: string, alt: string, width: int, height: int}|null, publishedAt: string|null, editedAt: string|null, isSaved: bool, canComment: bool, canReport: bool, canEdit: bool, canDelete: bool, hasReported: bool, commentsCount: int, comments: list<array{id: int, body: string, publishedAt: string, editedAt: string|null, canReport: bool, canEdit: bool, canDelete: bool, hasReported: bool, author: array{name: string, handle: string, profileVisible: bool}}>, author: array{name: string, handle: string, profileVisible: bool}, space: array{name: string, slug: string}}>
      */
-    public function posts(User $user, ?Space $space = null, bool $savedOnly = false): array
-    {
+    public function posts(
+        User $user,
+        ?Space $space = null,
+        bool $savedOnly = false,
+        bool $followingOnly = false,
+    ): array {
         $hiddenActorIds = DB::table('user_relationships')
             ->select('target_id')
             ->where('actor_id', $user->getKey())
@@ -107,6 +111,15 @@ final class CommunityFeed
                         ->where('post_saves.user_id', $user->getKey());
                 })
                 ->addSelect('posts.*');
+        }
+
+        if ($followingOnly) {
+            $query->whereIn(
+                'posts.user_id',
+                DB::table('user_follows')
+                    ->select('followed_id')
+                    ->where('follower_id', $user->getKey()),
+            );
         }
 
         if ($space instanceof Space) {
