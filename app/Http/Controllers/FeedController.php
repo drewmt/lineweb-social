@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Community\CommunityFeed;
+use App\Enums\PostReactionType;
 use App\Enums\ReportReason;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -20,6 +21,7 @@ class FeedController extends Controller
             'spaces' => $feed->spaces($user),
             'posts' => $feed->posts($user),
             'reportReasons' => ReportReason::options(),
+            'reactionTypes' => PostReactionType::options(),
             'selectedSpace' => null,
         ]);
     }

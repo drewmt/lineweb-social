@@ -26,6 +26,11 @@ import type {
 import { CommunitySignal } from '@/components/social/community-signal';
 import { PostImage } from '@/components/social/post-image';
 import type { PostMedia } from '@/components/social/post-image';
+import { PostReactions } from '@/components/social/post-reactions';
+import type {
+    ReactionSummary,
+    ReactionType,
+} from '@/components/social/post-reactions';
 import { SpaceCover } from '@/components/social/space-cover';
 import { Button } from '@/components/ui/button';
 import { useClipboard } from '@/hooks/use-clipboard';
@@ -40,6 +45,7 @@ type ConversationPost = {
     isDraft: boolean;
     isHidden: boolean;
     isSaved: boolean;
+    reactions: ReactionSummary;
     canComment: boolean;
     canReport: boolean;
     canEdit: boolean;
@@ -74,6 +80,7 @@ type ShowPostProps = {
     post: ConversationPost;
     comments: ConversationPage;
     reportReasons: ReportReason[];
+    reactionTypes: ReactionType[];
     status?: string;
 };
 
@@ -94,6 +101,7 @@ export default function ShowPost({
     post,
     comments,
     reportReasons,
+    reactionTypes,
     status,
 }: ShowPostProps) {
     const [reporting, setReporting] = useState(false);
@@ -226,7 +234,7 @@ export default function ShowPost({
                                 </div>
                             )}
                             <div className="p-4 sm:p-5">
-                                <header className="flex items-start gap-3">
+                                <header className="flex flex-wrap items-start gap-3">
                                     <AvatarMark
                                         name={post.author.name}
                                         className="size-11"
@@ -272,7 +280,7 @@ export default function ShowPost({
                                             </Link>
                                         </div>
                                     </div>
-                                    <div className="flex shrink-0 flex-wrap items-center gap-2">
+                                    <div className="flex w-full flex-wrap items-center gap-1 border-t border-border/60 pt-2 sm:w-auto sm:shrink-0 sm:gap-2 sm:border-0 sm:pt-0">
                                         <AuthoredContentMenu
                                             body={post.body}
                                             canEdit={post.canEdit}
@@ -355,6 +363,11 @@ export default function ShowPost({
                                         eager
                                     />
                                 )}
+                                <PostReactions
+                                    postId={post.id}
+                                    reactions={post.reactions}
+                                    reactionTypes={reactionTypes}
+                                />
 
                                 {reporting && (
                                     <form

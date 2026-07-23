@@ -87,6 +87,9 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('post-saving', fn (Request $request): Limit => Limit::perMinute(60)
             ->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
 
+        RateLimiter::for('post-reacting', fn (Request $request): Limit => Limit::perMinute(60)
+            ->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
+
         RateLimiter::for('community-search', fn (Request $request): Limit => Limit::perMinute(60)
             ->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
 

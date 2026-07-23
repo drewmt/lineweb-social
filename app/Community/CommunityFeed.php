@@ -16,7 +16,10 @@ use Illuminate\Support\Facades\DB;
 
 final class CommunityFeed
 {
-    public function __construct(private readonly PostMediaView $media) {}
+    public function __construct(
+        private readonly PostMediaView $media,
+        private readonly PostReactionProjection $reactions,
+    ) {}
 
     /**
      * @return list<array{name: string, slug: string, description: string|null, visibility: 'public'|'private'|'hidden', memberCount: int, isMember: bool, isOwner: bool, canManage: bool}>
@@ -126,6 +129,7 @@ final class CommunityFeed
         }
 
         $posts = $query->limit(30)->get();
+        $reactionProjection = $this->reactions->forPosts($posts, $user);
 
         $comments = $posts->flatMap(fn (Post $post) => $post->comments);
         $visibleAuthorIds = User::query()
@@ -175,6 +179,7 @@ final class CommunityFeed
                 'publishedAt' => $post->published_at?->toIso8601String(),
                 'editedAt' => $post->edited_at?->toIso8601String(),
                 'isSaved' => (bool) $post->is_saved,
+                'reactions' => $reactionProjection[$post->getKey()],
                 'canComment' => in_array($post->space_id, $memberSpaceIds, true),
                 'canReport' => $post->user_id !== $user->getKey(),
                 'canEdit' => $post->user_id === $user->getKey()

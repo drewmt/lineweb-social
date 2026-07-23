@@ -2,10 +2,12 @@
 
 namespace Tests\Feature\Api;
 
+use App\Enums\PostReactionType;
 use App\Enums\ProfileVisibility;
 use App\Enums\UserRelationshipType;
 use App\Models\Comment;
 use App\Models\Post;
+use App\Models\PostReaction;
 use App\Models\PostReport;
 use App\Models\Space;
 use App\Models\User;
@@ -63,6 +65,11 @@ class FeedTest extends TestCase
             'post_id' => $olderPublic->getKey(),
             'reporter_id' => $viewer->getKey(),
         ]);
+        PostReaction::query()->create([
+            'post_id' => $olderPublic->getKey(),
+            'user_id' => $viewer->getKey(),
+            'type' => PostReactionType::Insightful,
+        ]);
 
         Post::factory()->for($public)->for($publicAuthor, 'author')->create([
             'body' => 'Draft post',
@@ -103,6 +110,9 @@ class FeedTest extends TestCase
             ->assertJsonPath('data.0.space.viewer.is_member', true)
             ->assertJsonPath('data.1.id', (string) $olderPublic->getKey())
             ->assertJsonPath('data.1.comments_count', 1)
+            ->assertJsonPath('data.1.reactions.total', 1)
+            ->assertJsonPath('data.1.reactions.counts.insightful', 1)
+            ->assertJsonPath('data.1.viewer.reaction_type', PostReactionType::Insightful->value)
             ->assertJsonPath('data.1.author.profile_visible', false)
             ->assertJsonPath('data.1.viewer.can_comment', false)
             ->assertJsonPath('data.1.viewer.can_report', true)
@@ -119,12 +129,16 @@ class FeedTest extends TestCase
             ->assertHeader('X-RateLimit-Limit', '120');
 
         $this->assertSame(
-            ['id', 'body', 'published_at', 'edited_at', 'media', 'comments_count', 'author', 'space', 'viewer'],
+            ['id', 'body', 'published_at', 'edited_at', 'media', 'comments_count', 'reactions', 'author', 'space', 'viewer'],
             array_keys($response->json('data.0')),
         );
         $this->assertSame(
             ['handle', 'name', 'headline', 'profile_visible'],
             array_keys($response->json('data.0.author')),
+        );
+        $this->assertSame(
+            ['can_comment', 'can_report', 'has_reported', 'can_react', 'reaction_type'],
+            array_keys($response->json('data.0.viewer')),
         );
     }
 

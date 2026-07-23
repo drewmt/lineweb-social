@@ -2,11 +2,13 @@
 
 namespace Tests\Feature\Api;
 
+use App\Enums\PostReactionType;
 use App\Enums\ProfileVisibility;
 use App\Enums\UserRelationshipType;
 use App\Models\Comment;
 use App\Models\CommentReport;
 use App\Models\Post;
+use App\Models\PostReaction;
 use App\Models\PostReport;
 use App\Models\Space;
 use App\Models\User;
@@ -67,6 +69,11 @@ class PostApiTest extends TestCase
             'post_id' => $post->getKey(),
             'reporter_id' => $viewer->getKey(),
         ]);
+        PostReaction::query()->create([
+            'post_id' => $post->getKey(),
+            'user_id' => $viewer->getKey(),
+            'type' => PostReactionType::Celebrate,
+        ]);
 
         $response = $this->getWithToken($viewer)
             ->getJson(route('api.v1.posts.show', $post));
@@ -76,6 +83,9 @@ class PostApiTest extends TestCase
             ->assertJsonPath('data.id', (string) $post->getKey())
             ->assertJsonPath('data.body', 'A stable post for API readers.')
             ->assertJsonPath('data.comments_count', 1)
+            ->assertJsonPath('data.reactions.total', 1)
+            ->assertJsonPath('data.reactions.counts.celebrate', 1)
+            ->assertJsonPath('data.viewer.reaction_type', PostReactionType::Celebrate->value)
             ->assertJsonPath('data.author.profile_visible', true)
             ->assertJsonPath('data.space.slug', $space->slug)
             ->assertJsonPath('data.viewer.can_comment', true)
@@ -91,7 +101,7 @@ class PostApiTest extends TestCase
             ->assertJsonMissingPath('data.media.author_id');
 
         $this->assertSame(
-            ['id', 'body', 'published_at', 'edited_at', 'media', 'comments_count', 'author', 'space', 'viewer'],
+            ['id', 'body', 'published_at', 'edited_at', 'media', 'comments_count', 'reactions', 'author', 'space', 'viewer'],
             array_keys($response->json('data')),
         );
         $this->assertSame(

@@ -95,6 +95,12 @@ class Post extends Model
         return $this->hasMany(PostSave::class);
     }
 
+    /** @return HasMany<PostReaction, $this> */
+    public function reactions(): HasMany
+    {
+        return $this->hasMany(PostReaction::class);
+    }
+
     /** @return HasOne<PostMedia, $this> */
     public function media(): HasOne
     {

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Community\CommunityFeed;
 use App\Community\CreateSpace;
+use App\Enums\PostReactionType;
 use App\Enums\ReportReason;
 use App\Enums\SpaceVisibility;
 use App\Http\Requests\StoreSpaceRequest;
@@ -55,6 +56,7 @@ class SpaceController extends Controller
             'spaces' => $feed->spaces($user),
             'posts' => $feed->posts($user, $space),
             'reportReasons' => ReportReason::options(),
+            'reactionTypes' => PostReactionType::options(),
             'selectedSpace' => $space->slug,
         ]);
     }

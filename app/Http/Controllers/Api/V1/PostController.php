@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Community\PostReactionProjection;
 use App\Community\VisiblePostQuery;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\V1\PostResource;
@@ -19,6 +20,7 @@ class PostController extends Controller
         Request $request,
         string $post,
         VisiblePostQuery $visiblePosts,
+        PostReactionProjection $reactions,
     ): JsonResponse {
         /** @var User $viewer */
         $viewer = $request->user();
@@ -27,7 +29,7 @@ class PostController extends Controller
             ->whereKey($post)
             ->firstOrFail();
 
-        $this->addViewerState(new Collection([$postModel]), $viewer);
+        $this->addViewerState(new Collection([$postModel]), $viewer, $reactions);
 
         return response()->json([
             'data' => (new PostResource($postModel))->toArray($request),
@@ -35,8 +37,11 @@ class PostController extends Controller
     }
 
     /** @param Collection<int, Post> $posts */
-    private function addViewerState(Collection $posts, User $viewer): void
-    {
+    private function addViewerState(
+        Collection $posts,
+        User $viewer,
+        PostReactionProjection $reactions,
+    ): void {
         $postIds = $posts->modelKeys();
         $authorIds = $posts->pluck('user_id')->unique()->values();
         $spaceIds = $posts->pluck('space_id')->unique()->values();
@@ -55,12 +60,14 @@ class PostController extends Controller
             ->whereIn('space_id', $spaceIds)
             ->pluck('space_id')
             ->all();
+        $reactionProjection = $reactions->forPosts($posts, $viewer);
 
         $posts->each(function (Post $post) use (
             $viewer,
             $visibleAuthorIds,
             $reportedPostIds,
             $memberSpaceIds,
+            $reactionProjection,
         ): void {
             $post->setAttribute(
                 'author_profile_visible',
@@ -74,6 +81,18 @@ class PostController extends Controller
             $post->setAttribute(
                 'viewer_has_reported',
                 in_array($post->getKey(), $reportedPostIds, true),
+            );
+            $post->setAttribute(
+                'reaction_counts',
+                $reactionProjection[$post->getKey()]['counts'],
+            );
+            $post->setAttribute(
+                'viewer_reaction_type',
+                $reactionProjection[$post->getKey()]['viewerType'],
+            );
+            $post->setAttribute(
+                'viewer_can_react',
+                $reactionProjection[$post->getKey()]['canReact'],
             );
         });
     }

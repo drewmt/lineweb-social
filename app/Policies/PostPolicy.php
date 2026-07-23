@@ -47,6 +47,13 @@ class PostPolicy
             && $this->view($user, $post);
     }
 
+    public function react(User $user, Post $post): bool
+    {
+        return $post->published_at !== null
+            && $post->hidden_at === null
+            && $this->view($user, $post);
+    }
+
     public function update(User $user, Post $post): bool
     {
         return $post->user_id === $user->getKey()
