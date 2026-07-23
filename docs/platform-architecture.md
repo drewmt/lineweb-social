@@ -10,6 +10,8 @@ The core owns invariants that an extension must not bypass:
 - profile visibility, discovery, mute, and mutual block boundaries;
 - Space visibility, roles, membership, invitations, and ownership;
 - chronological posts and comments;
+- one allowlisted post reaction per member, aggregate-only public projections,
+  and after-transaction reaction change events;
 - post-image ownership, bounded normalization, private storage, parent-policy
   delivery, accessible projections, and lifecycle cleanup;
 - report eligibility, moderation decisions, and append-only audit records;
@@ -51,6 +53,13 @@ checksums, and source metadata remain server-side. Feed, permalink, and profile
 views consume this shared projection; the delivery controller rechecks the parent
 post policy on every request. The full contract is documented in
 [`media.md`](media.md).
+
+Typed post reactions follow the same boundary. The core stores one allowlisted
+reaction per member and post, serializes changes with the parent post, and emits
+`PostReactionChanged` only after a successful write. Feed, permalink, and API
+projections expose aggregate counts plus the current viewer's type; they never
+expose reactor identities. Extensions may listen to the event for analytics or
+batched notifications, but must recheck post visibility before delivery.
 
 ## Near-term contract work
 

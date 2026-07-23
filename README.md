@@ -84,6 +84,8 @@ The current release is `0.1.0-alpha.1`. It is suitable for local evaluation and 
   discoverable people, with dedicated desktop and mobile entry points.
 - Private Saved Posts with policy-filtered retrieval and quick access from the
   desktop rail and mobile header.
+- Typed Like, Celebrate, and Insightful post reactions with one viewer choice,
+  aggregate-only counts, and a responsive feed/permalink interaction.
 - Membership-protected comments with compact feed previews, permanent post
   links, and a full visibility-filtered paginated conversation view.
 - Author-controlled editing and deletion for posts and comments, with visible

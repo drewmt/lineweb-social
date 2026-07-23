@@ -193,6 +193,8 @@ The first resources expose only allowlisted fields:
 - posts and comments exclude storage paths, report details, moderator notes,
   hidden timestamps, and author account identifiers; nullable `edited_at`
   communicates an author change without exposing internal update timestamps;
+  post reactions expose bounded counts and only the current viewer's selected
+  type, never reactor identities;
 - media exposes only the authorized API URL, alt text, normalized dimensions,
   and MIME type;
 - notifications are re-resolved at read time and expose a safe structured

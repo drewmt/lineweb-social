@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Community\ManageAuthoredContent;
 use App\Community\PostConversation;
 use App\Community\PublishPost;
+use App\Enums\PostReactionType;
 use App\Enums\ReportReason;
 use App\Http\Requests\StorePostRequest;
 use App\Http\Requests\UpdatePostRequest;
@@ -30,6 +31,7 @@ class PostController extends Controller
         return Inertia::render('posts/show', [
             ...$conversation->for($user, $post),
             'reportReasons' => ReportReason::options(),
+            'reactionTypes' => PostReactionType::options(),
         ]);
     }
 

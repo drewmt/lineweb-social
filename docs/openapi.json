@@ -1132,6 +1132,7 @@
           "edited_at",
           "media",
           "comments_count",
+          "reactions",
           "author",
           "space",
           "viewer"
@@ -1169,6 +1170,43 @@
             "type": "integer",
             "minimum": 0
           },
+          "reactions": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "total",
+              "counts"
+            ],
+            "properties": {
+              "total": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "counts": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "like",
+                  "celebrate",
+                  "insightful"
+                ],
+                "properties": {
+                  "like": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "celebrate": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "insightful": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                }
+              }
+            }
+          },
           "author": {
             "$ref": "#/components/schemas/ProfileSummary"
           },
@@ -1181,7 +1219,9 @@
             "required": [
               "can_comment",
               "can_report",
-              "has_reported"
+              "has_reported",
+              "can_react",
+              "reaction_type"
             ],
             "properties": {
               "can_comment": {
@@ -1192,6 +1232,21 @@
               },
               "has_reported": {
                 "type": "boolean"
+              },
+              "can_react": {
+                "type": "boolean"
+              },
+              "reaction_type": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "like",
+                  "celebrate",
+                  "insightful",
+                  null
+                ]
               }
             }
           }

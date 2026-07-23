@@ -10,13 +10,17 @@ use App\Models\Post;
 use App\Models\PostReport;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
 final class PostConversation
 {
     private const COMMENTS_PER_PAGE = 20;
 
-    public function __construct(private readonly PostMediaView $media) {}
+    public function __construct(
+        private readonly PostMediaView $media,
+        private readonly PostReactionProjection $reactions,
+    ) {}
 
     /**
      * Build the policy-filtered permalink projection for one post.
@@ -38,6 +42,10 @@ final class PostConversation
             'saves as is_saved' => fn ($saves) => $saves
                 ->where('user_id', $viewer->getKey()),
         ]);
+        $reactionProjection = $this->reactions->forPosts(
+            new Collection([$post]),
+            $viewer,
+        );
 
         $comments = $this->visibleComments($viewer, $post)
             ->with('author:id,name,handle')
@@ -105,6 +113,7 @@ final class PostConversation
                 'isDraft' => $post->published_at === null,
                 'isHidden' => $post->hidden_at !== null,
                 'isSaved' => (bool) $post->is_saved,
+                'reactions' => $reactionProjection[$post->getKey()],
                 'canComment' => $viewer->can('comment', $post),
                 'canReport' => $viewer->can('report', $post),
                 'canEdit' => $viewer->can('update', $post) && ! $postIsLocked,

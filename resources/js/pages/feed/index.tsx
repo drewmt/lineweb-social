@@ -23,6 +23,11 @@ import type { SocialComment } from '@/components/social/comment-thread';
 import { CommunitySignal } from '@/components/social/community-signal';
 import { PostImage } from '@/components/social/post-image';
 import type { PostMedia } from '@/components/social/post-image';
+import { PostReactions } from '@/components/social/post-reactions';
+import type {
+    ReactionSummary,
+    ReactionType,
+} from '@/components/social/post-reactions';
 import { SpaceCover } from '@/components/social/space-cover';
 import { Button } from '@/components/ui/button';
 import { useClipboard } from '@/hooks/use-clipboard';
@@ -52,6 +57,7 @@ type FeedPost = {
     canDelete: boolean;
     hasReported: boolean;
     isSaved: boolean;
+    reactions: ReactionSummary;
     commentsCount: number;
     comments: SocialComment[];
     author: { name: string; handle: string; profileVisible: boolean };
@@ -67,6 +73,7 @@ type FeedProps = {
     spaces: Space[];
     posts: FeedPost[];
     reportReasons: ReportReason[];
+    reactionTypes: ReactionType[];
     selectedSpace: string | null;
     viewMode?: 'feed' | 'saved';
     status?: string;
@@ -357,9 +364,11 @@ function Composer({ spaces }: { spaces: Space[] }) {
 function PostCard({
     item,
     reportReasons,
+    reactionTypes,
 }: {
     item: FeedPost;
     reportReasons: ReportReason[];
+    reactionTypes: ReactionType[];
 }) {
     const [reporting, setReporting] = useState(false);
     const [copyFeedback, setCopyFeedback] = useState(false);
@@ -426,7 +435,7 @@ function PostCard({
 
     return (
         <article className="social-card rounded-[1.35rem] p-4 sm:p-5">
-            <header className="flex items-start gap-3">
+            <header className="flex flex-wrap items-start gap-3">
                 <AvatarMark name={item.author.name} className="size-11" />
                 <div className="min-w-0 flex-1">
                     <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
@@ -469,7 +478,7 @@ function PostCard({
                         )}
                     </Link>
                 </div>
-                <div className="flex shrink-0 flex-wrap items-center gap-2">
+                <div className="flex w-full flex-wrap items-center gap-1 border-t border-border/60 pt-2 sm:w-auto sm:shrink-0 sm:gap-2 sm:border-0 sm:pt-0">
                     <AuthoredContentMenu
                         body={item.body}
                         canEdit={item.canEdit}
@@ -551,6 +560,11 @@ function PostCard({
                 </button>
             )}
             {item.media && <PostImage media={item.media} className="mt-4" />}
+            <PostReactions
+                postId={item.id}
+                reactions={item.reactions}
+                reactionTypes={reactionTypes}
+            />
             {reporting && (
                 <form
                     onSubmit={submitReport}
@@ -721,6 +735,7 @@ export default function Feed({
     spaces,
     posts,
     reportReasons,
+    reactionTypes,
     selectedSpace,
     viewMode = 'feed',
     status,
@@ -873,6 +888,7 @@ export default function Feed({
                                         key={item.id}
                                         item={item}
                                         reportReasons={reportReasons}
+                                        reactionTypes={reactionTypes}
                                     />
                                 ))
                             )}

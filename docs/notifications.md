@@ -14,7 +14,9 @@ or moderators when a new post or comment report needs attention.
 Both preferences default to enabled and affect new notifications only. Delivery
 uses Laravel's database channel synchronously, so the core experience does not
 require a queue worker. Email, web push, mobile push, digests, mentions, and
-reactions are not part of this release.
+per-reaction notifications are not part of this release. Typed post reactions
+emit `PostReactionChanged` for extensions, but the core deliberately avoids a
+notification for every reaction.
 
 ## Privacy and authorization
 

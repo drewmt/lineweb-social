@@ -8,6 +8,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PeopleController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\PostImageController;
+use App\Http\Controllers\PostReactionController;
 use App\Http\Controllers\PostReportController;
 use App\Http\Controllers\PostReportModerationController;
 use App\Http\Controllers\SavedPostController;
@@ -124,6 +125,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('posts/{post}/save', [SavedPostController::class, 'destroy'])
         ->middleware('throttle:post-saving')
         ->name('posts.saves.destroy');
+    Route::put('posts/{post}/reaction', [PostReactionController::class, 'store'])
+        ->middleware('throttle:post-reacting')
+        ->name('posts.reactions.store');
+    Route::delete('posts/{post}/reaction', [PostReactionController::class, 'destroy'])
+        ->middleware('throttle:post-reacting')
+        ->name('posts.reactions.destroy');
     Route::post('posts/{post}/comments', [CommentController::class, 'store'])
         ->middleware('throttle:comment-publishing')
         ->name('posts.comments.store');
