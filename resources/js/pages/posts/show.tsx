@@ -13,6 +13,7 @@ import {
 import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import InputError from '@/components/input-error';
+import { AuthoredContentMenu } from '@/components/social/authored-content-menu';
 import { AvatarMark } from '@/components/social/avatar-mark';
 import {
     CommentComposer,
@@ -35,11 +36,14 @@ type ConversationPost = {
     body: string;
     media: PostMedia | null;
     publishedAt: string | null;
+    editedAt: string | null;
     isDraft: boolean;
     isHidden: boolean;
     isSaved: boolean;
     canComment: boolean;
     canReport: boolean;
+    canEdit: boolean;
+    canDelete: boolean;
     hasReported: boolean;
     commentsCount: number;
     author: { name: string; handle: string; profileVisible: boolean };
@@ -251,6 +255,14 @@ export default function ShowPost({
                                                     post.publishedAt,
                                                 )}
                                             </time>
+                                            {post.editedAt && (
+                                                <>
+                                                    <span aria-hidden="true">
+                                                        ·
+                                                    </span>
+                                                    <span>Edited</span>
+                                                </>
+                                            )}
                                             <span aria-hidden="true">·</span>
                                             <Link
                                                 href={spaceUrl}
@@ -261,6 +273,15 @@ export default function ShowPost({
                                         </div>
                                     </div>
                                     <div className="flex shrink-0 flex-wrap items-center gap-2">
+                                        <AuthoredContentMenu
+                                            body={post.body}
+                                            canEdit={post.canEdit}
+                                            canDelete={post.canDelete}
+                                            contentType="post"
+                                            updateUrl={`/posts/${post.id}`}
+                                            deleteUrl={`/posts/${post.id}`}
+                                            maxLength={2000}
+                                        />
                                         <button
                                             type="button"
                                             onClick={toggleSaved}

@@ -44,6 +44,9 @@ All notable project changes will be documented here.
 - Policy-filtered global search across visible posts, accessible Spaces, and
   discoverable people, with grouped responsive results, bounded queries, and
   dedicated desktop/mobile navigation.
+- Author-controlled post and comment editing and deletion with explicit edited
+  timestamps, responsive management dialogs, strict ownership checks, and
+  active moderation-review locks.
 
 ### Changed
 
@@ -59,6 +62,8 @@ All notable project changes will be documented here.
   member-profile interfaces.
 - Long feed posts, comments, and Space-card descriptions now stay compact with
   explicit read-more controls that preserve the complete content on demand.
+- Read-only post and comment API resources now include a nullable `edited_at`
+  timestamp so clients can distinguish publication from later author changes.
 
 ## [0.1.0-alpha.1] - 2026-07-20
 

@@ -63,6 +63,9 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('comment-reporting', fn (Request $request): Limit => Limit::perHour(10)
             ->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
 
+        RateLimiter::for('content-management', fn (Request $request): Limit => Limit::perMinute(30)
+            ->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
+
         RateLimiter::for('space-creation', fn (Request $request): Limit => Limit::perHour(5)
             ->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
 

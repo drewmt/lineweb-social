@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Community\ManageAuthoredContent;
 use App\Community\PostConversation;
 use App\Community\PublishPost;
 use App\Enums\ReportReason;
 use App\Http\Requests\StorePostRequest;
+use App\Http\Requests\UpdatePostRequest;
 use App\Models\Post;
 use App\Models\Space;
 use App\Models\User;
@@ -51,5 +53,34 @@ class PostController extends Controller
         );
 
         return back()->with('status', 'Post published.');
+    }
+
+    public function update(
+        UpdatePostRequest $request,
+        Post $post,
+        ManageAuthoredContent $content,
+    ): RedirectResponse {
+        /** @var User $user */
+        $user = $request->user();
+        $changed = $content->updatePost(
+            $user,
+            $post,
+            $request->string('body')->toString(),
+        );
+
+        return back()->with('status', $changed ? 'Post updated.' : 'No changes to save.');
+    }
+
+    public function destroy(
+        Request $request,
+        Post $post,
+        ManageAuthoredContent $content,
+    ): RedirectResponse {
+        Gate::authorize('delete', $post);
+        /** @var User $user */
+        $user = $request->user();
+        $content->deletePost($user, $post);
+
+        return redirect()->route('feed')->with('status', 'Post deleted.');
     }
 }

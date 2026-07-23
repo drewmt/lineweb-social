@@ -3,6 +3,7 @@ import { ArrowRight, Flag, MessageCircle, Send } from 'lucide-react';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import InputError from '@/components/input-error';
+import { AuthoredContentMenu } from '@/components/social/authored-content-menu';
 import { AvatarMark } from '@/components/social/avatar-mark';
 import { Button } from '@/components/ui/button';
 
@@ -10,7 +11,10 @@ export type SocialComment = {
     id: number;
     body: string;
     publishedAt: string;
+    editedAt: string | null;
     canReport: boolean;
+    canEdit: boolean;
+    canDelete: boolean;
     hasReported: boolean;
     author: { name: string; handle: string; profileVisible: boolean };
 };
@@ -149,25 +153,42 @@ export function CommentRow({
             <AvatarMark name={comment.author.name} className="mt-0.5 size-8" />
             <div className="min-w-0 flex-1">
                 <div className="rounded-2xl rounded-tl-md bg-secondary/58 px-3.5 py-2.5">
-                    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                        {comment.author.profileVisible ? (
-                            <Link
-                                href={`/people/${comment.author.handle}`}
-                                className="text-sm font-extrabold hover:underline"
+                    <div className="flex items-start justify-between gap-2">
+                        <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                            {comment.author.profileVisible ? (
+                                <Link
+                                    href={`/people/${comment.author.handle}`}
+                                    className="truncate text-sm font-extrabold hover:underline"
+                                >
+                                    {comment.author.name}
+                                </Link>
+                            ) : (
+                                <span className="truncate text-sm font-extrabold">
+                                    {comment.author.name}
+                                </span>
+                            )}
+                            <time
+                                dateTime={comment.publishedAt}
+                                className="text-[0.68rem] font-semibold text-muted-foreground"
                             >
-                                {comment.author.name}
-                            </Link>
-                        ) : (
-                            <span className="text-sm font-extrabold">
-                                {comment.author.name}
-                            </span>
-                        )}
-                        <time
-                            dateTime={comment.publishedAt}
-                            className="text-[0.68rem] font-semibold text-muted-foreground"
-                        >
-                            {commentDateLabel(comment.publishedAt)}
-                        </time>
+                                {commentDateLabel(comment.publishedAt)}
+                            </time>
+                            {comment.editedAt && (
+                                <span className="text-[0.68rem] font-semibold text-muted-foreground">
+                                    Edited
+                                </span>
+                            )}
+                        </div>
+                        <AuthoredContentMenu
+                            body={comment.body}
+                            canEdit={comment.canEdit}
+                            canDelete={comment.canDelete}
+                            contentType="comment"
+                            updateUrl={`/comments/${comment.id}`}
+                            deleteUrl={`/comments/${comment.id}`}
+                            maxLength={1000}
+                            compact
+                        />
                     </div>
                     <p className="mt-1 text-sm leading-6 whitespace-pre-wrap text-foreground/90">
                         {previewBody}

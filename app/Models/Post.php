@@ -16,6 +16,7 @@ use Illuminate\Support\Carbon;
  * @property int $user_id
  * @property string $body
  * @property Carbon|null $published_at
+ * @property Carbon|null $edited_at
  * @property Carbon|null $hidden_at
  * @property int|null $hidden_by
  * @property string|null $moderation_note
@@ -42,6 +43,7 @@ class Post extends Model
         'user_id',
         'body',
         'published_at',
+        'edited_at',
         'hidden_at',
         'hidden_by',
         'moderation_note',
@@ -52,6 +54,7 @@ class Post extends Model
     {
         return [
             'published_at' => 'immutable_datetime',
+            'edited_at' => 'immutable_datetime',
             'hidden_at' => 'immutable_datetime',
         ];
     }

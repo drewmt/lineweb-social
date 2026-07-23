@@ -19,6 +19,7 @@ class CommentResource extends JsonResource
             'id' => (string) $comment->getKey(),
             'body' => $comment->body,
             'published_at' => $comment->published_at->toIso8601String(),
+            'edited_at' => $comment->edited_at?->toIso8601String(),
             'author' => [
                 'handle' => $comment->author->handle,
                 'name' => $comment->author->name,
