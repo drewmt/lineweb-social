@@ -5,6 +5,7 @@ import {
     Compass,
     Feather,
     Home,
+    Search,
     Settings2,
     UserRound,
     UsersRound,
@@ -23,6 +24,12 @@ import { SocialLogo } from './social-logo';
 
 const navItems = [
     { title: 'Home', subtitle: 'Your timeline', href: '/feed', icon: Home },
+    {
+        title: 'Search',
+        subtitle: 'Across your community',
+        href: '/search',
+        icon: Search,
+    },
     {
         title: 'Spaces',
         subtitle: 'Your communities',
@@ -73,7 +80,7 @@ function UserButton({
                     className={cn(
                         'social-focus group flex items-center text-left transition-[background-color,transform,border-color] active:translate-y-px',
                         compact
-                            ? 'size-10 justify-center rounded-full'
+                            ? 'size-11 justify-center rounded-full'
                             : 'w-full gap-3 rounded-2xl border border-border/70 bg-card px-3 py-3 hover:border-primary/20 hover:bg-primary/[0.035]',
                     )}
                 >
@@ -213,22 +220,29 @@ export function MobileSocialHeader() {
     return (
         <header className="sticky top-0 z-40 flex h-[4.25rem] items-center justify-between border-b border-border/65 bg-card/88 px-4 backdrop-blur-xl lg:hidden">
             <SocialLogo compact />
-            <span className="absolute left-1/2 -translate-x-1/2 text-sm font-black tracking-[-0.025em]">
+            <span className="absolute left-1/2 hidden -translate-x-1/2 text-sm font-black tracking-[-0.025em] sm:block">
                 Lineweb Social
             </span>
             {auth.user ? (
                 <div className="flex items-center gap-1.5">
                     <Link
+                        href="/search"
+                        aria-label="Search"
+                        className="social-focus flex size-11 items-center justify-center rounded-full bg-secondary text-primary transition-colors hover:bg-primary/10"
+                    >
+                        <Search className="size-5" aria-hidden="true" />
+                    </Link>
+                    <Link
                         href="/saved"
                         aria-label="Saved posts"
-                        className="social-focus flex size-10 items-center justify-center rounded-full text-foreground transition-colors hover:bg-secondary"
+                        className="social-focus flex size-11 items-center justify-center rounded-full text-foreground transition-colors hover:bg-secondary"
                     >
                         <Bookmark className="size-5" aria-hidden="true" />
                     </Link>
                     <Link
                         href="/notifications"
                         aria-label={`Notifications${notificationSummary.unreadCount > 0 ? `, ${notificationSummary.unreadCount} unread` : ''}`}
-                        className="social-focus relative flex size-10 items-center justify-center rounded-full text-foreground transition-colors hover:bg-secondary"
+                        className="social-focus relative flex size-11 items-center justify-center rounded-full text-foreground transition-colors hover:bg-secondary"
                     >
                         <Bell className="size-5" aria-hidden="true" />
                         {notificationSummary.unreadCount > 0 && (

@@ -55,6 +55,21 @@ The current release is `0.1.0-alpha.1`. It is suitable for local evaluation and 
   </tr>
 </table>
 
+<table>
+  <tr>
+    <td width="68%">
+      <img src="docs/screenshots/search-desktop.jpg" alt="Lineweb Social policy-filtered global search on desktop" />
+    </td>
+    <td width="32%">
+      <img src="docs/screenshots/search-mobile.jpg" alt="Lineweb Social global search results on mobile" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Grouped search across visible community content</sub></td>
+    <td align="center"><sub>Mobile search and results</sub></td>
+  </tr>
+</table>
+
 <sub>Current desktop and mobile screenshots use a local demo dataset; no private member data is included.</sub>
 
 ## Current vertical slice
@@ -65,6 +80,8 @@ The current release is `0.1.0-alpha.1`. It is suitable for local evaluation and 
 - Expiring email invitations for restricted Spaces with hashed tokens and verified-account matching.
 - Owner transfer, moderator role changes, reason-required member removal, and an auditable management log.
 - A chronological, non-algorithmic feed.
+- Policy-filtered global search across visible posts, accessible Spaces, and
+  discoverable people, with dedicated desktop and mobile entry points.
 - Private Saved Posts with policy-filtered retrieval and quick access from the
   desktop rail and mobile header.
 - Membership-protected comments with compact feed previews, permanent post
@@ -86,8 +103,9 @@ The current release is `0.1.0-alpha.1`. It is suitable for local evaluation and 
 - React 19, Inertia 3, TypeScript, Tailwind CSS 4, and Laravel 13.
 
 This is an early development build, not a production release. Messaging,
-galleries and video, email and push notification delivery, full content search,
-data export/deletion, and a supported extension lifecycle are still pending.
+galleries and video, email and push notification delivery, advanced indexed
+search, data export/deletion, and a supported extension lifecycle are still
+pending.
 
 ## Local setup
 

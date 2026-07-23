@@ -30,8 +30,8 @@ All notable project changes will be documented here.
 - Database-backed in-app notifications for replies and new Space moderation
   reports, with unread state, secure destinations, and paginated history.
 - Notification mutation support for native clients: `PATCH
-  /api/v1/notifications/{notification}/read` and `PATCH
-  /api/v1/notifications/read-all`, preserving owner scope and policy-safe
+/api/v1/notifications/{notification}/read` and `PATCH
+/api/v1/notifications/read-all`, preserving owner scope and policy-safe
   mark-read behavior.
 - Per-member preferences for reply and moderation notification categories.
 - Cursor-paginated post detail and comments APIs for native clients with
@@ -41,6 +41,9 @@ All notable project changes will be documented here.
   filtering, and a dedicated responsive reading-list view.
 - Accessible feed-card actions for copying a permanent link and opening the
   full conversation directly.
+- Policy-filtered global search across visible posts, accessible Spaces, and
+  discoverable people, with grouped responsive results, bounded queries, and
+  dedicated desktop/mobile navigation.
 
 ### Changed
 

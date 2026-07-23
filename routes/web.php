@@ -11,6 +11,7 @@ use App\Http\Controllers\PostImageController;
 use App\Http\Controllers\PostReportController;
 use App\Http\Controllers\PostReportModerationController;
 use App\Http\Controllers\SavedPostController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SpaceController;
 use App\Http\Controllers\SpaceInvitationAcceptanceController;
 use App\Http\Controllers\SpaceInvitationController;
@@ -26,6 +27,9 @@ Route::inertia('/', 'welcome')->name('home');
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('feed', FeedController::class)->name('feed');
     Route::get('saved', [SavedPostController::class, 'index'])->name('saved.index');
+    Route::get('search', SearchController::class)
+        ->middleware('throttle:community-search')
+        ->name('search');
     Route::get('notifications', [NotificationController::class, 'index'])
         ->name('notifications.index');
     Route::post('notifications/{notification}/open', [NotificationController::class, 'open'])
