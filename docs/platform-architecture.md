@@ -20,6 +20,8 @@ The core owns invariants that an extension must not bypass:
 - report eligibility, moderation decisions, and append-only audit records;
 - in-app notification ownership, member preferences, read state, and safe
   projections for core events;
+- direct-conversation participant scope, canonical member pairs, unread state,
+  block-aware sending, and bounded message projections;
 - rate limits, server validation, and policy authorization;
 - domain events emitted only after successful writes.
 
@@ -70,6 +72,16 @@ keeps the relationship but removes that member's content from the viewer's
 feeds. `UserFollowChanged` is emitted only after a real committed change.
 Profiles expose aggregate counts and current-viewer state, never follower lists
 in this initial contract.
+
+Direct messages use one canonical conversation row per ordered member pair.
+Only the two participants may retrieve its inbox projection, bounded recent
+history, or unread state. Starting a thread reuses profile visibility and mutual
+block rules; every later send rechecks blocks inside the locked conversation
+transaction. A later block stops delivery but does not silently erase existing
+history or moderation evidence. The current web slice deliberately excludes
+attachments, groups, realtime presence, delivery receipts, and end-to-end
+encryption claims. The full boundary is documented in
+[`direct-messages.md`](direct-messages.md).
 
 ## Near-term contract work
 

@@ -5,6 +5,7 @@ use App\Http\Controllers\CommentReportController;
 use App\Http\Controllers\CommentReportModerationController;
 use App\Http\Controllers\FeedController;
 use App\Http\Controllers\FollowingFeedController;
+use App\Http\Controllers\MessageController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PeopleController;
 use App\Http\Controllers\PostController;
@@ -49,6 +50,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('notifications.read-all');
     Route::get('people', [PeopleController::class, 'index'])->name('people.index');
     Route::get('people/{profile:handle}', [PeopleController::class, 'show'])->name('people.show');
+    Route::get('messages', [MessageController::class, 'index'])->name('messages.index');
+    Route::get('messages/new/{profile:handle}', [MessageController::class, 'compose'])
+        ->name('messages.compose');
+    Route::post('messages/new/{profile:handle}', [MessageController::class, 'start'])
+        ->middleware('throttle:direct-messaging')
+        ->name('messages.start');
+    Route::get('messages/{conversation}', [MessageController::class, 'show'])
+        ->name('messages.show');
+    Route::post('messages/{conversation}', [MessageController::class, 'store'])
+        ->middleware('throttle:direct-messaging')
+        ->name('messages.store');
+    Route::post('messages/{conversation}/read', [MessageController::class, 'read'])
+        ->middleware('throttle:direct-messaging')
+        ->name('messages.read');
     Route::put('people/{profile:handle}/follow', [UserFollowController::class, 'store'])
         ->middleware('throttle:user-following')
         ->name('people.follow');

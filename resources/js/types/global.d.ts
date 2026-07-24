@@ -15,6 +15,9 @@ declare module '@inertiajs/core' {
             notificationSummary: {
                 unreadCount: number;
             };
+            messageSummary: {
+                unreadCount: number;
+            };
             sidebarOpen: boolean;
             [key: string]: unknown;
         };

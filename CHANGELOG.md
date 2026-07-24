@@ -6,6 +6,9 @@ All notable project changes will be documented here.
 
 ### Added
 
+- Participant-only direct messages with one canonical thread per member pair,
+  privacy-aware conversation start, block-enforced sending, owner-scoped unread
+  state, bounded history, rate limits, and responsive inbox/thread views.
 - Idempotent Follow/Unfollow relationships with aggregate-only profile counts,
   mutual-block cleanup, after-write extension events, and a separate
   chronological Following feed across web and read-only API surfaces.

@@ -85,6 +85,21 @@ The current release is `0.1.0-alpha.1`. It is suitable for local evaluation and 
   </tr>
 </table>
 
+<table>
+  <tr>
+    <td width="68%">
+      <img src="docs/screenshots/messages-desktop.png" alt="Lineweb Social participant-only direct messages on desktop" />
+    </td>
+    <td width="32%">
+      <img src="docs/screenshots/messages-mobile.png" alt="Lineweb Social direct-message thread on mobile" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Focused two-person inbox and thread</sub></td>
+    <td align="center"><sub>App-first mobile messaging</sub></td>
+  </tr>
+</table>
+
 <sub>Current desktop and mobile screenshots use a local demo dataset; no private member data is included.</sub>
 
 ## Current vertical slice
@@ -115,6 +130,9 @@ The current release is `0.1.0-alpha.1`. It is suitable for local evaluation and 
 - A unified, policy-backed moderator queue with documented decisions, content hide/restore behavior, and append-only Space audit entries.
 - A low-noise in-app notification center for replies and new moderation reports,
   with per-category preferences, unread state, and access rechecked when opened.
+- Participant-only direct messages with one canonical conversation per member
+  pair, owner-scoped unread state, block-aware sending, bounded history, and
+  responsive inbox/thread views.
 - Stable member handles, editable profiles with headlines, real visible
   activity summaries, and privacy-aware People discovery.
 - Public, shared-Space-only, and private profile visibility with discovery opt-out.
@@ -125,10 +143,10 @@ The current release is `0.1.0-alpha.1`. It is suitable for local evaluation and 
 - A local extension-manifest contract with explicit permission and UI-slot allowlists.
 - React 19, Inertia 3, TypeScript, Tailwind CSS 4, and Laravel 13.
 
-This is an early development build, not a production release. Messaging,
-galleries and video, email and push notification delivery, advanced indexed
-search, data export/deletion, and a supported extension lifecycle are still
-pending.
+This is an early development build, not a production release. Message
+attachments, galleries and video, email and push notification delivery,
+advanced indexed search, data export/deletion, and a supported extension
+lifecycle are still pending.
 
 ## Local setup
 
