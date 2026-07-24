@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Settings;
 
+use App\Account\AccountDeletion;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\ProfileDeleteRequest;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
@@ -17,11 +18,18 @@ class ProfileController extends Controller
     /**
      * Show the user's profile settings page.
      */
-    public function edit(Request $request): Response
+    public function edit(Request $request, AccountDeletion $accountDeletion): Response
     {
         return Inertia::render('settings/profile', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => $request->session()->get('status'),
+            'deletionBlockers' => $accountDeletion
+                ->blockersFor($request->user())
+                ->map(fn ($space): array => [
+                    'name' => $space->name,
+                    'manage_url' => route('spaces.manage', $space),
+                ])
+                ->values(),
         ]);
     }
 
@@ -46,13 +54,13 @@ class ProfileController extends Controller
     /**
      * Delete the user's profile.
      */
-    public function destroy(ProfileDeleteRequest $request): RedirectResponse
-    {
-        $user = $request->user();
+    public function destroy(
+        ProfileDeleteRequest $request,
+        AccountDeletion $accountDeletion,
+    ): RedirectResponse {
+        $accountDeletion->delete($request->user());
 
         Auth::logout();
-
-        $user->delete();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

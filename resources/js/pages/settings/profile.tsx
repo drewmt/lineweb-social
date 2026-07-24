@@ -11,6 +11,7 @@ import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileCo
 import DeleteUser from '@/components/delete-user';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
+import PersonalDataControls from '@/components/personal-data-controls';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -44,9 +45,11 @@ const visibilityOptions = [
 export default function Profile({
     mustVerifyEmail,
     status,
+    deletionBlockers,
 }: {
     mustVerifyEmail: boolean;
     status?: string;
+    deletionBlockers: Array<{ name: string; manage_url: string }>;
 }) {
     const { auth } = usePage<PageProps>().props;
     const user = auth.user;
@@ -383,7 +386,8 @@ export default function Profile({
                     )}
                 </Form>
             </div>
-            <DeleteUser />
+            <PersonalDataControls />
+            <DeleteUser deletionBlockers={deletionBlockers} />
         </>
     );
 }
