@@ -18,6 +18,7 @@ Route::prefix('v1')
         AssignApiRequestId::class,
         'auth:sanctum',
         RequireBearerAccessToken::class,
+        'account.active',
         'verified',
         'throttle:api-read',
     ])

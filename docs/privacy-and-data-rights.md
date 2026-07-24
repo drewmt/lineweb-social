@@ -14,7 +14,7 @@ non-cacheable streamed response.
 
 The export currently includes:
 
-- profile and account fields;
+- profile and account fields, including platform role and suspension timestamp;
 - Space memberships and owned Space metadata;
 - posts, safe image metadata, comments, reactions, saves, follows, and safety
   relationships;
@@ -60,6 +60,13 @@ the deletion transaction to protect against a stale browser page.
 A sole-owner Space with no other person's content is deleted with the account.
 This is intentional, but deployers should make the consequence clear in their
 own product copy.
+
+Suspended accounts cannot use community or API features, but their
+password-confirmed export and deletion routes remain available from the
+restricted-account screen. Existing Space ownership guards still apply. When a
+suspended member owns a blocking Space, the operator needs a documented process
+to review the suspension and help complete an ownership transfer before
+deletion. Suspension is not a substitute for a data-rights response process.
 
 ## Operator responsibilities
 

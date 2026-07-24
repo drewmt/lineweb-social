@@ -7,6 +7,8 @@ The project is a community engine, not a fixed social-network clone. The core sh
 The core owns invariants that an extension must not bypass:
 
 - account identity, verification, authentication, and recovery;
+- platform administrator assignment, account suspension state, privileged
+  authorization, and append-only operator audit records;
 - profile visibility, discovery, idempotent follows, mute, and mutual block
   boundaries;
 - Space visibility, roles, membership, invitations, and ownership;
@@ -82,6 +84,15 @@ history or moderation evidence. The current web slice deliberately excludes
 attachments, groups, realtime presence, delivery receipts, and end-to-end
 encryption claims. The full boundary is documented in
 [`direct-messages.md`](direct-messages.md).
+
+Platform administration is a separate privileged boundary from Space
+moderation. Administrator assignment is console-only, every web entry point is
+protected by an explicit role middleware, and the write service rechecks the
+actor under a database lock. Suspension revokes active sessions and API tokens
+but does not silently remove public content. Extensions must enforce the shared
+active-account middleware on member-authenticated write and API surfaces. The
+full contract is documented in
+[`platform-administration.md`](platform-administration.md).
 
 ## Near-term contract work
 

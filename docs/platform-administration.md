@@ -1,0 +1,101 @@
+# Platform administration
+
+Lineweb Social includes a small, fail-closed operational surface for platform
+owners. It is separate from Space moderation: Space owners and moderators
+manage their communities, while platform administrators manage account access
+across the deployment.
+
+## Bootstrap an administrator
+
+Administrator access cannot be granted from the web interface or public API.
+Use a trusted application shell with an existing verified member:
+
+```bash
+php artisan platform:administrator owner@example.com
+```
+
+To revoke access:
+
+```bash
+php artisan platform:administrator owner@example.com --revoke
+```
+
+The last administrator cannot be revoked or delete their account. Bootstrap at
+least two controlled administrator accounts before operating a public service,
+and protect both with passkeys or two-factor authentication.
+
+## Authorization boundary
+
+The first role contract contains only `member` and `administrator`.
+`platform_role` is not mass assignable. The dashboard and mutation routes
+require authentication, email verification, an active account, the explicit
+administrator middleware, and a dedicated rate limit.
+
+Suspension and reinstatement also recheck the administrator inside the
+transaction after locking both actor and subject rows in stable order. An
+administrator cannot suspend themselves or another administrator through the
+web surface.
+
+Do not treat a Space moderator as a platform administrator. If a future
+operator or support role is required, add a distinct permission contract and
+tests instead of broadening the current role.
+
+## Suspension behavior
+
+Every suspension requires a reason of 10 to 500 characters. A successful
+suspension:
+
+- records the suspension time, reason, and acting administrator;
+- rotates the account remember token;
+- deletes all database-backed web sessions;
+- revokes all personal API tokens; and
+- appends a `member.suspended` audit entry.
+
+The shared `account.active` middleware blocks the suspended member from
+community web routes and authenticated API routes. Web navigation ends at the
+restricted-account screen; API requests receive the stable forbidden response.
+
+Suspension is an access decision, not automatic content takedown. Existing
+public content remains subject to its Space visibility and moderation rules.
+Use the normal report and moderation workflow when content itself must be
+reviewed or hidden.
+
+Reinstatement also requires a recorded reason and appends a
+`member.reinstated` entry before restoring access. Previously revoked tokens and
+sessions are not recreated.
+
+## Data-rights boundary
+
+The restricted-account screen preserves the password-confirmed personal export
+and account-deletion paths. Email verification and existing Space ownership
+guards still apply. If a suspended member owns a Space containing another
+person's activity, the deployer must provide a process to review access and
+complete ownership transfer before deletion.
+
+This is a technical safeguard, not a privacy-law certification. Deployers still
+own notices, retention, appeals, support, backup deletion, and statutory
+response procedures.
+
+## Audit trail
+
+Privileged actions are stored in `platform_audit_logs` with nullable actor and
+subject references so the record can survive later account deletion. The
+dashboard exposes only the latest entries; retention, archival, and protected
+operator exports are intentionally not implemented yet.
+
+Core code must append audit records through `PlatformAdministration`. Do not
+add edit or delete controls for audit rows. Extensions that introduce new
+privileged actions should define a bounded action enum, record only necessary
+context, and avoid secrets or unrelated personal data.
+
+## Deliberate first-version limits
+
+- no web or API administrator promotion;
+- no generic role editor or implied moderator hierarchy;
+- no remote administrative API;
+- no automatic content deletion during account suspension;
+- no audit export or retention automation; and
+- no claim that administrator access replaces infrastructure access controls.
+
+These limits keep the first contract reviewable and give downstream products a
+clear authorization boundary to extend.
