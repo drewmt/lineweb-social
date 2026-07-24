@@ -8,6 +8,7 @@ use App\Models\PostReport;
 use App\Models\Space;
 use App\Models\User;
 use App\Notifications\CommentReplyNotification;
+use App\Notifications\ContentMentionNotification;
 use App\Notifications\SpaceModerationNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Notifications\DatabaseNotification;
@@ -106,6 +107,35 @@ class NotificationApiTest extends TestCase
             ->getJson(route('api.v1.notifications', ['cursor' => $cursor, 'filter' => 'unread']))
             ->assertBadRequest()
             ->assertJsonPath('code', 'invalid_cursor');
+    }
+
+    public function test_content_mentions_expose_only_a_current_policy_safe_target(): void
+    {
+        $viewer = User::factory()->create();
+        $author = User::factory()->create();
+        $space = Space::factory()->for($author, 'owner')->create();
+        $space->addMember($viewer);
+        $post = Post::factory()->for($space)->for($author, 'author')->create();
+        $viewer->notify(ContentMentionNotification::forPost($post));
+
+        $this->withToken($this->token($viewer))
+            ->getJson(route('api.v1.notifications'))
+            ->assertOk()
+            ->assertJsonPath('data.0.kind', 'content_mention')
+            ->assertJsonPath('data.0.target.type', 'post')
+            ->assertJsonPath('data.0.target.post_id', (string) $post->getKey())
+            ->assertJsonMissingPath('data.0.target.comment_id');
+
+        $author->outgoingRelationships()->create([
+            'target_id' => $viewer->id,
+            'type' => 'block',
+        ]);
+
+        $this->withToken($this->token($viewer))
+            ->getJson(route('api.v1.notifications'))
+            ->assertOk()
+            ->assertJsonPath('data.0.kind', 'unavailable')
+            ->assertJsonPath('data.0.target', null);
     }
 
     public function test_notifications_write_endpoints_mark_one_and_all_read(): void

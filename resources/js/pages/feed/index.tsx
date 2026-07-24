@@ -22,6 +22,8 @@ import { AvatarMark } from '@/components/social/avatar-mark';
 import { CommentThread } from '@/components/social/comment-thread';
 import type { SocialComment } from '@/components/social/comment-thread';
 import { CommunitySignal } from '@/components/social/community-signal';
+import { MentionText } from '@/components/social/mention-text';
+import type { ContentMention } from '@/components/social/mention-text';
 import { PostImage } from '@/components/social/post-image';
 import type { PostMedia } from '@/components/social/post-image';
 import { PostReactions } from '@/components/social/post-reactions';
@@ -49,6 +51,7 @@ type FeedPost = {
     id: number;
     url: string;
     body: string;
+    mentions: ContentMention[];
     media: PostMedia | null;
     publishedAt: string | null;
     editedAt: string | null;
@@ -548,7 +551,7 @@ function PostCard({
                 </div>
             </header>
             <p className="mt-4 text-[1.01rem] leading-7 whitespace-pre-wrap text-foreground/92 sm:text-[1.04rem] sm:leading-8">
-                {previewBody}
+                <MentionText body={previewBody} mentions={item.mentions} />
             </p>
             {hasLongBody && (
                 <button

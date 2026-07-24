@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Community\Mentions\MentionProjection;
 use App\Community\PostReactionProjection;
 use App\Community\VisiblePostQuery;
 use App\Http\Controllers\Controller;
@@ -21,6 +22,7 @@ class PostController extends Controller
         string $post,
         VisiblePostQuery $visiblePosts,
         PostReactionProjection $reactions,
+        MentionProjection $mentions,
     ): JsonResponse {
         /** @var User $viewer */
         $viewer = $request->user();
@@ -30,6 +32,11 @@ class PostController extends Controller
             ->firstOrFail();
 
         $this->addViewerState(new Collection([$postModel]), $viewer, $reactions);
+        $resolvedMentions = $mentions->resolve($viewer, [$postModel->body]);
+        $postModel->setAttribute(
+            'content_mentions',
+            $mentions->forBody($postModel->body, $resolvedMentions),
+        );
 
         return response()->json([
             'data' => (new PostResource($postModel))->toArray($request),

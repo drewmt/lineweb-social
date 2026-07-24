@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Api\V1\PostCommentCursor;
+use App\Community\Mentions\MentionProjection;
 use App\Community\VisiblePostQuery;
 use App\Enums\UserRelationshipType;
 use App\Http\Controllers\Controller;
@@ -24,6 +25,7 @@ class PostCommentController extends Controller
         string $post,
         VisiblePostQuery $visiblePosts,
         PostCommentCursor $cursorFactory,
+        MentionProjection $mentions,
     ): JsonResponse {
         /** @var User $viewer */
         $viewer = $request->user();
@@ -80,6 +82,11 @@ class PostCommentController extends Controller
             ->toArray();
 
         $this->addViewerState($comments, $viewer, $reportedCommentIds, $visibleAuthorIds);
+        $resolvedMentions = $mentions->resolve($viewer, $comments->pluck('body'));
+        $comments->each(fn (Comment $comment) => $comment->setAttribute(
+            'content_mentions',
+            $mentions->forBody($comment->body, $resolvedMentions),
+        ));
 
         $lastComment = $comments->last();
         $nextCursor = $hasMore && $lastComment instanceof Comment

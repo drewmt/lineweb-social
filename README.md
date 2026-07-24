@@ -121,6 +121,9 @@ The current release is `0.1.0-alpha.1`. It is suitable for local evaluation and 
   aggregate-only counts, and a responsive feed/permalink interaction.
 - Membership-protected comments with compact feed previews, permanent post
   links, and a full visibility-filtered paginated conversation view.
+- Privacy-safe `@handle` mentions in posts and comments, with bounded parsing,
+  viewer-resolved profile links, deduplicated alerts, and access rechecked when
+  a notification is opened.
 - Author-controlled editing and deletion for posts and comments, with visible
   edited state and content changes locked while an active moderation review is
   in progress.
@@ -128,8 +131,9 @@ The current release is `0.1.0-alpha.1`. It is suitable for local evaluation and 
   policy-protected delivery, and metadata-stripping WebP normalization.
 - Private post and comment reporting with allowlisted reasons, duplicate protection, and separate rate limits.
 - A unified, policy-backed moderator queue with documented decisions, content hide/restore behavior, and append-only Space audit entries.
-- A low-noise in-app notification center for replies and new moderation reports,
-  with per-category preferences, unread state, and access rechecked when opened.
+- A low-noise in-app notification center for replies, direct mentions, and new
+  moderation reports, with per-category preferences, unread state, and access
+  rechecked when opened.
 - Participant-only direct messages with one canonical conversation per member
   pair, owner-scoped unread state, block-aware sending, bounded history, and
   responsive inbox/thread views.

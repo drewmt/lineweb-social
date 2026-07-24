@@ -1,5 +1,5 @@
 import { Head, useForm } from '@inertiajs/react';
-import { BellRing, Flag, MessageCircle } from 'lucide-react';
+import { AtSign, BellRing, Flag, MessageCircle } from 'lucide-react';
 import type { FormEvent } from 'react';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 type NotificationPreferencesProps = {
     preferences: {
         commentReplies: boolean;
+        contentMentions: boolean;
         spaceModeration: boolean;
     };
     status?: string;
@@ -20,6 +21,7 @@ export default function NotificationPreferences({
     const { data, setData, patch, processing, isDirty, recentlySuccessful } =
         useForm({
             comment_replies: preferences.commentReplies,
+            content_mentions: preferences.contentMentions,
             space_moderation: preferences.spaceModeration,
         });
 
@@ -56,6 +58,15 @@ export default function NotificationPreferences({
                             checked={data.comment_replies}
                             onCheckedChange={(checked) =>
                                 setData('comment_replies', checked)
+                            }
+                        />
+                        <PreferenceRow
+                            icon={AtSign}
+                            title="Mentions in posts and comments"
+                            description="Know when another member directly mentions your handle. Repeated mentions in the same content create only one alert."
+                            checked={data.content_mentions}
+                            onCheckedChange={(checked) =>
+                                setData('content_mentions', checked)
                             }
                         />
                         <PreferenceRow

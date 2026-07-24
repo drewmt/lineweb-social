@@ -1119,12 +1119,36 @@
           }
         }
       },
+      "ContentMention": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "handle",
+          "name",
+          "url"
+        ],
+        "properties": {
+          "handle": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 40
+          },
+          "name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri-reference"
+          }
+        }
+      },
       "Comment": {
         "type": "object",
         "additionalProperties": false,
         "required": [
           "id",
           "body",
+          "mentions",
           "published_at",
           "edited_at",
           "author",
@@ -1137,6 +1161,13 @@
           "body": {
             "type": "string",
             "maxLength": 1000
+          },
+          "mentions": {
+            "type": "array",
+            "maxItems": 10,
+            "items": {
+              "$ref": "#/components/schemas/ContentMention"
+            }
           },
           "published_at": {
             "type": "string",
@@ -1176,6 +1207,7 @@
         "required": [
           "id",
           "body",
+          "mentions",
           "published_at",
           "edited_at",
           "media",
@@ -1192,6 +1224,13 @@
           "body": {
             "type": "string",
             "maxLength": 2000
+          },
+          "mentions": {
+            "type": "array",
+            "maxItems": 10,
+            "items": {
+              "$ref": "#/components/schemas/ContentMention"
+            }
           },
           "published_at": {
             "type": "string",
@@ -1404,6 +1443,7 @@
             "type": "string",
             "enum": [
               "comment_reply",
+              "content_mention",
               "space_moderation",
               "unavailable"
             ]

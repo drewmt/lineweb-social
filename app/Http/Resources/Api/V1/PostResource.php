@@ -27,6 +27,7 @@ class PostResource extends JsonResource
         return [
             'id' => (string) $post->getKey(),
             'body' => $post->body,
+            'mentions' => $post->getAttribute('content_mentions') ?? [],
             'published_at' => $post->published_at?->toIso8601String(),
             'edited_at' => $post->edited_at?->toIso8601String(),
             'media' => $media instanceof PostMedia ? [

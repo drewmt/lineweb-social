@@ -11,6 +11,7 @@ class UpdateNotificationPreferencesRequest extends FormRequest
     {
         return [
             'comment_replies' => ['required', 'boolean'],
+            'content_mentions' => ['required', 'boolean'],
             'space_moderation' => ['required', 'boolean'],
         ];
     }

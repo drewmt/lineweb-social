@@ -18,6 +18,7 @@ class NotificationPreferencesController extends Controller
         return Inertia::render('settings/notifications', [
             'preferences' => [
                 'commentReplies' => $preferences->exists ? $preferences->comment_replies : true,
+                'contentMentions' => $preferences->exists ? $preferences->content_mentions : true,
                 'spaceModeration' => $preferences->exists ? $preferences->space_moderation : true,
             ],
         ]);

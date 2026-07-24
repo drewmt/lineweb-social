@@ -2,6 +2,7 @@
 
 namespace App\Community;
 
+use App\Community\Mentions\MentionProjection;
 use App\Enums\ReportStatus;
 use App\Enums\UserRelationshipType;
 use App\Models\Comment;
@@ -20,6 +21,7 @@ final class PostConversation
     public function __construct(
         private readonly PostMediaView $media,
         private readonly PostReactionProjection $reactions,
+        private readonly MentionProjection $mentions,
     ) {}
 
     /**
@@ -55,6 +57,10 @@ final class PostConversation
             ->withQueryString();
 
         $commentModels = $comments->getCollection();
+        $resolvedMentions = $this->mentions->resolve(
+            $viewer,
+            $commentModels->pluck('body')->push($post->body),
+        );
         $visibleAuthorIds = User::query()
             ->visibleTo($viewer)
             ->whereKey($commentModels->pluck('user_id')->push($post->user_id)->unique())
@@ -86,6 +92,7 @@ final class PostConversation
             $commentData[] = [
                 'id' => $comment->id,
                 'body' => $comment->body,
+                'mentions' => $this->mentions->forBody($comment->body, $resolvedMentions),
                 'publishedAt' => $comment->published_at->toIso8601String(),
                 'editedAt' => $comment->edited_at?->toIso8601String(),
                 'canReport' => $viewer->can('report', $comment),
@@ -107,6 +114,7 @@ final class PostConversation
                 'id' => $post->id,
                 'url' => route('posts.show', $post),
                 'body' => $post->body,
+                'mentions' => $this->mentions->forBody($post->body, $resolvedMentions),
                 'media' => $this->media->for($post),
                 'publishedAt' => $post->published_at?->toIso8601String(),
                 'editedAt' => $post->edited_at?->toIso8601String(),

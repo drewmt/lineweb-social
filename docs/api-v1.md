@@ -201,6 +201,8 @@ The first resources expose only allowlisted fields:
 - posts and comments exclude storage paths, report details, moderator notes,
   hidden timestamps, and author account identifiers; nullable `edited_at`
   communicates an author change without exposing internal update timestamps;
+  each `mentions` array contains at most ten profile summaries that the current
+  viewer may open, while inaccessible or unknown handles remain plain body text;
   post reactions expose bounded counts and only the current viewer's selected
   type, never reactor identities;
 - media exposes only the authorized API URL, alt text, normalized dimensions,
