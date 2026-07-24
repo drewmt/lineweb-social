@@ -137,7 +137,7 @@ export function DesktopSocialNav() {
 
     return (
         <aside className="fixed inset-y-0 left-0 z-40 hidden w-[18.5rem] border-r border-border/75 bg-card/92 p-4 backdrop-blur-xl lg:flex lg:flex-col">
-            <div className="flex min-h-0 flex-1 flex-col rounded-[1.6rem] bg-background/75 p-3 ring-1 ring-border/55">
+            <div className="flex min-h-0 flex-1 flex-col overflow-y-auto rounded-[1.6rem] bg-background/75 p-3 ring-1 ring-border/55">
                 <SocialLogo className="px-2 py-2" />
 
                 <div className="mt-8 px-2 text-[0.65rem] font-extrabold tracking-[0.16em] text-muted-foreground uppercase">

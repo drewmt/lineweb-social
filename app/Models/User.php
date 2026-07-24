@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PlatformRole;
 use App\Enums\ProfileVisibility;
 use App\Enums\UserRelationshipType;
 use Database\Factories\UserFactory;
@@ -34,6 +35,10 @@ use Laravel\Sanctum\HasApiTokens;
  * @property string|null $website_url
  * @property ProfileVisibility $profile_visibility
  * @property bool $is_discoverable
+ * @property PlatformRole $platform_role
+ * @property Carbon|null $suspended_at
+ * @property string|null $suspension_reason
+ * @property int|null $suspended_by
  * @property Carbon|null $email_verified_at
  * @property string $password
  * @property string|null $two_factor_secret
@@ -57,7 +62,14 @@ use Laravel\Sanctum\HasApiTokens;
     'is_discoverable',
     'password',
 ])]
-#[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
+#[Hidden([
+    'password',
+    'two_factor_secret',
+    'two_factor_recovery_codes',
+    'remember_token',
+    'suspension_reason',
+    'suspended_by',
+])]
 class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
@@ -67,6 +79,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     protected $attributes = [
         'profile_visibility' => 'members',
         'is_discoverable' => true,
+        'platform_role' => 'member',
     ];
 
     protected static function booted(): void
@@ -348,6 +361,16 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             ->exists();
     }
 
+    public function isAdministrator(): bool
+    {
+        return $this->platform_role === PlatformRole::Administrator;
+    }
+
+    public function isSuspended(): bool
+    {
+        return $this->suspended_at !== null;
+    }
+
     public function getRouteKeyName(): string
     {
         return 'handle';
@@ -366,6 +389,8 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             'two_factor_confirmed_at' => 'datetime',
             'profile_visibility' => ProfileVisibility::class,
             'is_discoverable' => 'boolean',
+            'platform_role' => PlatformRole::class,
+            'suspended_at' => 'datetime',
         ];
     }
 }

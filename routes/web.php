@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\MemberSuspensionController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\CommentReportController;
 use App\Http\Controllers\CommentReportModerationController;
@@ -22,13 +24,18 @@ use App\Http\Controllers\SpaceManagementController;
 use App\Http\Controllers\SpaceMemberController;
 use App\Http\Controllers\SpaceMembershipController;
 use App\Http\Controllers\SpaceModerationController;
+use App\Http\Controllers\SuspendedAccountController;
 use App\Http\Controllers\UserFollowController;
 use App\Http\Controllers\UserRelationshipController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'welcome')->name('home');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::get('account-suspended', SuspendedAccountController::class)
+    ->middleware('auth')
+    ->name('account.suspended');
+
+Route::middleware(['auth', 'account.active', 'verified'])->group(function () {
     Route::get('feed', FeedController::class)->name('feed');
     Route::get('following', FollowingFeedController::class)->name('following.index');
     Route::get('saved', [SavedPostController::class, 'index'])->name('saved.index');
@@ -169,5 +176,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('comments.reports.store');
     Route::redirect('dashboard', '/feed')->name('dashboard');
 });
+
+Route::prefix('admin')
+    ->middleware([
+        'auth',
+        'account.active',
+        'verified',
+        'platform.admin',
+        'throttle:platform-administration',
+    ])
+    ->group(function (): void {
+        Route::get('/', AdminDashboardController::class)->name('admin.index');
+        Route::put('members/{member:handle}/suspension', [MemberSuspensionController::class, 'store'])
+            ->name('admin.members.suspension.store');
+        Route::delete('members/{member:handle}/suspension', [MemberSuspensionController::class, 'destroy'])
+            ->name('admin.members.suspension.destroy');
+    });
 
 require __DIR__.'/settings.php';

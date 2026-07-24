@@ -19,7 +19,7 @@ import { Label } from '@/components/ui/label';
 
 type DeletionBlocker = {
     name: string;
-    manage_url: string;
+    manage_url: string | null;
 };
 
 export default function DeleteUser({
@@ -53,17 +53,23 @@ export default function DeleteUser({
                         </p>
                         <ul className="mt-2 space-y-1.5">
                             {deletionBlockers.map((space) => (
-                                <li key={space.manage_url}>
-                                    <Link
-                                        href={space.manage_url}
-                                        className="social-focus inline-flex items-center gap-1 rounded-md font-semibold text-primary hover:underline"
-                                    >
-                                        {space.name}
-                                        <ArrowUpRight
-                                            className="size-3.5"
-                                            aria-hidden="true"
-                                        />
-                                    </Link>
+                                <li key={`${space.name}-${space.manage_url}`}>
+                                    {space.manage_url ? (
+                                        <Link
+                                            href={space.manage_url}
+                                            className="social-focus inline-flex items-center gap-1 rounded-md font-semibold text-primary hover:underline"
+                                        >
+                                            {space.name}
+                                            <ArrowUpRight
+                                                className="size-3.5"
+                                                aria-hidden="true"
+                                            />
+                                        </Link>
+                                    ) : (
+                                        <span className="font-semibold">
+                                            {space.name}
+                                        </span>
+                                    )}
                                 </li>
                             ))}
                         </ul>

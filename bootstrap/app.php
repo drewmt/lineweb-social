@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\EnsureAccountIsActive;
+use App\Http\Middleware\EnsurePlatformAdministrator;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Responses\ApiErrorResponse;
@@ -22,6 +24,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'abilities' => CheckAbilities::class,
+            'account.active' => EnsureAccountIsActive::class,
+            'platform.admin' => EnsurePlatformAdministrator::class,
         ]);
 
         $middleware->web(append: [

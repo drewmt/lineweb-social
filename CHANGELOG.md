@@ -6,6 +6,16 @@ All notable project changes will be documented here.
 
 ### Added
 
+- A protected platform-administration dashboard with real community metrics,
+  bounded member search, account status controls, and recent privileged audit
+  activity.
+- Console-only administrator grant and revoke commands with last-administrator
+  lockout protection.
+- Reason-required member suspension and reinstatement with serialized
+  authorization, immediate web-session and API-token revocation, remember-token
+  rotation, and an append-only audit trail.
+- A restricted-account screen that blocks community and API actions while
+  preserving password-protected personal export and account-deletion paths.
 - Password-confirmed, rate-limited personal JSON exports with chunked complete
   collections for account, community, authored content, interaction,
   moderation, messaging, notification, and safe security metadata.
@@ -67,6 +77,11 @@ All notable project changes will be documented here.
 
 ### Changed
 
+- Suspended-account enforcement now runs before email-verification checks so
+  every restricted member reaches the same account-status and data-rights
+  screen.
+- The fixed desktop navigation rail now scrolls on shorter viewports so account
+  and administrator controls remain reachable.
 - Own-profile activity cards now expose the existing author edit and delete
   controls while preserving active moderation-review locks.
 - Dependabot now groups only compatible minor and patch dependency updates;

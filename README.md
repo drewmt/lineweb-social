@@ -100,6 +100,21 @@ The current release is `0.1.0-alpha.1`. It is suitable for local evaluation and 
   </tr>
 </table>
 
+<table>
+  <tr>
+    <td width="68%">
+      <img src="docs/screenshots/admin-desktop.jpg" alt="Lineweb Social protected platform administration dashboard on desktop" />
+    </td>
+    <td width="32%">
+      <img src="docs/screenshots/admin-mobile.jpg" alt="Lineweb Social platform metrics on mobile" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Account operations and privileged audit trail</sub></td>
+    <td align="center"><sub>Responsive platform metrics</sub></td>
+  </tr>
+</table>
+
 <sub>Current desktop and mobile screenshots use a local demo dataset; no private member data is included.</sub>
 
 ## Current vertical slice
@@ -146,6 +161,9 @@ The current release is `0.1.0-alpha.1`. It is suitable for local evaluation and 
   messages.
 - Self-service account deletion that protects active communities by requiring
   ownership transfer before another member's Space activity can be removed.
+- Console-bootstrapped platform administrators with a private operational
+  dashboard, reason-required account suspension, immediate session and API
+  revocation, safe reinstatement, and an append-only privileged audit trail.
 - An editorial, app-first responsive interface with dedicated desktop and
   mobile navigation, a public product homepage, and complete member profiles.
 - Server-side authorization, validation, and publishing rate limits.
@@ -224,6 +242,12 @@ account flows, not as a compliance claim. See
 [`docs/privacy-and-data-rights.md`](docs/privacy-and-data-rights.md) for the
 included data, explicit secret and third-party exclusions, ownership-transfer
 guard, and deployment responsibilities.
+
+Platform administration is intentionally small and fail-closed. Administrator
+access is granted only from a trusted console, while suspension and
+reinstatement require an audited reason. See
+[`docs/platform-administration.md`](docs/platform-administration.md) for the
+role, access, audit, and account-restriction contracts.
 
 ## Contributing
 

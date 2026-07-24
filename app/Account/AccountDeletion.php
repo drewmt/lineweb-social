@@ -2,6 +2,7 @@
 
 namespace App\Account;
 
+use App\Enums\PlatformRole;
 use App\Models\Space;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
@@ -30,6 +31,20 @@ class AccountDeletion
                 ->whereKey($user->getKey())
                 ->lockForUpdate()
                 ->firstOrFail();
+
+            if ($lockedUser->isAdministrator()) {
+                $administrators = User::query()
+                    ->where('platform_role', PlatformRole::Administrator)
+                    ->orderBy('id')
+                    ->lockForUpdate()
+                    ->get(['id']);
+
+                if ($administrators->count() === 1) {
+                    throw ValidationException::withMessages([
+                        'account' => 'Grant another platform administrator before deleting this account.',
+                    ]);
+                }
+            }
 
             Space::query()
                 ->where('owner_id', $lockedUser->getKey())

@@ -11,6 +11,8 @@ export type User = {
     is_discoverable: boolean;
     avatar?: string;
     email_verified_at: string | null;
+    platform_role: 'member' | 'administrator';
+    suspended_at: string | null;
     two_factor_enabled?: boolean;
     created_at: string;
     updated_at: string;
