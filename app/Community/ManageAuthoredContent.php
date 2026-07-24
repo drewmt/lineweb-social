@@ -2,6 +2,8 @@
 
 namespace App\Community;
 
+use App\Community\Mentions\MentionNotifier;
+use App\Community\Mentions\MentionParser;
 use App\Enums\ReportStatus;
 use App\Models\Comment;
 use App\Models\Post;
@@ -12,9 +14,14 @@ use Illuminate\Validation\ValidationException;
 
 final class ManageAuthoredContent
 {
+    public function __construct(
+        private readonly MentionParser $mentionParser,
+        private readonly MentionNotifier $mentionNotifier,
+    ) {}
+
     public function updatePost(User $author, Post $post, string $body): bool
     {
-        return DB::transaction(function () use ($author, $post, $body): bool {
+        $result = DB::transaction(function () use ($author, $post, $body): array {
             $lockedPost = Post::query()
                 ->whereKey($post->getKey())
                 ->lockForUpdate()
@@ -24,14 +31,23 @@ final class ManageAuthoredContent
             $this->ensurePostIsNotUnderReview($lockedPost);
 
             if ($lockedPost->body === $body) {
-                return false;
+                return ['changed' => false, 'previousHandles' => []];
             }
 
-            return $lockedPost->update([
+            $previousHandles = $this->mentionParser->handles($lockedPost->body);
+            $changed = $lockedPost->update([
                 'body' => $body,
                 'edited_at' => now(),
             ]);
+
+            return compact('changed', 'previousHandles');
         });
+
+        if ($result['changed']) {
+            $this->mentionNotifier->forPost($post->refresh(), $result['previousHandles']);
+        }
+
+        return $result['changed'];
     }
 
     public function deletePost(User $author, Post $post): void
@@ -50,7 +66,7 @@ final class ManageAuthoredContent
 
     public function updateComment(User $author, Comment $comment, string $body): bool
     {
-        return DB::transaction(function () use ($author, $comment, $body): bool {
+        $result = DB::transaction(function () use ($author, $comment, $body): array {
             $lockedComment = Comment::query()
                 ->with('post')
                 ->whereKey($comment->getKey())
@@ -61,14 +77,23 @@ final class ManageAuthoredContent
             $this->ensureCommentIsNotUnderReview($lockedComment);
 
             if ($lockedComment->body === $body) {
-                return false;
+                return ['changed' => false, 'previousHandles' => []];
             }
 
-            return $lockedComment->update([
+            $previousHandles = $this->mentionParser->handles($lockedComment->body);
+            $changed = $lockedComment->update([
                 'body' => $body,
                 'edited_at' => now(),
             ]);
+
+            return compact('changed', 'previousHandles');
         });
+
+        if ($result['changed']) {
+            $this->mentionNotifier->forComment($comment->refresh(), $result['previousHandles']);
+        }
+
+        return $result['changed'];
     }
 
     public function deleteComment(User $author, Comment $comment): void

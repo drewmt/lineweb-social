@@ -1,19 +1,26 @@
 # In-app notifications
 
-The first notification slice is intentionally small and useful. It alerts a
-member when another member replies to their post and alerts eligible Space owners
-or moderators when a new post or comment report needs attention.
+The notification core is intentionally small and useful. It alerts a member
+when another member replies to their post or directly mentions their handle,
+and alerts eligible Space owners or moderators when a new post or comment
+report needs attention.
 
 ## Categories and delivery
 
 | Preference | Trigger | Recipient |
 | --- | --- | --- |
 | `comment_replies` | `CommentPublished` | The post author, unless they wrote the reply |
+| `content_mentions` | `PostPublished`, `CommentPublished`, or an author edit | Up to ten visible mentioned members, excluding the author |
 | `space_moderation` | `PostReported` or `CommentReported` | Current Space owners and moderators, excluding the reporter |
 
-Both preferences default to enabled and affect new notifications only. Delivery
-uses Laravel's database channel synchronously, so the core experience does not
-require a queue worker. Email, web push, mobile push, digests, mentions, and
+All preferences default to enabled and affect new notifications only. Mention
+handles are case-insensitive, deduplicated, and bounded to ten per body. Editing
+content alerts only newly added handles. A mentioned post author receives the
+ordinary reply notification instead of a second alert unless reply alerts are
+disabled.
+
+Delivery uses Laravel's database channel synchronously, so the core experience
+does not require a queue worker. Email, web push, mobile push, digests, and
 per-reaction notifications are not part of this release. Typed post reactions
 emit `PostReactionChanged` for extensions, but the core deliberately avoids a
 notification for every reaction.
@@ -22,10 +29,11 @@ does not create a notification for every follow in this release.
 
 ## Privacy and authorization
 
-Notification rows store stable identifiers, not post or comment excerpts, report
-details, or reporter identity. The presentation layer resolves those identifiers
-at request time and rechecks the same policies, profile visibility, Space access,
-mute relationships, and block relationships used by the destination itself.
+Notification rows store stable identifiers, not post or comment excerpts,
+report details, or reporter identity. Mention links are also resolved for the
+current viewer instead of being stored in rendered content. The presentation
+layer rechecks the same policies, profile visibility, Space access, mute
+relationships, and block relationships used by the destination itself.
 
 Opening a notification is a `POST` action. The server confirms that the
 notification belongs to the authenticated member, resolves its current safe

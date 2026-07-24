@@ -22,7 +22,7 @@ class PostApiTest extends TestCase
 
     public function test_post_detail_returns_the_safe_visible_projection_and_viewer_state(): void
     {
-        $viewer = User::factory()->create();
+        $viewer = User::factory()->create(['handle' => 'api-viewer']);
         $author = User::factory()->create([
             'name' => 'Post Author',
             'headline' => 'Platform architect',
@@ -31,7 +31,7 @@ class PostApiTest extends TestCase
         $space = Space::factory()->for($author, 'owner')->create();
         $space->addMember($viewer);
         $post = Post::factory()->for($space)->for($author, 'author')->create([
-            'body' => 'A stable post for API readers.',
+            'body' => 'A stable post for @api-viewer.',
         ]);
 
         Storage::fake('media');
@@ -81,7 +81,9 @@ class PostApiTest extends TestCase
         $response
             ->assertOk()
             ->assertJsonPath('data.id', (string) $post->getKey())
-            ->assertJsonPath('data.body', 'A stable post for API readers.')
+            ->assertJsonPath('data.body', 'A stable post for @api-viewer.')
+            ->assertJsonPath('data.mentions.0.handle', 'api-viewer')
+            ->assertJsonPath('data.mentions.0.url', route('people.show', $viewer))
             ->assertJsonPath('data.comments_count', 1)
             ->assertJsonPath('data.reactions.total', 1)
             ->assertJsonPath('data.reactions.counts.celebrate', 1)
@@ -101,7 +103,7 @@ class PostApiTest extends TestCase
             ->assertJsonMissingPath('data.media.author_id');
 
         $this->assertSame(
-            ['id', 'body', 'published_at', 'edited_at', 'media', 'comments_count', 'reactions', 'author', 'space', 'viewer'],
+            ['id', 'body', 'mentions', 'published_at', 'edited_at', 'media', 'comments_count', 'reactions', 'author', 'space', 'viewer'],
             array_keys($response->json('data')),
         );
         $this->assertSame(
@@ -157,7 +159,7 @@ class PostApiTest extends TestCase
 
     public function test_post_comments_are_visible_in_chronological_pages_and_filter_muted_blocked_hidden_comments(): void
     {
-        $viewer = User::factory()->create();
+        $viewer = User::factory()->create(['handle' => 'api-viewer']);
         $author = User::factory()->create();
         $mutedAuthor = User::factory()->create();
         $blockingAuthor = User::factory()->create();
@@ -166,7 +168,7 @@ class PostApiTest extends TestCase
         $post = Post::factory()->for($space)->for($author, 'author')->create();
 
         Comment::factory()->for($post)->for($author, 'author')->create([
-            'body' => 'Visible 1',
+            'body' => 'Visible 1 @api-viewer',
             'published_at' => now()->subMinutes(3),
         ]);
         $reported = Comment::factory()->for($post)->for($author, 'author')->create([
@@ -218,6 +220,8 @@ class PostApiTest extends TestCase
             ->assertJsonPath('links.next', fn (?string $url): bool => is_string($url) && str_contains($url, 'cursor='))
             ->assertJsonCount(2, 'data')
             ->assertJsonPath('data.0.id', (string) $post->comments()->orderBy('published_at')->first()->getKey())
+            ->assertJsonPath('data.0.mentions.0.handle', 'api-viewer')
+            ->assertJsonPath('data.0.mentions.0.url', route('people.show', $viewer))
             ->assertJsonPath('data.1.id', (string) $reported->getKey())
             ->assertJsonPath('data.1.viewer.can_report', true)
             ->assertJsonPath('data.1.viewer.has_reported', true)

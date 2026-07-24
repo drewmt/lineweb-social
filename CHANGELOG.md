@@ -6,6 +6,10 @@ All notable project changes will be documented here.
 
 ### Added
 
+- Privacy-safe `@handle` mentions for posts and comments, including bounded
+  case-insensitive parsing, viewer-resolved links across web and API surfaces,
+  deduplicated low-data notifications, per-member preferences, edit-aware
+  delivery, and access revalidation.
 - Participant-only direct messages with one canonical thread per member pair,
   privacy-aware conversation start, block-enforced sending, owner-scoped unread
   state, bounded history, rate limits, and responsive inbox/thread views.
@@ -39,7 +43,8 @@ All notable project changes will be documented here.
 /api/v1/notifications/{notification}/read` and `PATCH
 /api/v1/notifications/read-all`, preserving owner scope and policy-safe
   mark-read behavior.
-- Per-member preferences for reply and moderation notification categories.
+- Per-member preferences for reply, mention, and moderation notification
+  categories.
 - Cursor-paginated post detail and comments APIs for native clients with
   policy-enforced access: `GET /api/v1/posts/{post}` and
   `GET /api/v1/posts/{post}/comments`.

@@ -24,6 +24,8 @@ import type {
     SocialComment,
 } from '@/components/social/comment-thread';
 import { CommunitySignal } from '@/components/social/community-signal';
+import { MentionText } from '@/components/social/mention-text';
+import type { ContentMention } from '@/components/social/mention-text';
 import { PostImage } from '@/components/social/post-image';
 import type { PostMedia } from '@/components/social/post-image';
 import { PostReactions } from '@/components/social/post-reactions';
@@ -39,6 +41,7 @@ type ConversationPost = {
     id: number;
     url: string;
     body: string;
+    mentions: ContentMention[];
     media: PostMedia | null;
     publishedAt: string | null;
     editedAt: string | null;
@@ -353,7 +356,10 @@ export default function ShowPost({
                                 </header>
 
                                 <p className="mt-5 text-[1.04rem] leading-8 whitespace-pre-wrap text-foreground/92">
-                                    {post.body}
+                                    <MentionText
+                                        body={post.body}
+                                        mentions={post.mentions}
+                                    />
                                 </p>
 
                                 {post.media && (

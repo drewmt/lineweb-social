@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Community\Mentions\MentionProjection;
 use App\Community\PostMediaView;
 use App\Enums\ReportStatus;
 use App\Models\Post;
@@ -50,8 +51,12 @@ class PeopleController extends Controller
         ]);
     }
 
-    public function show(Request $request, User $profile, PostMediaView $media): Response
-    {
+    public function show(
+        Request $request,
+        User $profile,
+        PostMediaView $media,
+        MentionProjection $mentions,
+    ): Response {
         Gate::authorize('view', $profile);
 
         /** @var User $viewer */
@@ -104,12 +109,14 @@ class PeopleController extends Controller
             ])
             ->pluck('post_id')
             ->all();
+        $resolvedMentions = $mentions->resolve($viewer, $postModels->pluck('body'));
 
         $posts = $postModels
             ->map(fn (Post $post): array => [
                 'id' => $post->id,
                 'url' => route('posts.show', $post),
                 'body' => $post->body,
+                'mentions' => $mentions->forBody($post->body, $resolvedMentions),
                 'media' => $media->for($post),
                 'publishedAt' => $post->published_at?->toIso8601String(),
                 'editedAt' => $post->edited_at?->toIso8601String(),

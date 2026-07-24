@@ -5,11 +5,14 @@ import type { FormEvent } from 'react';
 import InputError from '@/components/input-error';
 import { AuthoredContentMenu } from '@/components/social/authored-content-menu';
 import { AvatarMark } from '@/components/social/avatar-mark';
+import { MentionText } from '@/components/social/mention-text';
+import type { ContentMention } from '@/components/social/mention-text';
 import { Button } from '@/components/ui/button';
 
 export type SocialComment = {
     id: number;
     body: string;
+    mentions: ContentMention[];
     publishedAt: string;
     editedAt: string | null;
     canReport: boolean;
@@ -191,7 +194,10 @@ export function CommentRow({
                         />
                     </div>
                     <p className="mt-1 text-sm leading-6 whitespace-pre-wrap text-foreground/90">
-                        {previewBody}
+                        <MentionText
+                            body={previewBody}
+                            mentions={comment.mentions}
+                        />
                     </p>
                     {hasLongBody && (
                         <button

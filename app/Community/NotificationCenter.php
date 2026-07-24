@@ -5,6 +5,7 @@ namespace App\Community;
 use App\Enums\NotificationType;
 use App\Models\Comment;
 use App\Models\CommentReport;
+use App\Models\Post;
 use App\Models\PostReport;
 use App\Models\Space;
 use App\Models\User;
@@ -114,9 +115,97 @@ final class NotificationCenter
     {
         return match (NotificationType::tryFrom($notification->type)) {
             NotificationType::CommentReply => $this->resolveCommentReply($viewer, $notification),
+            NotificationType::ContentMention => $this->resolveContentMention($viewer, $notification),
             NotificationType::SpaceModeration => $this->resolveSpaceModeration($viewer, $notification),
             default => $this->unavailable(),
         };
+    }
+
+    /** @return array{kind: string, title: string, description: string, destination: string|null} */
+    private function resolveContentMention(User $viewer, DatabaseNotification $notification): array
+    {
+        $contentId = $this->integer($notification, 'content_id');
+        $postId = $this->integer($notification, 'post_id');
+        $actorId = $this->integer($notification, 'actor_id');
+        $contentType = $notification->data['content_type'] ?? null;
+
+        if ($contentId === null
+            || $postId === null
+            || $actorId === null
+            || ! in_array($contentType, ['post', 'comment'], true)) {
+            return $this->unavailable();
+        }
+
+        if ($contentType === 'post') {
+            $post = Post::query()
+                ->with(['author', 'space'])
+                ->whereKey($contentId)
+                ->whereKey($postId)
+                ->where('user_id', $actorId)
+                ->first();
+
+            if (! $post instanceof Post
+                || Gate::forUser($viewer)->denies('view', $post)) {
+                return $this->unavailable();
+            }
+
+            return $this->resolvedMention(
+                $viewer,
+                $post->author,
+                'post',
+                'Open the post in '.$post->space->name.'.',
+                route('posts.show', $post),
+            );
+        }
+
+        $comment = Comment::query()
+            ->with(['author', 'post.author', 'post.space'])
+            ->whereKey($contentId)
+            ->where('post_id', $postId)
+            ->where('user_id', $actorId)
+            ->first();
+
+        if (! $comment instanceof Comment
+            || Gate::forUser($viewer)->denies('view', $comment)) {
+            return $this->unavailable();
+        }
+
+        $destination = $this->conversations->urlForComment($viewer, $comment);
+
+        if ($destination === null) {
+            return $this->unavailable();
+        }
+
+        return $this->resolvedMention(
+            $viewer,
+            $comment->author,
+            'comment',
+            'Open the conversation in '.$comment->post->space->name.'.',
+            $destination,
+        );
+    }
+
+    /** @return array{kind: string, title: string, description: string, destination: string} */
+    private function resolvedMention(
+        User $viewer,
+        User $actor,
+        string $contentType,
+        string $description,
+        string $destination,
+    ): array {
+        $actorVisible = User::query()
+            ->visibleTo($viewer)
+            ->whereKey($actor->getKey())
+            ->exists();
+
+        return [
+            'kind' => NotificationType::ContentMention->value,
+            'title' => $actorVisible
+                ? $actor->name.' mentioned you in a '.$contentType
+                : 'A member mentioned you in a '.$contentType,
+            'description' => $description,
+            'destination' => $destination,
+        ];
     }
 
     /** @return array{kind: string, title: string, description: string, destination: string|null} */
@@ -213,6 +302,10 @@ final class NotificationCenter
     ): ?array {
         return match (NotificationType::tryFrom($notification->type)) {
             NotificationType::CommentReply => $this->notificationApiTargetForCommentReply($notification, $resolved),
+            NotificationType::ContentMention => $this->notificationApiTargetForContentMention(
+                $notification,
+                $resolved,
+            ),
             NotificationType::SpaceModeration => $this->notificationApiTargetForSpaceModeration(
                 $viewer,
                 $notification,
@@ -220,6 +313,35 @@ final class NotificationCenter
             ),
             default => null,
         };
+    }
+
+    /**
+     * @param  array{destination: string|null, kind: string, title: string, description: string}  $resolved
+     * @return array{type: string, post_id: string, comment_id?: string}|null
+     */
+    private function notificationApiTargetForContentMention(
+        DatabaseNotification $notification,
+        array $resolved,
+    ): ?array {
+        if ($resolved['destination'] === null) {
+            return null;
+        }
+
+        $postId = $this->integer($notification, 'post_id');
+        $contentId = $this->integer($notification, 'content_id');
+        $contentType = $notification->data['content_type'] ?? null;
+
+        if ($postId === null
+            || $contentId === null
+            || ! in_array($contentType, ['post', 'comment'], true)) {
+            return null;
+        }
+
+        return array_filter([
+            'type' => 'post',
+            'post_id' => (string) $postId,
+            'comment_id' => $contentType === 'comment' ? (string) $contentId : null,
+        ], fn (mixed $value): bool => $value !== null);
     }
 
     /**

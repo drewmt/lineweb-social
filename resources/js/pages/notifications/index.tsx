@@ -1,5 +1,6 @@
 import { Head, Link, router } from '@inertiajs/react';
 import {
+    AtSign,
     BellOff,
     BellRing,
     Check,
@@ -15,7 +16,11 @@ import { cn } from '@/lib/utils';
 
 type NotificationItem = {
     id: string;
-    kind: 'comment_reply' | 'space_moderation' | 'unavailable';
+    kind:
+        | 'comment_reply'
+        | 'content_mention'
+        | 'space_moderation'
+        | 'unavailable';
     title: string;
     description: string;
     createdAt: string;
@@ -71,8 +76,9 @@ export default function Notifications({
                                 Notifications
                             </h1>
                             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
-                                Replies and moderation work that deserve your
-                                attention — no engagement ranking or noise.
+                                Replies, mentions, and moderation work that
+                                deserve your attention — no engagement ranking
+                                or noise.
                             </p>
                         </div>
                         <Button
@@ -146,8 +152,9 @@ export default function Notifications({
                                         : 'Nothing here yet.'}
                                 </h3>
                                 <p className="mx-auto mt-1 max-w-sm text-sm leading-6 text-muted-foreground">
-                                    Useful replies and moderation alerts will
-                                    appear here when they happen.
+                                    Useful replies, direct mentions, and
+                                    moderation alerts will appear here when they
+                                    happen.
                                 </p>
                             </div>
                         ) : (
@@ -195,9 +202,9 @@ export default function Notifications({
                                 Low-noise by design
                             </p>
                             <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                                This inbox contains direct replies and
-                                moderation work. Likes, popularity scores, and
-                                algorithmic nudges are intentionally absent.
+                                This inbox contains direct replies, mentions,
+                                and moderation work. Likes, popularity scores,
+                                and algorithmic nudges are intentionally absent.
                             </p>
                         </div>
                         <Button
@@ -250,9 +257,11 @@ function NotificationRow({ item }: { item: NotificationItem }) {
     const Icon =
         item.kind === 'comment_reply'
             ? MessageCircle
-            : item.kind === 'space_moderation'
-              ? Flag
-              : BellOff;
+            : item.kind === 'content_mention'
+              ? AtSign
+              : item.kind === 'space_moderation'
+                ? Flag
+                : BellOff;
 
     return (
         <li
@@ -273,9 +282,11 @@ function NotificationRow({ item }: { item: NotificationItem }) {
                         'flex size-11 shrink-0 items-center justify-center rounded-2xl',
                         item.kind === 'comment_reply'
                             ? 'bg-primary/10 text-primary'
-                            : item.kind === 'space_moderation'
-                              ? 'bg-coral/12 text-coral'
-                              : 'bg-secondary text-muted-foreground',
+                            : item.kind === 'content_mention'
+                              ? 'bg-mint/16 text-foreground'
+                              : item.kind === 'space_moderation'
+                                ? 'bg-coral/12 text-coral'
+                                : 'bg-secondary text-muted-foreground',
                     )}
                 >
                     <Icon className="size-5" aria-hidden="true" />

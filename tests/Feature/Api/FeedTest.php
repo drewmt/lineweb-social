@@ -30,7 +30,7 @@ class FeedTest extends TestCase
 
     public function test_feed_returns_only_policy_visible_posts_in_the_safe_public_contract(): void
     {
-        $viewer = User::factory()->create();
+        $viewer = User::factory()->create(['handle' => 'api-viewer']);
         $publicAuthor = User::factory()->create([
             'headline' => 'Public-space author',
             'profile_visibility' => ProfileVisibility::Private,
@@ -53,7 +53,7 @@ class FeedTest extends TestCase
             'published_at' => now()->subMinutes(2),
         ]);
         $newerPrivate = Post::factory()->for($private)->for($privateAuthor, 'author')->create([
-            'body' => 'Newer private-member post',
+            'body' => 'Newer private-member post for @api-viewer',
             'published_at' => now()->subMinute(),
         ]);
 
@@ -105,6 +105,8 @@ class FeedTest extends TestCase
             ->assertJsonPath('meta.has_more', false)
             ->assertJsonPath('links.next', null)
             ->assertJsonPath('data.0.id', (string) $newerPrivate->getKey())
+            ->assertJsonPath('data.0.mentions.0.handle', 'api-viewer')
+            ->assertJsonPath('data.0.mentions.0.url', route('people.show', $viewer))
             ->assertJsonPath('data.0.viewer.can_comment', true)
             ->assertJsonPath('data.0.author.profile_visible', true)
             ->assertJsonPath('data.0.space.slug', $private->slug)
@@ -130,7 +132,7 @@ class FeedTest extends TestCase
             ->assertHeader('X-RateLimit-Limit', '120');
 
         $this->assertSame(
-            ['id', 'body', 'published_at', 'edited_at', 'media', 'comments_count', 'reactions', 'author', 'space', 'viewer'],
+            ['id', 'body', 'mentions', 'published_at', 'edited_at', 'media', 'comments_count', 'reactions', 'author', 'space', 'viewer'],
             array_keys($response->json('data.0')),
         );
         $this->assertSame(

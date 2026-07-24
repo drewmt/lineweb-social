@@ -11,6 +11,8 @@ import {
 } from 'lucide-react';
 import { AuthoredContentMenu } from '@/components/social/authored-content-menu';
 import { AvatarMark } from '@/components/social/avatar-mark';
+import { MentionText } from '@/components/social/mention-text';
+import type { ContentMention } from '@/components/social/mention-text';
 import { PostImage } from '@/components/social/post-image';
 import type { PostMedia } from '@/components/social/post-image';
 import { SpaceCover } from '@/components/social/space-cover';
@@ -51,6 +53,7 @@ type ProfilePost = {
     id: number;
     url: string;
     body: string;
+    mentions: ContentMention[];
     media: PostMedia | null;
     publishedAt: string | null;
     editedAt: string | null;
@@ -502,7 +505,10 @@ export default function ShowProfile({
                                             />
                                         </header>
                                         <p className="mt-4 text-[1.01rem] leading-7 whitespace-pre-wrap text-foreground/90">
-                                            {post.body}
+                                            <MentionText
+                                                body={post.body}
+                                                mentions={post.mentions}
+                                            />
                                         </p>
                                         {post.media && (
                                             <PostImage

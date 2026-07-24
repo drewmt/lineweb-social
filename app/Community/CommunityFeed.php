@@ -2,6 +2,7 @@
 
 namespace App\Community;
 
+use App\Community\Mentions\MentionProjection;
 use App\Enums\ReportStatus;
 use App\Enums\SpaceRole;
 use App\Enums\UserRelationshipType;
@@ -19,6 +20,7 @@ final class CommunityFeed
     public function __construct(
         private readonly PostMediaView $media,
         private readonly PostReactionProjection $reactions,
+        private readonly MentionProjection $mentions,
     ) {}
 
     /**
@@ -145,6 +147,10 @@ final class CommunityFeed
         $reactionProjection = $this->reactions->forPosts($posts, $user);
 
         $comments = $posts->flatMap(fn (Post $post) => $post->comments);
+        $resolvedMentions = $this->mentions->resolve(
+            $user,
+            $posts->pluck('body')->merge($comments->pluck('body')),
+        );
         $visibleAuthorIds = User::query()
             ->visibleTo($user)
             ->whereKey($posts->pluck('user_id')->merge($comments->pluck('user_id'))->unique())
@@ -188,6 +194,7 @@ final class CommunityFeed
                 'id' => $post->id,
                 'url' => route('posts.show', $post),
                 'body' => $post->body,
+                'mentions' => $this->mentions->forBody($post->body, $resolvedMentions),
                 'media' => $this->media->for($post),
                 'publishedAt' => $post->published_at?->toIso8601String(),
                 'editedAt' => $post->edited_at?->toIso8601String(),
@@ -206,6 +213,7 @@ final class CommunityFeed
                     ->map(fn (Comment $comment): array => [
                         'id' => $comment->getKey(),
                         'body' => $comment->body,
+                        'mentions' => $this->mentions->forBody($comment->body, $resolvedMentions),
                         'publishedAt' => $comment->published_at->toIso8601String(),
                         'editedAt' => $comment->edited_at?->toIso8601String(),
                         'canReport' => $comment->user_id !== $user->getKey(),

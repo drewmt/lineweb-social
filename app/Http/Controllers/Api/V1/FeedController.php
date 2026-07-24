@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Api\V1\FeedCursor;
+use App\Community\Mentions\MentionProjection;
 use App\Community\PostReactionProjection;
 use App\Community\VisiblePostQuery;
 use App\Http\Controllers\Controller;
@@ -26,6 +27,7 @@ class FeedController extends Controller
         VisiblePostQuery $visiblePosts,
         FeedCursor $cursors,
         PostReactionProjection $reactions,
+        MentionProjection $mentions,
     ): JsonResponse {
         /** @var User $viewer */
         $viewer = $request->user();
@@ -86,6 +88,7 @@ class FeedController extends Controller
         $posts = $posts->take($limit)->values();
 
         $this->addViewerState($posts, $viewer, $reactions);
+        $this->addMentionState($posts, $viewer, $mentions);
 
         $lastPost = $posts->last();
         $nextCursor = $hasMore && $lastPost instanceof Post
@@ -114,6 +117,20 @@ class FeedController extends Controller
                 'source' => $source,
             ],
         ]);
+    }
+
+    /** @param Collection<int, Post> $posts */
+    private function addMentionState(
+        Collection $posts,
+        User $viewer,
+        MentionProjection $mentions,
+    ): void {
+        $resolved = $mentions->resolve($viewer, $posts->pluck('body'));
+
+        $posts->each(fn (Post $post) => $post->setAttribute(
+            'content_mentions',
+            $mentions->forBody($post->body, $resolved),
+        ));
     }
 
     /** @param Collection<int, Post> $posts */

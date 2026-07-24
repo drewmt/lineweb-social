@@ -21,11 +21,13 @@ class NotificationPreferencesTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('settings/notifications')
                 ->where('preferences.commentReplies', true)
+                ->where('preferences.contentMentions', true)
                 ->where('preferences.spaceModeration', true));
 
         $this->actingAs($user)
             ->patch(route('notification-preferences.update'), [
                 'comment_replies' => false,
+                'content_mentions' => false,
                 'space_moderation' => false,
             ])
             ->assertRedirect()
@@ -34,6 +36,7 @@ class NotificationPreferencesTest extends TestCase
         $this->assertDatabaseHas('notification_preferences', [
             'user_id' => $user->id,
             'comment_replies' => false,
+            'content_mentions' => false,
             'space_moderation' => false,
         ]);
     }
@@ -46,7 +49,7 @@ class NotificationPreferencesTest extends TestCase
             ->patch(route('notification-preferences.update'), [
                 'comment_replies' => 'sometimes',
             ])
-            ->assertSessionHasErrors(['comment_replies', 'space_moderation']);
+            ->assertSessionHasErrors(['comment_replies', 'content_mentions', 'space_moderation']);
 
         $this->assertDatabaseCount('notification_preferences', 0);
     }
