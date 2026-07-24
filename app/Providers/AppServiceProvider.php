@@ -110,5 +110,8 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('api-token-management', fn (Request $request): Limit => Limit::perMinute(10)
             ->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
+
+        RateLimiter::for('personal-data-export', fn (Request $request): Limit => Limit::perHour(3)
+            ->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
     }
 }

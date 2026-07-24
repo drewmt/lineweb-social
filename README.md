@@ -141,6 +141,11 @@ The current release is `0.1.0-alpha.1`. It is suitable for local evaluation and 
   activity summaries, and privacy-aware People discovery.
 - Public, shared-Space-only, and private profile visibility with discovery opt-out.
 - Private one-way muting, mutual blocking, feed filtering, and a dedicated Safety recovery screen.
+- Password-confirmed, rate-limited personal JSON exports that stream complete
+  member-authored collections without exposing secrets or other participants'
+  messages.
+- Self-service account deletion that protects active communities by requiring
+  ownership transfer before another member's Space activity can be removed.
 - An editorial, app-first responsive interface with dedicated desktop and
   mobile navigation, a public product homepage, and complete member profiles.
 - Server-side authorization, validation, and publishing rate limits.
@@ -149,8 +154,8 @@ The current release is `0.1.0-alpha.1`. It is suitable for local evaluation and 
 
 This is an early development build, not a production release. Message
 attachments, galleries and video, email and push notification delivery,
-advanced indexed search, data export/deletion, and a supported extension
-lifecycle are still pending.
+advanced indexed search, administrator retention tooling, and a supported
+extension lifecycle are still pending.
 
 ## Local setup
 
@@ -213,6 +218,12 @@ learning—should build on those boundaries through presentation layers and
 extensions rather than weakening core policies. See
 [`docs/platform-architecture.md`](docs/platform-architecture.md) for the current
 separation and the contracts that still need to mature.
+
+Personal JSON export and account deletion are implemented as security-sensitive
+account flows, not as a compliance claim. See
+[`docs/privacy-and-data-rights.md`](docs/privacy-and-data-rights.md) for the
+included data, explicit secret and third-party exclusions, ownership-transfer
+guard, and deployment responsibilities.
 
 ## Contributing
 

@@ -3,8 +3,11 @@
 namespace Tests\Feature\Settings;
 
 use App\Enums\ProfileVisibility;
+use App\Models\Post;
+use App\Models\Space;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class ProfileUpdateTest extends TestCase
@@ -135,6 +138,76 @@ class ProfileUpdateTest extends TestCase
             ->assertRedirect(route('profile.edit'));
 
         $this->assertNotNull($user->fresh());
+    }
+
+    public function test_owner_cannot_delete_their_account_while_a_space_has_other_members(): void
+    {
+        $owner = User::factory()->create();
+        $member = User::factory()->create();
+        $space = Space::factory()->for($owner, 'owner')->create([
+            'name' => 'Makers Circle',
+            'slug' => 'makers-circle',
+        ]);
+        $space->addMember($member);
+        $memberPost = Post::factory()->create([
+            'space_id' => $space->getKey(),
+            'user_id' => $member->getKey(),
+        ]);
+
+        $this->actingAs($owner)
+            ->from(route('profile.edit'))
+            ->delete(route('profile.destroy'), ['password' => 'password'])
+            ->assertSessionHasErrors('account')
+            ->assertRedirect(route('profile.edit'));
+
+        $this->assertAuthenticatedAs($owner);
+        $this->assertNotNull($owner->fresh());
+        $this->assertNotNull($space->fresh());
+        $this->assertNotNull($memberPost->fresh());
+
+        $this->actingAs($owner)
+            ->get(route('profile.edit'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('settings/profile')
+                ->has('deletionBlockers', 1)
+                ->where('deletionBlockers.0.name', 'Makers Circle')
+                ->where('deletionBlockers.0.manage_url', route('spaces.manage', $space)));
+    }
+
+    public function test_owner_can_delete_their_account_when_owned_spaces_have_no_other_members(): void
+    {
+        $owner = User::factory()->create();
+        $space = Space::factory()->for($owner, 'owner')->create();
+
+        $this->actingAs($owner)
+            ->delete(route('profile.destroy'), ['password' => 'password'])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('home'));
+
+        $this->assertGuest();
+        $this->assertNull($owner->fresh());
+        $this->assertNull($space->fresh());
+    }
+
+    public function test_former_member_content_still_blocks_owner_account_deletion(): void
+    {
+        $owner = User::factory()->create();
+        $formerMember = User::factory()->create();
+        $space = Space::factory()->for($owner, 'owner')->create();
+        $space->addMember($formerMember);
+        $post = Post::factory()->create([
+            'space_id' => $space->getKey(),
+            'user_id' => $formerMember->getKey(),
+        ]);
+        $space->members()->detach($formerMember);
+
+        $this->actingAs($owner)
+            ->from(route('profile.edit'))
+            ->delete(route('profile.destroy'), ['password' => 'password'])
+            ->assertSessionHasErrors('account');
+
+        $this->assertNotNull($owner->fresh());
+        $this->assertNotNull($post->fresh());
     }
 
     /** @param  array<string, mixed>  $overrides */

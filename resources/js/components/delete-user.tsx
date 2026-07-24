@@ -1,4 +1,5 @@
-import { Form } from '@inertiajs/react';
+import { Form, Link } from '@inertiajs/react';
+import { ArrowUpRight } from 'lucide-react';
 import { useRef } from 'react';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import Heading from '@/components/heading';
@@ -16,8 +17,18 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 
-export default function DeleteUser() {
+type DeletionBlocker = {
+    name: string;
+    manage_url: string;
+};
+
+export default function DeleteUser({
+    deletionBlockers,
+}: {
+    deletionBlockers: DeletionBlocker[];
+}) {
     const passwordInput = useRef<HTMLInputElement>(null);
+    const isBlocked = deletionBlockers.length > 0;
 
     return (
         <div className="space-y-6">
@@ -34,11 +45,37 @@ export default function DeleteUser() {
                     </p>
                 </div>
 
+                {isBlocked && (
+                    <div className="rounded-xl border border-red-200 bg-background/70 p-3.5 text-sm text-foreground dark:border-red-200/15">
+                        <p className="font-bold">
+                            Transfer these active Spaces before deleting your
+                            account:
+                        </p>
+                        <ul className="mt-2 space-y-1.5">
+                            {deletionBlockers.map((space) => (
+                                <li key={space.manage_url}>
+                                    <Link
+                                        href={space.manage_url}
+                                        className="social-focus inline-flex items-center gap-1 rounded-md font-semibold text-primary hover:underline"
+                                    >
+                                        {space.name}
+                                        <ArrowUpRight
+                                            className="size-3.5"
+                                            aria-hidden="true"
+                                        />
+                                    </Link>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
+
                 <Dialog>
                     <DialogTrigger asChild>
                         <Button
                             variant="destructive"
                             data-test="delete-user-button"
+                            disabled={isBlocked}
                         >
                             Delete account
                         </Button>
@@ -82,6 +119,7 @@ export default function DeleteUser() {
                                         />
 
                                         <InputError message={errors.password} />
+                                        <InputError message={errors.account} />
                                     </div>
 
                                     <DialogFooter className="gap-2">

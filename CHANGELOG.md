@@ -6,6 +6,12 @@ All notable project changes will be documented here.
 
 ### Added
 
+- Password-confirmed, rate-limited personal JSON exports with chunked complete
+  collections for account, community, authored content, interaction,
+  moderation, messaging, notification, and safe security metadata.
+- Transactional account deletion guards that require ownership transfer when
+  an owned Space contains another member or another person's community
+  activity, with actionable Profile settings links.
 - Privacy-safe `@handle` mentions for posts and comments, including bounded
   case-insensitive parsing, viewer-resolved links across web and API surfaces,
   deduplicated low-data notifications, per-member preferences, edit-aware
