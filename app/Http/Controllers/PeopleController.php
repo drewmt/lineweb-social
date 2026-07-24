@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Community\PostMediaView;
+use App\Enums\ReportStatus;
 use App\Models\Post;
+use App\Models\PostReport;
 use App\Models\Space;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
@@ -88,16 +90,33 @@ class PeopleController extends Controller
 
         $postCount = (clone $visiblePosts)->count();
 
-        $posts = $visiblePosts
+        $postModels = $visiblePosts
             ->with(['space:id,name,slug', 'media'])
             ->latest('published_at')
             ->limit(12)
-            ->get()
+            ->get();
+
+        $lockedPostIds = PostReport::query()
+            ->whereIn('post_id', $postModels->modelKeys())
+            ->whereIn('status', [
+                ReportStatus::Open->value,
+                ReportStatus::Reviewing->value,
+            ])
+            ->pluck('post_id')
+            ->all();
+
+        $posts = $postModels
             ->map(fn (Post $post): array => [
                 'id' => $post->id,
+                'url' => route('posts.show', $post),
                 'body' => $post->body,
                 'media' => $media->for($post),
                 'publishedAt' => $post->published_at?->toIso8601String(),
+                'editedAt' => $post->edited_at?->toIso8601String(),
+                'canEdit' => Gate::forUser($viewer)->allows('update', $post)
+                    && ! in_array($post->getKey(), $lockedPostIds, true),
+                'canDelete' => Gate::forUser($viewer)->allows('delete', $post)
+                    && ! in_array($post->getKey(), $lockedPostIds, true),
                 'space' => [
                     'name' => $post->space->name,
                     'slug' => $post->space->slug,
