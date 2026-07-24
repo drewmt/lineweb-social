@@ -4,6 +4,7 @@ import {
     CalendarDays,
     ExternalLink,
     MapPin,
+    MessageCircleMore,
     MessageCircle,
     Settings,
     UsersRound,
@@ -29,6 +30,7 @@ type Profile = {
     isMuted: boolean;
     isFollowing: boolean;
     canFollow: boolean;
+    canMessage: boolean;
 };
 
 type ProfileStats = {
@@ -140,6 +142,26 @@ export default function ShowProfile({
                                                     profile.isFollowing
                                                 }
                                             />
+                                        )}
+                                        {profile.canMessage && (
+                                            <Button
+                                                asChild
+                                                variant="outline"
+                                                className="rounded-full bg-card px-3 sm:px-4"
+                                            >
+                                                <Link
+                                                    href={`/messages/new/${profile.handle}`}
+                                                    aria-label={`Message ${profile.name}`}
+                                                >
+                                                    <MessageCircleMore
+                                                        className="size-4"
+                                                        aria-hidden="true"
+                                                    />
+                                                    <span className="hidden sm:inline">
+                                                        Message
+                                                    </span>
+                                                </Link>
+                                            </Button>
                                         )}
                                         <ProfileSafetyActions
                                             handle={profile.handle}

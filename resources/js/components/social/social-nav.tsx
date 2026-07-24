@@ -5,6 +5,7 @@ import {
     Compass,
     Feather,
     Home,
+    MessageCircle,
     Search,
     Settings2,
     UserRound,
@@ -48,6 +49,12 @@ const navItems = [
         subtitle: 'Discover members',
         href: '/people',
         icon: UsersRound,
+    },
+    {
+        title: 'Messages',
+        subtitle: 'Private conversations',
+        href: '/messages',
+        icon: MessageCircle,
     },
     {
         title: 'Saved',
@@ -125,7 +132,7 @@ function UserButton({
 }
 
 export function DesktopSocialNav() {
-    const { auth, notificationSummary } = usePage().props;
+    const { auth, messageSummary, notificationSummary } = usePage().props;
     const { isCurrentOrParentUrl } = useCurrentUrl();
 
     return (
@@ -143,7 +150,9 @@ export function DesktopSocialNav() {
                         const unreadCount =
                             item.href === '/notifications'
                                 ? notificationSummary.unreadCount
-                                : 0;
+                                : item.href === '/messages'
+                                  ? messageSummary.unreadCount
+                                  : 0;
 
                         return (
                             <Link
@@ -271,13 +280,18 @@ export function MobileSocialHeader() {
 }
 
 export function MobileSocialTabs() {
-    const { auth } = usePage().props;
+    const { auth, messageSummary } = usePage().props;
     const { isCurrentOrParentUrl } = useCurrentUrl();
     const mobileItems = [
         { title: 'Home', href: '/feed', icon: Home },
         { title: 'Spaces', href: '/spaces', icon: Compass },
         { title: 'Post', href: '/feed#compose', icon: Feather, primary: true },
-        { title: 'People', href: '/people', icon: UsersRound },
+        {
+            title: 'Messages',
+            href: '/messages',
+            icon: MessageCircle,
+            unread: messageSummary.unreadCount,
+        },
         {
             title: 'Profile',
             href: auth.user ? `/people/${auth.user.handle}` : '/login',
@@ -309,7 +323,7 @@ export function MobileSocialTabs() {
                         >
                             <span
                                 className={cn(
-                                    'flex size-8 items-center justify-center rounded-xl transition-[transform,background-color,color] active:scale-90',
+                                    'relative flex size-8 items-center justify-center rounded-xl transition-[transform,background-color,color] active:scale-90',
                                     primary
                                         ? '-mt-5 size-11 rounded-2xl bg-primary text-primary-foreground shadow-[0_12px_24px_-12px_color-mix(in_oklab,var(--primary)_90%,transparent)]'
                                         : active
@@ -321,6 +335,9 @@ export function MobileSocialTabs() {
                                     className={primary ? 'size-5' : 'size-4.5'}
                                     strokeWidth={2.2}
                                 />
+                                {'unread' in item && item.unread > 0 && (
+                                    <span className="absolute top-0 right-0 size-2.5 rounded-full bg-coral ring-2 ring-card" />
+                                )}
                             </span>
                             {item.title}
                         </Link>

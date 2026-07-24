@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Community\PrivateMessaging;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -44,6 +46,15 @@ class HandleInertiaRequests extends Middleware
             'notificationSummary' => fn (): array => [
                 'unreadCount' => $request->user()?->unreadNotifications()->count() ?? 0,
             ],
+            'messageSummary' => function () use ($request): array {
+                $user = $request->user();
+
+                return [
+                    'unreadCount' => $user instanceof User
+                        ? app(PrivateMessaging::class)->unreadCount($user)
+                        : 0,
+                ];
+            },
             'status' => fn () => $request->session()->get('status'),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];

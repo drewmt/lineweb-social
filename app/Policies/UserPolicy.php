@@ -20,4 +20,9 @@ class UserPolicy
     {
         return ! $viewer->is($profile) && $this->view($viewer, $profile);
     }
+
+    public function message(User $viewer, User $profile): bool
+    {
+        return ! $viewer->is($profile) && $this->view($viewer, $profile);
+    }
 }

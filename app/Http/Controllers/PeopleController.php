@@ -138,6 +138,7 @@ class PeopleController extends Controller
                 'isMuted' => $viewer->hasMuted($profile),
                 'isFollowing' => $viewer->isFollowing($profile),
                 'canFollow' => Gate::forUser($viewer)->allows('follow', $profile),
+                'canMessage' => Gate::forUser($viewer)->allows('message', $profile),
             ],
             'stats' => [
                 'visibleSpaces' => $spaceCount,
