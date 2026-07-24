@@ -53,6 +53,8 @@ All notable project changes will be documented here.
 
 ### Changed
 
+- Own-profile activity cards now expose the existing author edit and delete
+  controls while preserving active moderation-review locks.
 - Dependabot now groups only compatible minor and patch dependency updates;
   major upgrades remain isolated for focused review.
 - Mobile Space pulse cards now separate cover imagery from their text content,

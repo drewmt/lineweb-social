@@ -46,6 +46,48 @@ class AuthoredContentManagementTest extends TestCase
                 ->where('posts.0.editedAt', $post->edited_at?->toIso8601String()));
     }
 
+    public function test_profile_activity_exposes_author_controls_and_respects_moderation_locks(): void
+    {
+        $author = User::factory()->create();
+        $reporter = User::factory()->create();
+        $space = Space::factory()->create();
+        $space->addMember($author);
+        $space->addMember($reporter);
+        $editablePost = Post::factory()->for($space)->for($author, 'author')->create([
+            'body' => 'Editable profile post',
+        ]);
+        $lockedPost = Post::factory()->for($space)->for($author, 'author')->create([
+            'body' => 'Post under review',
+            'published_at' => now()->subMinute(),
+        ]);
+
+        PostReport::factory()
+            ->for($space)
+            ->for($lockedPost)
+            ->for($reporter, 'reporter')
+            ->create(['status' => ReportStatus::Reviewing]);
+
+        $this->actingAs($author)
+            ->get(route('people.show', $author))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('posts.0.id', $editablePost->getKey())
+                ->where('posts.0.canEdit', true)
+                ->where('posts.0.canDelete', true)
+                ->where('posts.1.id', $lockedPost->getKey())
+                ->where('posts.1.canEdit', false)
+                ->where('posts.1.canDelete', false));
+
+        $this->actingAs($reporter)
+            ->get(route('people.show', $author))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('posts.0.canEdit', false)
+                ->where('posts.0.canDelete', false)
+                ->where('posts.1.canEdit', false)
+                ->where('posts.1.canDelete', false));
+    }
+
     public function test_author_can_edit_a_comment_and_the_conversation_receives_author_controls(): void
     {
         $author = User::factory()->create();

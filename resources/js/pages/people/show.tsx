@@ -8,6 +8,7 @@ import {
     Settings,
     UsersRound,
 } from 'lucide-react';
+import { AuthoredContentMenu } from '@/components/social/authored-content-menu';
 import { AvatarMark } from '@/components/social/avatar-mark';
 import { PostImage } from '@/components/social/post-image';
 import type { PostMedia } from '@/components/social/post-image';
@@ -46,9 +47,13 @@ type ProfileSpace = {
 
 type ProfilePost = {
     id: number;
+    url: string;
     body: string;
     media: PostMedia | null;
     publishedAt: string | null;
+    editedAt: string | null;
+    canEdit: boolean;
+    canDelete: boolean;
     space: { name: string; slug: string };
 };
 
@@ -419,7 +424,7 @@ export default function ShowProfile({
                                         key={post.id}
                                         className="social-card rounded-[1.45rem] p-4 sm:p-5"
                                     >
-                                        <header className="flex items-center gap-3">
+                                        <header className="flex items-start gap-3">
                                             <AvatarMark
                                                 name={profile.name}
                                                 className="size-10"
@@ -428,7 +433,7 @@ export default function ShowProfile({
                                                 <p className="truncate text-sm font-extrabold">
                                                     {profile.name}
                                                 </p>
-                                                <div className="flex flex-wrap gap-x-1.5 text-xs font-semibold text-muted-foreground">
+                                                <div className="flex flex-wrap items-center gap-x-1.5 text-xs font-semibold text-muted-foreground">
                                                     <Link
                                                         href={`/spaces/${post.space.slug}`}
                                                         className="text-primary hover:underline"
@@ -438,18 +443,41 @@ export default function ShowProfile({
                                                     <span aria-hidden="true">
                                                         ·
                                                     </span>
-                                                    <time
-                                                        dateTime={
-                                                            post.publishedAt ??
-                                                            undefined
-                                                        }
+                                                    <Link
+                                                        href={post.url}
+                                                        className="social-focus rounded-md hover:text-foreground"
                                                     >
-                                                        {postDate(
-                                                            post.publishedAt,
-                                                        )}
-                                                    </time>
+                                                        <time
+                                                            dateTime={
+                                                                post.publishedAt ??
+                                                                undefined
+                                                            }
+                                                        >
+                                                            {postDate(
+                                                                post.publishedAt,
+                                                            )}
+                                                        </time>
+                                                    </Link>
+                                                    {post.editedAt && (
+                                                        <>
+                                                            <span aria-hidden="true">
+                                                                ·
+                                                            </span>
+                                                            <span>Edited</span>
+                                                        </>
+                                                    )}
                                                 </div>
                                             </div>
+                                            <AuthoredContentMenu
+                                                body={post.body}
+                                                canEdit={post.canEdit}
+                                                canDelete={post.canDelete}
+                                                contentType="post"
+                                                updateUrl={`/posts/${post.id}`}
+                                                deleteUrl={`/posts/${post.id}`}
+                                                maxLength={2000}
+                                                compact
+                                            />
                                         </header>
                                         <p className="mt-4 text-[1.01rem] leading-7 whitespace-pre-wrap text-foreground/90">
                                             {post.body}
