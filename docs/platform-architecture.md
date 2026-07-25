@@ -87,10 +87,15 @@ Only the two participants may retrieve its inbox projection, bounded recent
 history, or unread state. Starting a thread reuses profile visibility and mutual
 block rules; every later send rechecks blocks inside the locked conversation
 transaction. A later block stops delivery but does not silently erase existing
-history or moderation evidence. The current web slice deliberately excludes
+history or safety evidence. Participants can report only an incoming message
+from their own conversation. The platform queue exposes the exact submitted
+message snapshot rather than surrounding history; decisions are separately
+audited and closed evidence is scheduled for bounded retention. The current web
+slice deliberately excludes
 attachments, groups, realtime presence, delivery receipts, and end-to-end
 encryption claims. The full boundary is documented in
-[`direct-messages.md`](direct-messages.md).
+[`direct-messages.md`](direct-messages.md) and
+[`message-reporting.md`](message-reporting.md).
 
 Platform administration is a separate privileged boundary from Space
 moderation. Administrator assignment is console-only, every web entry point is

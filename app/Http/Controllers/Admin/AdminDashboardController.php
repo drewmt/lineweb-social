@@ -6,6 +6,7 @@ use App\Enums\ReportStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Comment;
 use App\Models\CommentReport;
+use App\Models\DirectMessageReport;
 use App\Models\PlatformAuditLog;
 use App\Models\Post;
 use App\Models\PostReport;
@@ -64,7 +65,11 @@ class AdminDashboardController extends Controller
                 'postsTotal' => Post::query()->count(),
                 'commentsTotal' => Comment::query()->count(),
                 'reportsActive' => PostReport::query()->whereIn('status', $activeStatuses)->count()
-                    + CommentReport::query()->whereIn('status', $activeStatuses)->count(),
+                    + CommentReport::query()->whereIn('status', $activeStatuses)->count()
+                    + DirectMessageReport::query()->whereIn('status', $activeStatuses)->count(),
+                'messageReportsActive' => DirectMessageReport::query()
+                    ->whereIn('status', $activeStatuses)
+                    ->count(),
             ],
             'members' => $members,
             'auditLogs' => PlatformAuditLog::query()

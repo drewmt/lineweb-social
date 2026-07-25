@@ -67,3 +67,7 @@ Prefer an explicit table and foreign key until content types share a proven life
 6. feature tests for unauthorized, duplicate, cross-Space, invalid-transition, hide, and restore paths.
 
 A generic polymorphic report table is deliberately not the default: without enforced morph aliases and database-level target integrity, it makes orphaned records and cross-tenant mistakes easier.
+
+Direct-message reports use the same database-integrity principle but a separate
+platform-administration workflow. Space moderators cannot inspect private
+messages. See [`message-reporting.md`](message-reporting.md).

@@ -67,6 +67,7 @@ class PersonalDataExport
             'moderation_actions' => $this->moderationActions($userId),
             'submitted_post_reports' => $this->submittedPostReports($userId),
             'submitted_comment_reports' => $this->submittedCommentReports($userId),
+            'submitted_direct_message_reports' => $this->submittedDirectMessageReports($userId),
             'notification_preferences' => $preferenceValues,
             'security' => [
                 'two_factor_enabled' => filled($user->two_factor_secret),
@@ -414,6 +415,30 @@ class PersonalDataExport
                 'comment_reports.status',
                 'comment_reports.reviewed_at',
                 'comment_reports.created_at',
+            ])
+            ->lazy(500);
+
+        foreach ($rows as $row) {
+            yield (array) $row;
+        }
+    }
+
+    /** @return Generator<int, array<string, mixed>> */
+    private function submittedDirectMessageReports(int $userId): Generator
+    {
+        $rows = DB::table('direct_message_reports')
+            ->where('reporter_id', $userId)
+            ->orderBy('id')
+            ->select([
+                'id',
+                'direct_message_id',
+                'reason',
+                'details',
+                'message_body_snapshot',
+                'message_sent_at',
+                'status',
+                'reviewed_at',
+                'created_at',
             ])
             ->lazy(500);
 

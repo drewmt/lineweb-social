@@ -1,15 +1,22 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
     ArrowLeft,
+    Flag,
+    FlagOff,
     LockKeyhole,
     MessageCircle,
     Send,
     ShieldCheck,
     UsersRound,
 } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import InputError from '@/components/input-error';
+import { MessageReportDialog } from '@/components/messages/message-report-dialog';
+import type {
+    MessageReportReason,
+    ReportableMessage,
+} from '@/components/messages/message-report-dialog';
 import { AvatarMark } from '@/components/social/avatar-mark';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -36,6 +43,9 @@ type ThreadMessage = {
     body: string;
     createdAt: string | null;
     isOwn: boolean;
+    canReport: boolean;
+    hasReported: boolean;
+    reportUrl: string | null;
 };
 
 type ActiveThread = {
@@ -51,6 +61,7 @@ type MessagesProps = {
     conversations: ConversationSummary[];
     active: ActiveThread | null;
     composeTarget: Person | null;
+    reportReasons: MessageReportReason[];
     status?: string;
 };
 
@@ -66,6 +77,7 @@ export default function Messages({
     conversations,
     active,
     composeTarget,
+    reportReasons,
     status,
 }: MessagesProps) {
     useEffect(() => {
@@ -176,7 +188,10 @@ export default function Messages({
                     </section>
 
                     {active ? (
-                        <ConversationThread thread={active} />
+                        <ConversationThread
+                            thread={active}
+                            reportReasons={reportReasons}
+                        />
                     ) : composeTarget ? (
                         <NewConversation target={composeTarget} />
                     ) : (
@@ -271,87 +286,153 @@ function ConversationRow({
     );
 }
 
-function ConversationThread({ thread }: { thread: ActiveThread }) {
-    return (
-        <section className="flex min-w-0 flex-col" aria-label="Conversation">
-            <div className="flex min-h-[4.75rem] items-center gap-3 border-b border-border/75 px-4 py-3 sm:px-5">
-                <Link
-                    href="/messages"
-                    aria-label="Back to inbox"
-                    className="social-focus flex size-10 shrink-0 items-center justify-center rounded-xl hover:bg-secondary lg:hidden"
-                >
-                    <ArrowLeft className="size-5" aria-hidden="true" />
-                </Link>
-                <AvatarMark name={thread.other.name} className="size-10" />
-                <div className="min-w-0 flex-1">
-                    <Link
-                        href={`/people/${thread.other.handle}`}
-                        className="block truncate font-black hover:underline"
-                    >
-                        {thread.other.name}
-                    </Link>
-                    <p className="truncate text-xs font-semibold text-muted-foreground">
-                        @{thread.other.handle}
-                    </p>
-                </div>
-                <LockKeyhole
-                    className="size-4 text-muted-foreground"
-                    aria-label="Participant-only conversation"
-                />
-            </div>
+function ConversationThread({
+    thread,
+    reportReasons,
+}: {
+    thread: ActiveThread;
+    reportReasons: MessageReportReason[];
+}) {
+    const [selectedMessage, setSelectedMessage] =
+        useState<ReportableMessage | null>(null);
 
-            <div className="flex min-h-[25rem] flex-1 flex-col justify-end gap-3 overflow-y-auto bg-background/45 px-4 py-5 sm:px-6">
-                {thread.historyLimited && (
-                    <p className="text-center text-xs font-semibold text-muted-foreground">
-                        Showing the 50 most recent messages.
-                    </p>
-                )}
-                {thread.messages.map((message) => (
-                    <div
-                        key={message.id}
-                        className={cn(
-                            'flex',
-                            message.isOwn ? 'justify-end' : 'justify-start',
-                        )}
+    return (
+        <>
+            <section
+                className="flex min-w-0 flex-col"
+                aria-label="Conversation"
+            >
+                <div className="flex min-h-[4.75rem] items-center gap-3 border-b border-border/75 px-4 py-3 sm:px-5">
+                    <Link
+                        href="/messages"
+                        aria-label="Back to inbox"
+                        className="social-focus flex size-10 shrink-0 items-center justify-center rounded-xl hover:bg-secondary lg:hidden"
                     >
+                        <ArrowLeft className="size-5" aria-hidden="true" />
+                    </Link>
+                    <AvatarMark name={thread.other.name} className="size-10" />
+                    <div className="min-w-0 flex-1">
+                        <Link
+                            href={`/people/${thread.other.handle}`}
+                            className="block truncate font-black hover:underline"
+                        >
+                            {thread.other.name}
+                        </Link>
+                        <p className="truncate text-xs font-semibold text-muted-foreground">
+                            @{thread.other.handle}
+                        </p>
+                    </div>
+                    <LockKeyhole
+                        className="size-4 text-muted-foreground"
+                        aria-label="Participant-only conversation"
+                    />
+                </div>
+
+                <div className="flex min-h-[25rem] flex-1 flex-col justify-end gap-3 overflow-y-auto bg-background/45 px-4 py-5 sm:px-6">
+                    {thread.historyLimited && (
+                        <p className="text-center text-xs font-semibold text-muted-foreground">
+                            Showing the 50 most recent messages.
+                        </p>
+                    )}
+                    {thread.messages.map((message) => (
                         <div
+                            key={message.id}
                             className={cn(
-                                'max-w-[82%] rounded-[1.25rem] px-4 py-3 sm:max-w-[70%]',
-                                message.isOwn
-                                    ? 'rounded-br-md bg-primary text-primary-foreground'
-                                    : 'rounded-bl-md border border-border/75 bg-card',
+                                'flex',
+                                message.isOwn ? 'justify-end' : 'justify-start',
                             )}
                         >
-                            <p className="text-sm leading-6 whitespace-pre-wrap">
-                                {message.body}
-                            </p>
-                            <time
-                                dateTime={message.createdAt ?? undefined}
+                            <div
                                 className={cn(
-                                    'mt-1.5 block text-[0.62rem] font-semibold',
+                                    'max-w-[86%] rounded-[1.25rem] px-4 py-3 sm:max-w-[70%]',
                                     message.isOwn
-                                        ? 'text-primary-foreground/65'
-                                        : 'text-muted-foreground',
+                                        ? 'rounded-br-md bg-primary text-primary-foreground'
+                                        : 'rounded-bl-md border border-border/75 bg-card',
                                 )}
                             >
-                                {timestamp(message.createdAt)}
-                            </time>
+                                <p className="text-sm leading-6 whitespace-pre-wrap">
+                                    {message.body}
+                                </p>
+                                <div
+                                    className={cn(
+                                        'mt-1.5 flex min-h-10 items-center gap-2',
+                                        message.isOwn
+                                            ? 'justify-end'
+                                            : 'justify-between',
+                                    )}
+                                >
+                                    <time
+                                        dateTime={
+                                            message.createdAt ?? undefined
+                                        }
+                                        className={cn(
+                                            'text-[0.62rem] font-semibold',
+                                            message.isOwn
+                                                ? 'text-primary-foreground/65'
+                                                : 'text-muted-foreground',
+                                        )}
+                                    >
+                                        {timestamp(message.createdAt)}
+                                    </time>
+                                    {!message.isOwn &&
+                                        (message.hasReported ? (
+                                            <span className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2 text-[0.68rem] font-extrabold text-muted-foreground">
+                                                <FlagOff
+                                                    className="size-3.5"
+                                                    aria-hidden="true"
+                                                />
+                                                Reported
+                                            </span>
+                                        ) : message.canReport &&
+                                          message.reportUrl ? (
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setSelectedMessage({
+                                                        id: message.id,
+                                                        body: message.body,
+                                                        reportUrl:
+                                                            message.reportUrl!,
+                                                    })
+                                                }
+                                                className="social-focus inline-flex min-h-10 items-center gap-1.5 rounded-lg px-2 text-[0.68rem] font-extrabold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                                            >
+                                                <Flag
+                                                    className="size-3.5"
+                                                    aria-hidden="true"
+                                                />
+                                                Report
+                                            </button>
+                                        ) : null)}
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                ))}
-            </div>
-
-            {thread.canSend ? (
-                <MessageComposer action={`/messages/${thread.id}`} />
-            ) : (
-                <div className="border-t border-border/75 px-5 py-4">
-                    <p className="rounded-xl bg-secondary px-4 py-3 text-center text-sm font-bold text-muted-foreground">
-                        New messages are unavailable because one participant
-                        blocked the other.
-                    </p>
+                    ))}
                 </div>
-            )}
-        </section>
+
+                {thread.canSend ? (
+                    <MessageComposer action={`/messages/${thread.id}`} />
+                ) : (
+                    <div className="border-t border-border/75 px-5 py-4">
+                        <p className="rounded-xl bg-secondary px-4 py-3 text-center text-sm font-bold text-muted-foreground">
+                            New messages are unavailable because one participant
+                            blocked the other.
+                        </p>
+                    </div>
+                )}
+            </section>
+
+            <MessageReportDialog
+                message={selectedMessage}
+                reasons={reportReasons}
+                open={selectedMessage !== null}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setSelectedMessage(null);
+                    }
+                }}
+            />
+        </>
     );
 }
 

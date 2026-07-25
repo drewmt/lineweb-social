@@ -118,6 +118,21 @@ The current release is `0.1.0-alpha.1`. It is suitable for local evaluation and 
 <table>
   <tr>
     <td width="68%">
+      <img src="docs/screenshots/message-safety-admin-desktop.jpg" alt="Lineweb Social evidence-limited direct-message safety queue on desktop" />
+    </td>
+    <td width="32%">
+      <img src="docs/screenshots/message-report-dialog-mobile.jpg" alt="Lineweb Social privacy-aware direct-message report dialog on mobile" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Exact-message evidence and documented operator decisions</sub></td>
+    <td align="center"><sub>Clear member reporting boundary on mobile</sub></td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td width="68%">
       <img src="docs/screenshots/admin-desktop.jpg" alt="Lineweb Social protected platform administration dashboard on desktop" />
     </td>
     <td width="32%">
@@ -170,6 +185,9 @@ The current release is `0.1.0-alpha.1`. It is suitable for local evaluation and 
 - Participant-only direct messages with one canonical conversation per member
   pair, owner-scoped unread state, block-aware sending, bounded history, and
   responsive inbox/thread views.
+- Privacy-bounded direct-message reporting with incoming-message-only
+  authorization, exact-message evidence, no surrounding-thread disclosure, a
+  dedicated administrator queue, audited decisions, and scheduled retention.
 - Stable member handles, editable profiles with headlines, real visible
   activity summaries, and privacy-aware People discovery.
 - Public, shared-Space-only, and private profile visibility with discovery opt-out.
@@ -190,8 +208,8 @@ The current release is `0.1.0-alpha.1`. It is suitable for local evaluation and 
 
 This is an early development build, not a production release. Message
 attachments, galleries and video, email and push notification delivery,
-advanced indexed search, administrator retention tooling, and a supported
-extension lifecycle are still pending.
+advanced indexed search, generalized administrator audit retention tooling,
+and a supported extension lifecycle are still pending.
 
 ## Local setup
 

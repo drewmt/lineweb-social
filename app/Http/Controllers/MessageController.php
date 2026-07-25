@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Community\PrivateMessaging;
+use App\Enums\ReportReason;
 use App\Http\Requests\SendDirectMessageRequest;
 use App\Models\Conversation;
 use App\Models\User;
@@ -23,6 +24,7 @@ class MessageController extends Controller
             'conversations' => $messages->inboxFor($viewer),
             'active' => null,
             'composeTarget' => null,
+            'reportReasons' => ReportReason::options(),
         ]);
     }
 
@@ -42,6 +44,7 @@ class MessageController extends Controller
                 'name' => $profile->name,
                 'handle' => $profile->handle,
             ],
+            'reportReasons' => ReportReason::options(),
         ]);
     }
 
@@ -75,6 +78,7 @@ class MessageController extends Controller
             'conversations' => $messages->inboxFor($viewer),
             'active' => $messages->threadFor($viewer, $conversation),
             'composeTarget' => null,
+            'reportReasons' => ReportReason::options(),
         ]);
     }
 

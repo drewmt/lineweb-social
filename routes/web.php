@@ -2,9 +2,11 @@
 
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\MemberSuspensionController;
+use App\Http\Controllers\Admin\MessageReportController as AdminMessageReportController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\CommentReportController;
 use App\Http\Controllers\CommentReportModerationController;
+use App\Http\Controllers\DirectMessageReportController;
 use App\Http\Controllers\FeedController;
 use App\Http\Controllers\FollowingFeedController;
 use App\Http\Controllers\MessageController;
@@ -75,6 +77,9 @@ Route::middleware(['auth', 'account.active', 'verified'])->group(function () {
     Route::post('messages/{conversation}/read', [MessageController::class, 'read'])
         ->middleware('throttle:direct-messaging')
         ->name('messages.read');
+    Route::post('messages/{conversation}/reports/{directMessage}', [DirectMessageReportController::class, 'store'])
+        ->middleware('throttle:message-reporting')
+        ->name('messages.reports.store');
     Route::put('people/{profile:handle}/follow', [UserFollowController::class, 'store'])
         ->middleware('throttle:user-following')
         ->name('people.follow');
@@ -191,6 +196,10 @@ Route::prefix('admin')
     ])
     ->group(function (): void {
         Route::get('/', AdminDashboardController::class)->name('admin.index');
+        Route::get('message-reports', [AdminMessageReportController::class, 'index'])
+            ->name('admin.message-reports.index');
+        Route::patch('message-reports/{directMessageReport}', [AdminMessageReportController::class, 'update'])
+            ->name('admin.message-reports.update');
         Route::put('members/{member:handle}/suspension', [MemberSuspensionController::class, 'store'])
             ->name('admin.members.suspension.store');
         Route::delete('members/{member:handle}/suspension', [MemberSuspensionController::class, 'destroy'])

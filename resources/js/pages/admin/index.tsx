@@ -6,6 +6,7 @@ import {
     CircleCheck,
     FileText,
     Flag,
+    MessageSquareWarning,
     Search,
     ShieldCheck,
     SquareTerminal,
@@ -27,6 +28,7 @@ type Metrics = {
     postsTotal: number;
     commentsTotal: number;
     reportsActive: number;
+    messageReportsActive: number;
 };
 
 type MembersPage = {
@@ -95,6 +97,13 @@ const metricCards = (metrics: Metrics) => [
         detail: 'Awaiting a decision',
         icon: Flag,
     },
+    {
+        label: 'Message safety',
+        value: metrics.messageReportsActive,
+        detail: 'Private evidence queue',
+        icon: MessageSquareWarning,
+        href: '/admin/message-reports',
+    },
 ];
 
 export default function AdminIndex({
@@ -160,17 +169,14 @@ export default function AdminIndex({
                 )}
 
                 <section
-                    className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-5"
+                    className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-6"
                     aria-label="Platform metrics"
                 >
                     {metricCards(metrics).map((metric) => {
                         const Icon = metric.icon;
 
-                        return (
-                            <article
-                                key={metric.label}
-                                className="social-card rounded-[1.35rem] p-4"
-                            >
+                        const content = (
+                            <>
                                 <div className="flex items-start justify-between gap-3">
                                     <div>
                                         <p className="text-xs font-extrabold tracking-[0.11em] text-muted-foreground uppercase">
@@ -190,6 +196,23 @@ export default function AdminIndex({
                                 <p className="mt-3 text-xs font-semibold text-muted-foreground">
                                     {metric.detail}
                                 </p>
+                            </>
+                        );
+
+                        return 'href' in metric ? (
+                            <Link
+                                key={metric.label}
+                                href={metric.href}
+                                className="social-focus social-card rounded-[1.35rem] p-4 transition-colors hover:border-primary/25 hover:bg-primary/[0.04]"
+                            >
+                                {content}
+                            </Link>
+                        ) : (
+                            <article
+                                key={metric.label}
+                                className="social-card rounded-[1.35rem] p-4"
+                            >
+                                {content}
                             </article>
                         );
                     })}
@@ -394,6 +417,10 @@ function auditLabel(action: string) {
         'member.reinstated': 'Member reinstated',
         'administrator.granted': 'Administrator granted',
         'administrator.revoked': 'Administrator revoked',
+        'direct_message_report.reviewing': 'Message report review started',
+        'direct_message_report.resolved': 'Message report resolved',
+        'direct_message_report.dismissed': 'Message report dismissed',
+        'direct_message_report.reopened': 'Message report reopened',
     };
 
     return labels[action] ?? action;

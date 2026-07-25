@@ -22,7 +22,8 @@ The export currently includes:
 - notification metadata and notification preferences;
 - invitation and moderation activity without recipient addresses or internal
   audit context;
-- reports submitted by the member; and
+- reports submitted by the member, including the exact direct-message snapshot
+  they chose to submit; and
 - safe security metadata for two-factor state, API tokens, passkeys, and active
   sessions.
 
@@ -35,7 +36,8 @@ The export deliberately excludes:
 - API token digests, passkey credentials, invitation token hashes, and session
   identifiers or payloads;
 - private storage paths, media checksums, and original filenames;
-- messages authored by another participant; and
+- messages authored by another participant unless the member explicitly
+  submitted that exact message in a safety report; and
 - internal notification payloads, reviewer identities, and private moderation
   context.
 
@@ -68,12 +70,24 @@ suspended member owns a blocking Space, the operator needs a documented process
 to review the suspension and help complete an ownership transfer before
 deletion. Suspension is not a substitute for a data-rights response process.
 
+Direct-message report evidence may survive deletion of the original message or
+either account so an active safety review is not silently destroyed. Active
+reports are retained until an administrator records a decision; resolved and
+dismissed report evidence is pruned after 180 days. A reporter's export excludes
+the reviewer identity and private decision note, and a reported member does not
+receive another person's report record through their export.
+
 ## Operator responsibilities
 
 Application deletion does not erase independent backups, infrastructure logs,
 mail-provider records, analytics, or data copied to an extension or external
 processor. A deployed service needs documented retention and deletion
 procedures for every such system.
+
+Laravel's scheduler must run for closed direct-message report evidence to be
+pruned. Deployers must document their lawful basis, safety-review process,
+appeal route, retention schedule, and any legally required preservation before
+changing the default.
 
 Before adding analytics, advertising, AI processing, or third-party exports,
 map the new data flow and update both this contract and the deployer's public

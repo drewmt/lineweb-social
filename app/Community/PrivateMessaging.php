@@ -107,6 +107,10 @@ class PrivateMessaging
         $messages = $conversation->messages()
             ->latest('id')
             ->limit(50)
+            ->withExists([
+                'reports as reported_by_viewer' => fn (Builder $reports) => $reports
+                    ->where('reporter_id', $viewer->getKey()),
+            ])
             ->get()
             ->reverse()
             ->values();
@@ -119,12 +123,25 @@ class PrivateMessaging
             'hasUnread' => $conversation->last_message_id !== null
                 && $conversation->last_message_id > $conversation->lastReadMessageIdFor($viewer),
             'historyLimited' => $conversation->messages()->count() > 50,
-            'messages' => $messages->map(fn (DirectMessage $message): array => [
-                'id' => $message->getKey(),
-                'body' => $message->body,
-                'createdAt' => $message->created_at?->toIso8601String(),
-                'isOwn' => $message->sender_id === $viewer->getKey(),
-            ])->all(),
+            'messages' => $messages->map(function (DirectMessage $message) use (
+                $viewer,
+                $conversation,
+            ): array {
+                $isOwn = $message->sender_id === $viewer->getKey();
+                $hasReported = (bool) $message->getAttribute('reported_by_viewer');
+
+                return [
+                    'id' => $message->getKey(),
+                    'body' => $message->body,
+                    'createdAt' => $message->created_at?->toIso8601String(),
+                    'isOwn' => $isOwn,
+                    'canReport' => ! $isOwn && ! $hasReported,
+                    'hasReported' => $hasReported,
+                    'reportUrl' => ! $isOwn
+                        ? route('messages.reports.store', [$conversation, $message])
+                        : null,
+                ];
+            })->all(),
         ];
     }
 
