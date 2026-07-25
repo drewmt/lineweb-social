@@ -15,6 +15,9 @@ Thank you for helping build Lineweb Social and a healthier self-hosted social we
 - Validate all untrusted input and escape output through framework-safe rendering.
 - Add or update tests for behavior and authorization boundaries.
 - Keep the default experience accessible, responsive, and usable without an algorithmic feed.
+- Keep the README feature map and relevant public contract documentation in
+  sync with meaningful user-facing changes. Add a synthetic screenshot only
+  when it clearly demonstrates a new or materially improved experience.
 - Avoid unnecessary dependencies and document any new runtime dependency.
 
 Run the complete checks documented in `README.md` before opening a pull request. Describe the human reason for the change, its impact, and exactly how it was tested.
