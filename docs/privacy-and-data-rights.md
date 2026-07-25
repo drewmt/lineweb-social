@@ -23,7 +23,9 @@ The export currently includes:
 - invitation and moderation activity without recipient addresses or internal
   audit context;
 - reports submitted by the member, including the exact direct-message snapshot
-  they chose to submit; and
+  they chose to submit;
+- account appeals, including the member statement, state, member-visible
+  response, and relevant timestamps; and
 - safe security metadata for two-factor state, API tokens, passkeys, and active
   sessions.
 
@@ -39,7 +41,7 @@ The export deliberately excludes:
 - messages authored by another participant unless the member explicitly
   submitted that exact message in a safety report; and
 - internal notification payloads, reviewer identities, and private moderation
-  context.
+  or account-restriction context.
 
 Extensions that store member data must add their own export section or document
 why the data is not portable. Do not place extension secrets or unrelated
@@ -65,10 +67,16 @@ own product copy.
 
 Suspended accounts cannot use community or API features, but their
 password-confirmed export and deletion routes remain available from the
-restricted-account screen. Existing Space ownership guards still apply. When a
+Account Status screen. Existing Space ownership guards still apply. When a
 suspended member owns a blocking Space, the operator needs a documented process
 to review the suspension and help complete an ownership transfer before
 deletion. Suspension is not a substitute for a data-rights response process.
+
+An account appeal belongs to the member and is removed with that account. The
+member’s export includes their own statement and the response intentionally
+shown to them, but excludes the reviewing administrator, internal suspension
+reason, and privileged audit context. See
+[`account-appeals.md`](account-appeals.md) for the complete projection boundary.
 
 Direct-message report evidence may survive deletion of the original message or
 either account so an active safety review is not silently destroyed. Active

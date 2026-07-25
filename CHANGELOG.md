@@ -6,6 +6,11 @@ All notable project changes will be documented here.
 
 ### Added
 
+- Human-reviewed account appeals with one submission per unique suspension
+  cycle, a polished member Account Status flow, a dedicated responsive
+  administrator queue, explicit approve/deny decisions, transactional access
+  restoration, bounded audit records, safe personal-export coverage, and no
+  automated enforcement.
 - Bounded Space highlights with owner/moderator-only transactional pinning,
   append-only audit history, after-write events, visibility-safe web and API
   projections, and a swipeable app-first presentation that leaves the
@@ -31,7 +36,7 @@ All notable project changes will be documented here.
 - Reason-required member suspension and reinstatement with serialized
   authorization, immediate web-session and API-token revocation, remember-token
   rotation, and an append-only audit trail.
-- A restricted-account screen that blocks community and API actions while
+- An Account Status screen that blocks community and API actions while
   preserving password-protected personal export and account-deletion paths.
 - Password-confirmed, rate-limited personal JSON exports with chunked complete
   collections for account, community, authored content, interaction,

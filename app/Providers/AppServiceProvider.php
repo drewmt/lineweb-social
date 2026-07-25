@@ -123,6 +123,9 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('personal-data-export', fn (Request $request): Limit => Limit::perHour(3)
             ->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
 
+        RateLimiter::for('account-appeals', fn (Request $request): Limit => Limit::perHour(3)
+            ->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
+
         RateLimiter::for('platform-administration', fn (Request $request): Limit => Limit::perMinute(30)
             ->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
     }

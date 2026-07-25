@@ -198,12 +198,12 @@ class PlatformAdministrationTest extends TestCase
 
         $this->actingAs($member)
             ->get(route('feed'))
-            ->assertRedirect(route('account.suspended'));
+            ->assertRedirect(route('account.status'));
 
         $this->actingAs($member)
-            ->get(route('account.suspended'))
+            ->get(route('account.status'))
             ->assertInertia(fn (Assert $page) => $page
-                ->component('auth/suspended')
+                ->component('account/status')
                 ->where('account.handle', $member->handle)
                 ->has('deletionBlockers'));
 
@@ -228,12 +228,12 @@ class PlatformAdministrationTest extends TestCase
 
         $this->actingAs($member)
             ->get(route('feed'))
-            ->assertRedirect(route('account.suspended'));
+            ->assertRedirect(route('account.status'));
 
         $this->actingAs($member)
-            ->get(route('account.suspended'))
+            ->get(route('account.status'))
             ->assertInertia(fn (Assert $page) => $page
-                ->component('auth/suspended')
+                ->component('account/status')
                 ->where('account.emailVerified', false));
     }
 

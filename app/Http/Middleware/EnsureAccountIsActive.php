@@ -26,6 +26,6 @@ class EnsureAccountIsActive
             throw new AuthorizationException;
         }
 
-        return to_route('account.suspended');
+        return to_route('account.status');
     }
 }

@@ -18,6 +18,10 @@ class AdminAuditLogController extends Controller
         'accounts' => [
             PlatformAuditAction::MemberSuspended,
             PlatformAuditAction::MemberReinstated,
+            PlatformAuditAction::AppealSubmitted,
+            PlatformAuditAction::AppealReviewStarted,
+            PlatformAuditAction::AppealApproved,
+            PlatformAuditAction::AppealDenied,
         ],
         'safety' => [
             PlatformAuditAction::DirectMessageReportReviewStarted,

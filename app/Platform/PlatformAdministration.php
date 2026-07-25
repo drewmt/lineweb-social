@@ -2,8 +2,10 @@
 
 namespace App\Platform;
 
+use App\Enums\PlatformAppealStatus;
 use App\Enums\PlatformAuditAction;
 use App\Enums\PlatformRole;
+use App\Models\PlatformAppeal;
 use App\Models\PlatformAuditLog;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -40,6 +42,7 @@ class PlatformAdministration
 
             $lockedMember->forceFill([
                 'suspended_at' => now(),
+                'suspension_reference' => (string) Str::uuid(),
                 'suspension_reason' => $reason,
                 'suspended_by' => $lockedActor->getKey(),
                 'remember_token' => Str::random(60),
@@ -71,17 +74,49 @@ class PlatformAdministration
                 ]);
             }
 
+            $suspensionReference = $lockedMember->suspension_reference;
+            $appeal = PlatformAppeal::query()
+                ->whereBelongsTo($lockedMember)
+                ->where('suspension_reference', $suspensionReference)
+                ->whereIn('status', [
+                    PlatformAppealStatus::Open->value,
+                    PlatformAppealStatus::Reviewing->value,
+                ])
+                ->lockForUpdate()
+                ->first();
+
             $lockedMember->forceFill([
                 'suspended_at' => null,
+                'suspension_reference' => null,
                 'suspension_reason' => null,
                 'suspended_by' => null,
             ])->save();
+
+            if ($appeal instanceof PlatformAppeal) {
+                $appeal->forceFill([
+                    'status' => PlatformAppealStatus::Approved,
+                    'decision_message' => 'Your account access was restored after administrator review.',
+                    'reviewed_by' => $lockedActor->getKey(),
+                    'reviewed_at' => now(),
+                ])->save();
+
+                $this->record(
+                    PlatformAuditAction::AppealApproved,
+                    $lockedMember,
+                    $lockedActor,
+                    'Account access restored from the member directory.',
+                    ['appeal_id' => $appeal->getKey()],
+                );
+            }
 
             $this->record(
                 PlatformAuditAction::MemberReinstated,
                 $lockedMember,
                 $lockedActor,
                 $reason,
+                $appeal instanceof PlatformAppeal
+                    ? ['appeal_id' => $appeal->getKey()]
+                    : null,
             );
         }, 3);
     }
@@ -174,17 +209,20 @@ class PlatformAdministration
         }
     }
 
+    /** @param array<string, mixed>|null $context */
     private function record(
         PlatformAuditAction $action,
         User $subject,
         ?User $actor = null,
         ?string $reason = null,
+        ?array $context = null,
     ): void {
         PlatformAuditLog::query()->create([
             'actor_id' => $actor?->getKey(),
             'subject_user_id' => $subject->getKey(),
             'action' => $action,
             'reason' => $reason,
+            'context' => $context,
         ]);
     }
 }
