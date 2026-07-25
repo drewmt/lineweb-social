@@ -40,6 +40,24 @@ Do not treat a Space moderator as a platform administrator. If a future
 operator or support role is required, add a distinct permission contract and
 tests instead of broadening the current role.
 
+## Message safety queue
+
+Administrators can review direct-message reports through the private Message
+safety queue. The queue exposes only the exact message submitted as evidence,
+the reporter's allowlisted reason and optional context, and the two relevant
+member summaries. It never exposes adjacent messages or the full conversation.
+
+Every review, resolution, dismissal, or reopening requires a 10-to-500
+character operator note and appends a bounded platform audit entry. Resolving a
+message report records the safety decision; it does not automatically suspend
+an account or delete content. Account access remains a separate, explicit
+administrator action.
+
+Closed report evidence is pruned after 180 days by the scheduled
+`message-reports:prune` command. Operators must run Laravel's scheduler and
+document any deployment-specific retention changes. See
+[`message-reporting.md`](message-reporting.md) for the complete boundary.
+
 ## Suspension behavior
 
 Every suspension requires a reason of 10 to 500 characters. A successful
@@ -94,7 +112,7 @@ context, and avoid secrets or unrelated personal data.
 - no generic role editor or implied moderator hierarchy;
 - no remote administrative API;
 - no automatic content deletion during account suspension;
-- no audit export or retention automation; and
+- no audit export or privileged report export; and
 - no claim that administrator access replaces infrastructure access controls.
 
 These limits keep the first contract reviewable and give downstream products a

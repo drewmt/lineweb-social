@@ -5,6 +5,7 @@ namespace Tests\Feature\Settings;
 use App\Models\Comment;
 use App\Models\Conversation;
 use App\Models\DirectMessage;
+use App\Models\DirectMessageReport;
 use App\Models\NotificationPreference;
 use App\Models\Post;
 use App\Models\Space;
@@ -61,10 +62,22 @@ class PersonalDataExportTest extends TestCase
             'sender_id' => $user->getKey(),
             'body' => 'My exported message',
         ]);
-        DirectMessage::query()->create([
+        $incomingMessage = DirectMessage::query()->create([
             'conversation_id' => $conversation->getKey(),
             'sender_id' => $other->getKey(),
             'body' => 'Someone else private message',
+        ]);
+        DirectMessageReport::query()->create([
+            'direct_message_id' => $incomingMessage->getKey(),
+            'reporter_id' => $user->getKey(),
+            'reported_user_id' => $other->getKey(),
+            'reason' => 'harassment',
+            'details' => 'My submitted report context',
+            'message_body_snapshot' => $incomingMessage->body,
+            'message_sent_at' => $incomingMessage->created_at,
+            'status' => 'resolved',
+            'reviewed_at' => now(),
+            'reviewer_note' => 'Private administrator decision context',
         ]);
 
         $token = $user->createToken(
@@ -109,12 +122,23 @@ class PersonalDataExportTest extends TestCase
         $this->assertSame('My exported comment', $export['comments'][0]['body']);
         $this->assertSame('community-member', $export['following'][0]['handle']);
         $this->assertSame('My exported message', $export['direct_messages'][0]['body']);
+        $this->assertSame(
+            'Someone else private message',
+            $export['submitted_direct_message_reports'][0]['message_body_snapshot'],
+        );
+        $this->assertSame(
+            'My submitted report context',
+            $export['submitted_direct_message_reports'][0]['details'],
+        );
         $this->assertSame('My phone', $export['security']['api_tokens'][0]['name']);
         $this->assertFalse($export['notification_preferences']['comment_replies']);
         $this->assertSame('sent', $export['space_invitation_activity'][0]['relationship']);
         $this->assertSame('content.mentioned', $export['notifications'][0]['type']);
 
-        $this->assertStringNotContainsString('Someone else private message', $content);
+        $this->assertStringNotContainsString(
+            'Private administrator decision context',
+            $content,
+        );
         $this->assertStringNotContainsString('private-recipient@example.com', $content);
         $this->assertStringNotContainsString(hash('sha256', 'private-invitation-token'), $content);
         $this->assertStringNotContainsString('private-two-factor-secret', $content);

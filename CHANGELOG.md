@@ -6,6 +6,11 @@ All notable project changes will be documented here.
 
 ### Added
 
+- Privacy-bounded direct-message reporting with incoming-message-only
+  authorization, duplicate and rate-limit protection, exact-message evidence
+  without surrounding-thread disclosure, a responsive administrator queue,
+  reason-required audited decisions, personal-export coverage, and scheduled
+  pruning of closed evidence after 180 days.
 - Privacy-safe Unicode hashtags for posts with bounded case-insensitive parsing,
   transactional indexing and migration backfill, chronological topic pages,
   viewer-specific visible counts, clickable web rendering, search discovery,
