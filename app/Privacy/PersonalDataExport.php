@@ -68,6 +68,7 @@ class PersonalDataExport
             'submitted_post_reports' => $this->submittedPostReports($userId),
             'submitted_comment_reports' => $this->submittedCommentReports($userId),
             'submitted_direct_message_reports' => $this->submittedDirectMessageReports($userId),
+            'account_appeals' => $this->accountAppeals($userId),
             'notification_preferences' => $preferenceValues,
             'security' => [
                 'two_factor_enabled' => filled($user->two_factor_secret),
@@ -437,6 +438,28 @@ class PersonalDataExport
                 'message_body_snapshot',
                 'message_sent_at',
                 'status',
+                'reviewed_at',
+                'created_at',
+            ])
+            ->lazy(500);
+
+        foreach ($rows as $row) {
+            yield (array) $row;
+        }
+    }
+
+    /** @return Generator<int, array<string, mixed>> */
+    private function accountAppeals(int $userId): Generator
+    {
+        $rows = DB::table('platform_appeals')
+            ->where('user_id', $userId)
+            ->orderBy('id')
+            ->select([
+                'id',
+                'suspension_started_at',
+                'status',
+                'statement',
+                'decision_message',
                 'reviewed_at',
                 'created_at',
             ])

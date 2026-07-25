@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
     ArrowLeft,
+    FileQuestion,
     LayoutDashboard,
     MessageSquareWarning,
     ScrollText,
@@ -43,6 +44,13 @@ const adminSections = [
         description: 'Account access',
         href: '/admin/members',
         icon: UsersRound,
+        exact: false,
+    },
+    {
+        title: 'Appeals',
+        description: 'Human account review',
+        href: '/admin/appeals',
+        icon: FileQuestion,
         exact: false,
     },
     {

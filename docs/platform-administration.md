@@ -16,6 +16,8 @@ member-facing social navigation:
 - **Members** provides bounded account search, status filters, current
   restriction context, and the existing reason-required suspend/reinstate
   controls.
+- **Appeals** provides a dedicated human-review queue for member account-access
+  appeals and explicit approve-or-deny decisions.
 - **Safety** contains the evidence-limited direct-message report workflow
   described below.
 - **Audit** provides a paginated, searchable, category-filtered read-only view
@@ -104,16 +106,34 @@ Reinstatement also requires a recorded reason and appends a
 `member.reinstated` entry before restoring access. Previously revoked tokens and
 sessions are not recreated.
 
+## Account appeals
+
+Each suspension receives a private random reference that defines one restriction
+cycle. A restricted member may submit one bounded appeal for that cycle from
+the Account Status screen. The administrator queue shows the member’s statement
+and internal restriction record together, but the member never receives the
+internal reason, reviewer identity, reporter identity, or private evidence.
+
+Moving an appeal into review, approving it, or denying it requires a
+member-visible message and appends a bounded audit event. Approval explicitly
+restores access in the same transaction; denial leaves the restriction active.
+There is no automated enforcement or decision-making. Direct reinstatement from
+the Members surface also safely resolves a matching active appeal so operators
+cannot leave a stale review behind.
+
+The full state, projection, export, and first-version limits are documented in
+[`account-appeals.md`](account-appeals.md).
+
 ## Data-rights boundary
 
-The restricted-account screen preserves the password-confirmed personal export
-and account-deletion paths. Email verification and existing Space ownership
-guards still apply. If a suspended member owns a Space containing another
-person's activity, the deployer must provide a process to review access and
-complete ownership transfer before deletion.
+The Account Status screen preserves the password-confirmed personal export and
+account-deletion paths for restricted members. Email verification and existing
+Space ownership guards still apply. If a suspended member owns a Space
+containing another person's activity, the deployer must provide a process to
+review access and complete ownership transfer before deletion.
 
 This is a technical safeguard, not a privacy-law certification. Deployers still
-own notices, retention, appeals, support, backup deletion, and statutory
+own notices, retention, support, escalation, backup deletion, and statutory
 response procedures.
 
 ## Audit trail
@@ -136,6 +156,7 @@ context, and avoid secrets or unrelated personal data.
 - no generic role editor or implied moderator hierarchy;
 - no remote administrative API;
 - no automatic content deletion during account suspension;
+- no automated appeal decisions or multi-tier appeal escalation;
 - no audit export or privileged report export; and
 - no claim that administrator access replaces infrastructure access controls.
 

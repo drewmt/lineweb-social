@@ -4,6 +4,7 @@ import {
     Building2,
     CircleCheck,
     FileText,
+    FileQuestion,
     MessageSquareWarning,
     ScrollText,
     ShieldCheck,
@@ -23,6 +24,7 @@ type Metrics = {
     commentsTotal: number;
     communityReportsActive: number;
     messageReportsActive: number;
+    appealsActive: number;
 };
 
 type AuditLog = {
@@ -50,6 +52,10 @@ const formatDate = (value: string) =>
 const auditLabels: Record<string, string> = {
     'member.suspended': 'Member suspended',
     'member.reinstated': 'Member reinstated',
+    'appeal.submitted': 'Account appeal submitted',
+    'appeal.reviewing': 'Account appeal review started',
+    'appeal.approved': 'Account appeal approved',
+    'appeal.denied': 'Account appeal not approved',
     'administrator.granted': 'Administrator granted',
     'administrator.revoked': 'Administrator revoked',
     'direct_message_report.reviewing': 'Message report review started',
@@ -189,7 +195,7 @@ export default function AdminIndex({ metrics, auditLogs, status }: Props) {
                             </div>
                         </div>
 
-                        <div className="grid gap-3 lg:grid-cols-2">
+                        <div className="grid gap-3 lg:grid-cols-3">
                             <OperationCard
                                 href="/admin/members?status=suspended"
                                 icon={UserRoundCheck}
@@ -198,6 +204,15 @@ export default function AdminIndex({ metrics, auditLogs, status }: Props) {
                                 detail="Review restrictions and restore access only after a documented decision."
                                 cta="Open members"
                                 urgent={metrics.membersSuspended > 0}
+                            />
+                            <OperationCard
+                                href="/admin/appeals"
+                                icon={FileQuestion}
+                                label="Human review"
+                                title={`${metrics.appealsActive.toLocaleString()} active appeals`}
+                                detail="Read member context and make an explicit, documented account decision."
+                                cta="Open appeals"
+                                urgent={metrics.appealsActive > 0}
                             />
                             <OperationCard
                                 href="/admin/message-reports"

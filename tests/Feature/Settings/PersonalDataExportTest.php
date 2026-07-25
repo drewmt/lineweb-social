@@ -7,6 +7,7 @@ use App\Models\Conversation;
 use App\Models\DirectMessage;
 use App\Models\DirectMessageReport;
 use App\Models\NotificationPreference;
+use App\Models\PlatformAppeal;
 use App\Models\Post;
 use App\Models\Space;
 use App\Models\SpaceInvitation;
@@ -79,6 +80,20 @@ class PersonalDataExportTest extends TestCase
             'reviewed_at' => now(),
             'reviewer_note' => 'Private administrator decision context',
         ]);
+        $reviewer = User::factory()->create([
+            'name' => 'Private Appeal Reviewer',
+            'email' => 'private-reviewer@example.com',
+        ]);
+        PlatformAppeal::query()->create([
+            'user_id' => $user->getKey(),
+            'suspension_reference' => (string) Str::uuid(),
+            'suspension_started_at' => now()->subDay(),
+            'status' => 'approved',
+            'statement' => 'My account appeal statement',
+            'decision_message' => 'Your account appeal was approved.',
+            'reviewed_by' => $reviewer->getKey(),
+            'reviewed_at' => now(),
+        ]);
 
         $token = $user->createToken(
             'My phone',
@@ -130,6 +145,14 @@ class PersonalDataExportTest extends TestCase
             'My submitted report context',
             $export['submitted_direct_message_reports'][0]['details'],
         );
+        $this->assertSame(
+            'My account appeal statement',
+            $export['account_appeals'][0]['statement'],
+        );
+        $this->assertSame(
+            'Your account appeal was approved.',
+            $export['account_appeals'][0]['decision_message'],
+        );
         $this->assertSame('My phone', $export['security']['api_tokens'][0]['name']);
         $this->assertFalse($export['notification_preferences']['comment_replies']);
         $this->assertSame('sent', $export['space_invitation_activity'][0]['relationship']);
@@ -139,6 +162,8 @@ class PersonalDataExportTest extends TestCase
             'Private administrator decision context',
             $content,
         );
+        $this->assertStringNotContainsString('Private Appeal Reviewer', $content);
+        $this->assertStringNotContainsString('private-reviewer@example.com', $content);
         $this->assertStringNotContainsString('private-recipient@example.com', $content);
         $this->assertStringNotContainsString(hash('sha256', 'private-invitation-token'), $content);
         $this->assertStringNotContainsString('private-two-factor-secret', $content);

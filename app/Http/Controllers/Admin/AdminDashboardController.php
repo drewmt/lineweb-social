@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Comment;
 use App\Models\CommentReport;
 use App\Models\DirectMessageReport;
+use App\Models\PlatformAppeal;
 use App\Models\PlatformAuditLog;
 use App\Models\Post;
 use App\Models\PostReport;
@@ -36,6 +37,9 @@ class AdminDashboardController extends Controller
                 'communityReportsActive' => PostReport::query()->whereIn('status', $activeStatuses)->count()
                     + CommentReport::query()->whereIn('status', $activeStatuses)->count(),
                 'messageReportsActive' => DirectMessageReport::query()
+                    ->whereIn('status', $activeStatuses)
+                    ->count(),
+                'appealsActive' => PlatformAppeal::query()
                     ->whereIn('status', $activeStatuses)
                     ->count(),
             ],

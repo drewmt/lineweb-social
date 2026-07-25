@@ -1,10 +1,12 @@
 <?php
 
+use App\Http\Controllers\AccountStatusController;
 use App\Http\Controllers\Admin\AdminAuditLogController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminMemberController;
 use App\Http\Controllers\Admin\MemberSuspensionController;
 use App\Http\Controllers\Admin\MessageReportController as AdminMessageReportController;
+use App\Http\Controllers\Admin\PlatformAppealController as AdminPlatformAppealController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\CommentReportController;
 use App\Http\Controllers\CommentReportModerationController;
@@ -14,6 +16,7 @@ use App\Http\Controllers\FollowingFeedController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PeopleController;
+use App\Http\Controllers\PlatformAppealController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\PostDraftController;
 use App\Http\Controllers\PostHighlightController;
@@ -30,7 +33,6 @@ use App\Http\Controllers\SpaceManagementController;
 use App\Http\Controllers\SpaceMemberController;
 use App\Http\Controllers\SpaceMembershipController;
 use App\Http\Controllers\SpaceModerationController;
-use App\Http\Controllers\SuspendedAccountController;
 use App\Http\Controllers\TopicController;
 use App\Http\Controllers\UserFollowController;
 use App\Http\Controllers\UserRelationshipController;
@@ -38,9 +40,15 @@ use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'welcome')->name('home');
 
-Route::get('account-suspended', SuspendedAccountController::class)
+Route::get('account-status', AccountStatusController::class)
+    ->middleware('auth')
+    ->name('account.status');
+Route::redirect('account-suspended', '/account-status')
     ->middleware('auth')
     ->name('account.suspended');
+Route::post('account-status/appeals', [PlatformAppealController::class, 'store'])
+    ->middleware(['auth', 'throttle:account-appeals'])
+    ->name('account.appeals.store');
 
 Route::middleware(['auth', 'account.active', 'verified'])->group(function () {
     Route::get('feed', FeedController::class)->name('feed');
@@ -232,6 +240,10 @@ Route::prefix('admin')
             ->name('admin.message-reports.index');
         Route::patch('message-reports/{directMessageReport}', [AdminMessageReportController::class, 'update'])
             ->name('admin.message-reports.update');
+        Route::get('appeals', [AdminPlatformAppealController::class, 'index'])
+            ->name('admin.appeals.index');
+        Route::patch('appeals/{platformAppeal}', [AdminPlatformAppealController::class, 'update'])
+            ->name('admin.appeals.update');
         Route::put('members/{member:handle}/suspension', [MemberSuspensionController::class, 'store'])
             ->name('admin.members.suspension.store');
         Route::delete('members/{member:handle}/suspension', [MemberSuspensionController::class, 'destroy'])

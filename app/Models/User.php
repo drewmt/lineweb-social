@@ -10,6 +10,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -37,6 +38,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property bool $is_discoverable
  * @property PlatformRole $platform_role
  * @property Carbon|null $suspended_at
+ * @property string|null $suspension_reference
  * @property string|null $suspension_reason
  * @property int|null $suspended_by
  * @property Carbon|null $email_verified_at
@@ -49,6 +51,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property Carbon|null $updated_at
  * @property-read int $shared_space_count
  * @property-read NotificationPreference|null $notificationPreference
+ * @property-read Collection<int, PlatformAppeal> $platformAppeals
  */
 #[Fillable([
     'name',
@@ -68,6 +71,7 @@ use Laravel\Sanctum\HasApiTokens;
     'two_factor_recovery_codes',
     'remember_token',
     'suspension_reason',
+    'suspension_reference',
     'suspended_by',
 ])]
 class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
@@ -154,6 +158,12 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     public function notificationPreference(): HasOne
     {
         return $this->hasOne(NotificationPreference::class);
+    }
+
+    /** @return HasMany<PlatformAppeal, $this> */
+    public function platformAppeals(): HasMany
+    {
+        return $this->hasMany(PlatformAppeal::class);
     }
 
     /** @return HasMany<PostReport, $this> */

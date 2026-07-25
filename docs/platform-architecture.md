@@ -116,14 +116,17 @@ encryption claims. The full boundary is documented in
 [`message-reporting.md`](message-reporting.md).
 
 Platform administration is a separate privileged boundary from Space
-moderation. Its dedicated Overview, Members, Safety, and Audit surfaces share
-one protected operator shell, while every web entry point remains protected by
-explicit role middleware. Administrator assignment is console-only, and the
-write service rechecks the actor under a database lock. Suspension revokes
+moderation. Its dedicated Overview, Members, Appeals, Safety, and Audit surfaces
+share one protected operator shell, while every web entry point remains
+protected by explicit role middleware. Administrator assignment is console-only,
+and write services recheck the actor under a database lock. Suspension revokes
 active sessions and API tokens but does not silently remove public content.
+Each restriction has one bounded, human-reviewed member appeal; approval is an
+explicit transactional account action rather than automated enforcement.
 Extensions must enforce the shared active-account middleware on
-member-authenticated write and API surfaces. The full contract is documented in
-[`platform-administration.md`](platform-administration.md).
+member-authenticated write and API surfaces. The full contracts are documented
+in [`platform-administration.md`](platform-administration.md) and
+[`account-appeals.md`](account-appeals.md).
 
 ## Near-term contract work
 

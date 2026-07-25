@@ -220,9 +220,9 @@ surrounding conversation to administrators.
 Space moderation and platform administration are separate permission
 boundaries. Community teams manage their Spaces; trusted platform operators
 work from a dedicated responsive control center with separate Overview,
-Members, Safety, and append-only Audit surfaces. Account restrictions remain
-reason-required, while private safety reviews expose only the evidence a member
-explicitly submitted.
+Members, Appeals, Safety, and append-only Audit surfaces. Account restrictions
+remain reason-required, account appeals are human-reviewed, and private safety
+reviews expose only the evidence a member explicitly submitted.
 
 <table>
   <tr>
@@ -236,6 +236,28 @@ explicitly submitted.
   <tr>
     <td align="center"><sub>Focused operations, real queues, and privileged audit trail</sub></td>
     <td align="center"><sub>App-like mobile operator navigation</sub></td>
+  </tr>
+</table>
+
+### Account decisions with a visible path back
+
+Restricted members keep one clear Account Status surface, their data rights, and
+one bounded appeal for each distinct restriction. Operators review it in a
+dedicated queue; approval explicitly restores access and no automated system
+makes the final decision.
+
+<table>
+  <tr>
+    <td width="68%">
+      <img src="docs/screenshots/account-appeals-admin-desktop.jpg" alt="Lineweb Social human-reviewed account appeals queue on desktop" />
+    </td>
+    <td width="32%">
+      <img src="docs/screenshots/account-status-mobile.jpg" alt="Lineweb Social restricted member Account Status on mobile" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Member context, internal record, and explicit operator action</sub></td>
+    <td align="center"><sub>Clear status, human review, and preserved data rights</sub></td>
   </tr>
 </table>
 
@@ -262,7 +284,7 @@ explicitly submitted.
 
 | Area                | Included today                                                                                                                                                              |
 | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Accounts            | Verified registration, stable handles, passkeys, two-factor authentication, strong password defaults, and active-account enforcement.                                       |
+| Accounts            | Verified registration, stable handles, passkeys, two-factor authentication, strong password defaults, active-account enforcement, and one human-reviewed appeal per restriction. |
 | Profiles            | Editable member identity, headlines, real activity, public/shared/private visibility, and discovery opt-out.                                                                |
 | Spaces              | Public/private/hidden communities, searchable directory, join/leave rules, restricted invitations, roles, ownership transfer, member removal, and bounded curated highlights. |
 | Publishing          | Focused composer, author-only drafts, private normalized WebP images with required alt text, chronological posts, comments, permanent conversations, and author controls.     |
@@ -271,7 +293,7 @@ explicitly submitted.
 | Messaging           | Canonical one-to-one conversations, participant-only history, unread state, block-aware delivery, and responsive inbox/thread views.                                        |
 | Trust and safety    | Mute, mutual block, Safety recovery, post/comment reporting, Space moderation queues, Direct Message reporting, and audited decisions.                                      |
 | Notifications       | Database-backed replies, mentions, and moderation alerts with per-category preferences and destination access revalidation.                                                 |
-| Platform operations | Dedicated responsive control center, console-granted administrators, focused member and private-safety queues, reason-required suspension/reinstatement, session and API-token revocation, and searchable append-only audit history. |
+| Platform operations | Dedicated responsive control center, console-granted administrators, focused member, appeals, and private-safety queues, transactional suspension/reinstatement, session and API-token revocation, and searchable append-only audit history. |
 | Data rights         | Password-confirmed personal JSON export and self-service deletion with active-community ownership safeguards.                                                               |
 | Developer surface   | Contract-first bearer API, scoped expiring Sanctum tokens, domain events, OpenAPI draft, and allowlisted local extension manifests.                                         |
 
@@ -377,6 +399,7 @@ only code structure.
 | Post media validation and lifecycle              | [`docs/media.md`](docs/media.md)                                                     |
 | Unicode topics and visibility                    | [`docs/topics.md`](docs/topics.md)                                                   |
 | Platform administration                          | [`docs/platform-administration.md`](docs/platform-administration.md)                 |
+| Account status and human-reviewed appeals         | [`docs/account-appeals.md`](docs/account-appeals.md)                                 |
 | Personal export and account deletion             | [`docs/privacy-and-data-rights.md`](docs/privacy-and-data-rights.md)                 |
 | Example extension manifest                       | [`extensions/example-polls/extension.json`](extensions/example-polls/extension.json) |
 

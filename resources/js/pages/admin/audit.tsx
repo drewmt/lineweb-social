@@ -50,6 +50,10 @@ const categories: Array<{ value: Category; label: string }> = [
 const auditLabels: Record<string, string> = {
     'member.suspended': 'Member suspended',
     'member.reinstated': 'Member reinstated',
+    'appeal.submitted': 'Account appeal submitted',
+    'appeal.reviewing': 'Account appeal review started',
+    'appeal.approved': 'Account appeal approved',
+    'appeal.denied': 'Account appeal not approved',
     'administrator.granted': 'Administrator granted',
     'administrator.revoked': 'Administrator revoked',
     'direct_message_report.reviewing': 'Message report review started',
