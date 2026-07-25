@@ -4,6 +4,7 @@ import {
     Bookmark,
     Compass,
     Feather,
+    FileText,
     Home,
     MessageCircle,
     Search,
@@ -61,6 +62,12 @@ const navItems = [
         subtitle: 'Your private reading list',
         href: '/saved',
         icon: Bookmark,
+    },
+    {
+        title: 'Drafts',
+        subtitle: 'Unpublished work',
+        href: '/drafts',
+        icon: FileText,
     },
     {
         title: 'Notifications',
@@ -132,7 +139,8 @@ function UserButton({
 }
 
 export function DesktopSocialNav() {
-    const { auth, messageSummary, notificationSummary } = usePage().props;
+    const { auth, draftSummary, messageSummary, notificationSummary } =
+        usePage().props;
     const { isCurrentOrParentUrl } = useCurrentUrl();
 
     return (
@@ -147,12 +155,14 @@ export function DesktopSocialNav() {
                     {navItems.map((item) => {
                         const active = isCurrentOrParentUrl(item.href);
                         const Icon = item.icon;
-                        const unreadCount =
+                        const badgeCount =
                             item.href === '/notifications'
                                 ? notificationSummary.unreadCount
                                 : item.href === '/messages'
                                   ? messageSummary.unreadCount
-                                  : 0;
+                                  : item.href === '/drafts'
+                                    ? draftSummary.count
+                                    : 0;
 
                         return (
                             <Link
@@ -188,9 +198,16 @@ export function DesktopSocialNav() {
                                         {item.subtitle}
                                     </span>
                                 </span>
-                                {unreadCount > 0 && (
-                                    <span className="flex min-w-6 items-center justify-center rounded-full bg-coral px-1.5 py-1 text-[0.62rem] font-black text-white tabular-nums">
-                                        {unreadCount > 99 ? '99+' : unreadCount}
+                                {badgeCount > 0 && (
+                                    <span
+                                        className={cn(
+                                            'flex min-w-6 items-center justify-center rounded-full px-1.5 py-1 text-[0.62rem] font-black tabular-nums',
+                                            item.href === '/drafts'
+                                                ? 'bg-secondary text-foreground'
+                                                : 'bg-coral text-white',
+                                        )}
+                                    >
+                                        {badgeCount > 99 ? '99+' : badgeCount}
                                     </span>
                                 )}
                                 {active && (
@@ -206,7 +223,7 @@ export function DesktopSocialNav() {
                     size="lg"
                     className="mt-6 min-h-12 w-full rounded-2xl shadow-[0_16px_28px_-18px_color-mix(in_oklab,var(--primary)_85%,transparent)]"
                 >
-                    <Link href="/feed#compose">
+                    <Link href="/compose">
                         <Feather className="size-4.5" aria-hidden="true" />
                         Share an update
                     </Link>
@@ -285,7 +302,7 @@ export function MobileSocialTabs() {
     const mobileItems = [
         { title: 'Home', href: '/feed', icon: Home },
         { title: 'Spaces', href: '/spaces', icon: Compass },
-        { title: 'Post', href: '/feed#compose', icon: Feather, primary: true },
+        { title: 'Post', href: '/compose', icon: Feather, primary: true },
         {
             title: 'Messages',
             href: '/messages',

@@ -9,10 +9,9 @@ class PostPolicy
 {
     public function view(User $user, Post $post): bool
     {
-        if ($post->published_at === null
-            && $post->user_id !== $user->getKey()
-            && ! $user->can('moderate', $post->space)) {
-            return false;
+        if ($post->published_at === null) {
+            return $post->user_id === $user->getKey()
+                && $post->hidden_at === null;
         }
 
         if ($post->hidden_at !== null
@@ -64,5 +63,12 @@ class PostPolicy
     public function delete(User $user, Post $post): bool
     {
         return $this->update($user, $post);
+    }
+
+    public function manageDraft(User $user, Post $post): bool
+    {
+        return $post->user_id === $user->getKey()
+            && $post->published_at === null
+            && $post->hidden_at === null;
     }
 }

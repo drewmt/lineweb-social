@@ -6,6 +6,10 @@ All notable project changes will be documented here.
 
 ### Added
 
+- Author-only post drafts with a focused mobile-first composer, dedicated
+  private library, 50-draft bound, normalized image retention and replacement,
+  accessible alt text, Space reassignment, deletion, and stable-ID publication
+  that delays topics and notifications until commit.
 - Privacy-bounded direct-message reporting with incoming-message-only
   authorization, duplicate and rate-limit protection, exact-message evidence
   without surrounding-thread disclosure, a responsive administrator queue,
@@ -86,6 +90,9 @@ All notable project changes will be documented here.
 
 ### Changed
 
+- Mobile publishing now opens a full-screen app-like workspace with persistent
+  draft and publish actions, while desktop keeps a focused writing surface and
+  clear privacy context.
 - Suspended-account enforcement now runs before email-verification checks so
   every restricted member reaches the same account-status and data-rights
   screen.

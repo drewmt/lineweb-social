@@ -16,8 +16,8 @@ The export currently includes:
 
 - profile and account fields, including platform role and suspension timestamp;
 - Space memberships and owned Space metadata;
-- posts, safe image metadata, comments, reactions, saves, follows, and safety
-  relationships;
+- published posts and private drafts, including publication state and safe image
+  metadata, plus comments, reactions, saves, follows, and safety relationships;
 - messages authored by the member;
 - notification metadata and notification preferences;
 - invitation and moderation activity without recipient addresses or internal

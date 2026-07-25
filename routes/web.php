@@ -13,6 +13,7 @@ use App\Http\Controllers\MessageController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PeopleController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\PostDraftController;
 use App\Http\Controllers\PostImageController;
 use App\Http\Controllers\PostReactionController;
 use App\Http\Controllers\PostReportController;
@@ -42,6 +43,22 @@ Route::middleware(['auth', 'account.active', 'verified'])->group(function () {
     Route::get('feed', FeedController::class)->name('feed');
     Route::get('following', FollowingFeedController::class)->name('following.index');
     Route::get('saved', [SavedPostController::class, 'index'])->name('saved.index');
+    Route::get('compose', [PostDraftController::class, 'create'])->name('posts.compose');
+    Route::get('drafts', [PostDraftController::class, 'index'])->name('drafts.index');
+    Route::post('drafts', [PostDraftController::class, 'store'])
+        ->middleware('throttle:post-drafts')
+        ->name('drafts.store');
+    Route::get('drafts/{post}/edit', [PostDraftController::class, 'edit'])
+        ->name('drafts.edit');
+    Route::patch('drafts/{post}', [PostDraftController::class, 'update'])
+        ->middleware('throttle:post-drafts')
+        ->name('drafts.update');
+    Route::post('drafts/{post}/publish', [PostDraftController::class, 'publish'])
+        ->middleware(['throttle:post-drafts', 'throttle:post-publishing'])
+        ->name('drafts.publish');
+    Route::delete('drafts/{post}', [PostDraftController::class, 'destroy'])
+        ->middleware('throttle:post-drafts')
+        ->name('drafts.destroy');
     Route::get('search', SearchController::class)
         ->middleware('throttle:community-search')
         ->name('search');
