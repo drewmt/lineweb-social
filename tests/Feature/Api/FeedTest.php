@@ -10,6 +10,7 @@ use App\Models\Post;
 use App\Models\PostReaction;
 use App\Models\PostReport;
 use App\Models\Space;
+use App\Models\Topic;
 use App\Models\User;
 use App\Models\UserFollow;
 use App\Models\UserRelationship;
@@ -53,9 +54,11 @@ class FeedTest extends TestCase
             'published_at' => now()->subMinutes(2),
         ]);
         $newerPrivate = Post::factory()->for($private)->for($privateAuthor, 'author')->create([
-            'body' => 'Newer private-member post for @api-viewer',
+            'body' => 'Newer private-member #laravel post for @api-viewer',
             'published_at' => now()->subMinute(),
         ]);
+        $topic = Topic::query()->create(['name' => 'laravel']);
+        $newerPrivate->topics()->attach($topic);
 
         Comment::factory()->for($olderPublic)->for($visibleCommenter, 'author')->create();
         Comment::factory()->for($olderPublic)->for($mutedCommenter, 'author')->create();
@@ -107,6 +110,8 @@ class FeedTest extends TestCase
             ->assertJsonPath('data.0.id', (string) $newerPrivate->getKey())
             ->assertJsonPath('data.0.mentions.0.handle', 'api-viewer')
             ->assertJsonPath('data.0.mentions.0.url', route('people.show', $viewer))
+            ->assertJsonPath('data.0.topics.0.name', 'laravel')
+            ->assertJsonPath('data.0.topics.0.url', route('topics.show', $topic))
             ->assertJsonPath('data.0.viewer.can_comment', true)
             ->assertJsonPath('data.0.author.profile_visible', true)
             ->assertJsonPath('data.0.space.slug', $private->slug)
@@ -132,7 +137,7 @@ class FeedTest extends TestCase
             ->assertHeader('X-RateLimit-Limit', '120');
 
         $this->assertSame(
-            ['id', 'body', 'mentions', 'published_at', 'edited_at', 'media', 'comments_count', 'reactions', 'author', 'space', 'viewer'],
+            ['id', 'body', 'mentions', 'topics', 'published_at', 'edited_at', 'media', 'comments_count', 'reactions', 'author', 'space', 'viewer'],
             array_keys($response->json('data.0')),
         );
         $this->assertSame(

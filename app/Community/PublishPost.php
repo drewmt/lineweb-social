@@ -2,6 +2,7 @@
 
 namespace App\Community;
 
+use App\Community\Topics\SyncPostTopics;
 use App\Events\PostPublished;
 use App\Media\ImageNormalizer;
 use App\Media\NormalizedImage;
@@ -17,7 +18,10 @@ use Throwable;
 
 final class PublishPost
 {
-    public function __construct(private readonly ImageNormalizer $images) {}
+    public function __construct(
+        private readonly ImageNormalizer $images,
+        private readonly SyncPostTopics $topics,
+    ) {}
 
     public function publish(
         User $author,
@@ -67,6 +71,8 @@ final class PublishPost
                     ]);
                     $post->setRelation('media', $media);
                 }
+
+                $this->topics->sync($post);
 
                 return $post;
             });

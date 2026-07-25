@@ -5,6 +5,7 @@ namespace App\Community;
 use App\Enums\UserRelationshipType;
 use App\Models\Post;
 use App\Models\Space;
+use App\Models\Topic;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -29,6 +30,7 @@ final class VisiblePostQuery
             ->with([
                 'author:id,name,handle,headline',
                 'media',
+                'topics:id,name',
                 'space' => fn ($spaces) => $spaces
                     ->addSelect([
                         'current_role' => DB::table('space_members')
@@ -73,6 +75,16 @@ final class VisiblePostQuery
                 'author:id,name,handle',
                 'space:id,name,slug',
             ]);
+    }
+
+    /** @return Builder<Post> */
+    public function forTopic(User $viewer, Topic $topic): Builder
+    {
+        return $this->base($viewer)
+            ->whereHas(
+                'topics',
+                fn (Builder $topics): Builder => $topics->whereKey($topic->getKey()),
+            );
     }
 
     /** @return Builder<Post> */

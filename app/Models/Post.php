@@ -6,6 +6,7 @@ use Database\Factories\PostFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
@@ -99,6 +100,12 @@ class Post extends Model
     public function reactions(): HasMany
     {
         return $this->hasMany(PostReaction::class);
+    }
+
+    /** @return BelongsToMany<Topic, $this> */
+    public function topics(): BelongsToMany
+    {
+        return $this->belongsToMany(Topic::class)->orderBy('topics.name');
     }
 
     /** @return HasOne<PostMedia, $this> */

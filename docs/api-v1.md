@@ -203,6 +203,8 @@ The first resources expose only allowlisted fields:
   communicates an author change without exposing internal update timestamps;
   each `mentions` array contains at most ten profile summaries that the current
   viewer may open, while inaccessible or unknown handles remain plain body text;
+  each post `topics` array contains at most ten normalized topic names and web
+  URLs, while topic discovery and counts always reapply current post visibility;
   post reactions expose bounded counts and only the current viewer's selected
   type, never reactor identities;
 - media exposes only the authorized API URL, alt text, normalized dimensions,

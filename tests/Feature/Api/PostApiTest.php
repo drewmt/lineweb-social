@@ -11,6 +11,7 @@ use App\Models\Post;
 use App\Models\PostReaction;
 use App\Models\PostReport;
 use App\Models\Space;
+use App\Models\Topic;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
@@ -31,8 +32,10 @@ class PostApiTest extends TestCase
         $space = Space::factory()->for($author, 'owner')->create();
         $space->addMember($viewer);
         $post = Post::factory()->for($space)->for($author, 'author')->create([
-            'body' => 'A stable post for @api-viewer.',
+            'body' => 'A stable #laravel post for @api-viewer.',
         ]);
+        $topic = Topic::query()->create(['name' => 'laravel']);
+        $post->topics()->attach($topic);
 
         Storage::fake('media');
         $mediaPath = 'posts/post-media.webp';
@@ -81,9 +84,11 @@ class PostApiTest extends TestCase
         $response
             ->assertOk()
             ->assertJsonPath('data.id', (string) $post->getKey())
-            ->assertJsonPath('data.body', 'A stable post for @api-viewer.')
+            ->assertJsonPath('data.body', 'A stable #laravel post for @api-viewer.')
             ->assertJsonPath('data.mentions.0.handle', 'api-viewer')
             ->assertJsonPath('data.mentions.0.url', route('people.show', $viewer))
+            ->assertJsonPath('data.topics.0.name', 'laravel')
+            ->assertJsonPath('data.topics.0.url', route('topics.show', $topic))
             ->assertJsonPath('data.comments_count', 1)
             ->assertJsonPath('data.reactions.total', 1)
             ->assertJsonPath('data.reactions.counts.celebrate', 1)
@@ -103,7 +108,7 @@ class PostApiTest extends TestCase
             ->assertJsonMissingPath('data.media.author_id');
 
         $this->assertSame(
-            ['id', 'body', 'mentions', 'published_at', 'edited_at', 'media', 'comments_count', 'reactions', 'author', 'space', 'viewer'],
+            ['id', 'body', 'mentions', 'topics', 'published_at', 'edited_at', 'media', 'comments_count', 'reactions', 'author', 'space', 'viewer'],
             array_keys($response->json('data')),
         );
         $this->assertSame(

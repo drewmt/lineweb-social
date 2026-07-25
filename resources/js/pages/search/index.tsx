@@ -3,6 +3,7 @@ import {
     ArrowRight,
     Compass,
     Globe2,
+    Hash,
     LockKeyhole,
     MapPin,
     MessageSquareText,
@@ -50,10 +51,17 @@ type SearchPerson = {
     sharedSpaceCount: number;
 };
 
+type SearchTopic = {
+    name: string;
+    url: string;
+    visiblePostCount: number;
+};
+
 type SearchResults = {
     posts: SearchPost[];
     spaces: SearchSpace[];
     people: SearchPerson[];
+    topics: SearchTopic[];
 };
 
 type SearchProps = {
@@ -95,11 +103,16 @@ function SearchStart({ minimumQueryLength }: { minimumQueryLength: number }) {
             title: 'People',
             copy: 'Discover members who chose to be found and are visible to you.',
         },
+        {
+            icon: Hash,
+            title: 'Topics',
+            copy: 'Follow themes across the conversations you can currently open.',
+        },
     ];
 
     return (
         <section
-            className="grid gap-3 md:grid-cols-3"
+            className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
             aria-label="Search areas"
         >
             {discoveryAreas.map((area, index) => {
@@ -213,6 +226,63 @@ function PostResults({ posts }: { posts: SearchPost[] }) {
                                 />
                             </Link>
                         </article>
+                    ))}
+                </div>
+            )}
+        </section>
+    );
+}
+
+function TopicResults({ topics }: { topics: SearchTopic[] }) {
+    return (
+        <section aria-labelledby="topic-results-title">
+            <div className="mb-3 flex items-center justify-between px-1">
+                <h2
+                    id="topic-results-title"
+                    className="text-lg font-black tracking-tight"
+                >
+                    Topics
+                </h2>
+                <span className="text-xs font-extrabold text-muted-foreground tabular-nums">
+                    {topics.length}
+                </span>
+            </div>
+            {topics.length === 0 ? (
+                <div className="social-card rounded-[1.35rem] p-5 text-sm leading-6 text-muted-foreground">
+                    No visible topics match.
+                </div>
+            ) : (
+                <div className="social-card grid gap-px overflow-hidden rounded-[1.35rem] bg-border/60 sm:grid-cols-2 lg:grid-cols-1">
+                    {topics.map((topic) => (
+                        <Link
+                            key={topic.name}
+                            href={topic.url}
+                            className="social-focus group flex min-h-20 items-center gap-3 bg-card p-3.5 transition-colors hover:bg-primary/[0.055]"
+                        >
+                            <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary transition-transform group-hover:scale-[1.03]">
+                                <Hash
+                                    className="size-5"
+                                    strokeWidth={2.4}
+                                    aria-hidden="true"
+                                />
+                            </span>
+                            <span className="min-w-0 flex-1">
+                                <span className="block truncate font-black tracking-tight">
+                                    #{topic.name}
+                                </span>
+                                <span className="mt-0.5 block text-xs font-semibold text-muted-foreground">
+                                    {topic.visiblePostCount.toLocaleString()}{' '}
+                                    visible{' '}
+                                    {topic.visiblePostCount === 1
+                                        ? 'conversation'
+                                        : 'conversations'}
+                                </span>
+                            </span>
+                            <ArrowRight
+                                className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary"
+                                aria-hidden="true"
+                            />
+                        </Link>
                     ))}
                 </div>
             )}
@@ -381,7 +451,10 @@ export default function Search({
     results,
 }: SearchProps) {
     const totalResults =
-        results.posts.length + results.spaces.length + results.people.length;
+        results.posts.length +
+        results.spaces.length +
+        results.people.length +
+        results.topics.length;
     const hasSearched = query.length >= minimumQueryLength;
 
     const submit = (event: FormEvent<HTMLFormElement>) => {
@@ -414,8 +487,8 @@ export default function Search({
                             Find what matters.
                         </h1>
                         <p className="mt-3 max-w-2xl text-sm leading-6 text-background/65 sm:text-base">
-                            Search the conversations, Spaces, and people you are
-                            already allowed to discover.
+                            Search conversations, topics, Spaces, and people you
+                            are already allowed to discover.
                         </p>
 
                         <form
@@ -438,7 +511,7 @@ export default function Search({
                                     minLength={minimumQueryLength}
                                     maxLength={100}
                                     autoComplete="off"
-                                    placeholder="Search posts, Spaces, or people"
+                                    placeholder="Search posts, topics, Spaces, or people"
                                     className="min-w-0 flex-1 bg-transparent text-base font-semibold outline-none placeholder:text-muted-foreground"
                                 />
                             </label>
@@ -508,6 +581,7 @@ export default function Search({
                         <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(19rem,.8fr)]">
                             <PostResults posts={results.posts} />
                             <aside className="space-y-6">
+                                <TopicResults topics={results.topics} />
                                 <SpaceResults spaces={results.spaces} />
                                 <PeopleResults people={results.people} />
                             </aside>

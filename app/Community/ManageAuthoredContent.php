@@ -4,6 +4,7 @@ namespace App\Community;
 
 use App\Community\Mentions\MentionNotifier;
 use App\Community\Mentions\MentionParser;
+use App\Community\Topics\SyncPostTopics;
 use App\Enums\ReportStatus;
 use App\Models\Comment;
 use App\Models\Post;
@@ -17,6 +18,7 @@ final class ManageAuthoredContent
     public function __construct(
         private readonly MentionParser $mentionParser,
         private readonly MentionNotifier $mentionNotifier,
+        private readonly SyncPostTopics $topics,
     ) {}
 
     public function updatePost(User $author, Post $post, string $body): bool
@@ -39,6 +41,7 @@ final class ManageAuthoredContent
                 'body' => $body,
                 'edited_at' => now(),
             ]);
+            $this->topics->sync($lockedPost);
 
             return compact('changed', 'previousHandles');
         });

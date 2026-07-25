@@ -9,6 +9,7 @@ use App\Models\Comment;
 use App\Models\CommentReport;
 use App\Models\Post;
 use App\Models\PostReport;
+use App\Models\Topic;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -38,6 +39,7 @@ final class PostConversation
             'author:id,name,handle',
             'space:id,name,slug,description,visibility',
             'media',
+            'topics:id,name',
         ]);
         $post->space->loadCount('members');
         $post->loadExists([
@@ -115,6 +117,13 @@ final class PostConversation
                 'url' => route('posts.show', $post),
                 'body' => $post->body,
                 'mentions' => $this->mentions->forBody($post->body, $resolvedMentions),
+                'topics' => $post->topics
+                    ->map(fn (Topic $topic): array => [
+                        'name' => $topic->name,
+                        'url' => route('topics.show', $topic),
+                    ])
+                    ->values()
+                    ->all(),
                 'media' => $this->media->for($post),
                 'publishedAt' => $post->published_at?->toIso8601String(),
                 'editedAt' => $post->edited_at?->toIso8601String(),

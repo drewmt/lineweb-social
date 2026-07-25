@@ -1142,6 +1142,25 @@
           }
         }
       },
+      "ContentTopic": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "url"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 50
+          },
+          "url": {
+            "type": "string",
+            "format": "uri-reference"
+          }
+        }
+      },
       "Comment": {
         "type": "object",
         "additionalProperties": false,
@@ -1208,6 +1227,7 @@
           "id",
           "body",
           "mentions",
+          "topics",
           "published_at",
           "edited_at",
           "media",
@@ -1230,6 +1250,13 @@
             "maxItems": 10,
             "items": {
               "$ref": "#/components/schemas/ContentMention"
+            }
+          },
+          "topics": {
+            "type": "array",
+            "maxItems": 10,
+            "items": {
+              "$ref": "#/components/schemas/ContentTopic"
             }
           },
           "published_at": {

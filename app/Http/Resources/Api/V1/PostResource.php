@@ -4,6 +4,7 @@ namespace App\Http\Resources\Api\V1;
 
 use App\Models\Post;
 use App\Models\PostMedia;
+use App\Models\Topic;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -28,6 +29,13 @@ class PostResource extends JsonResource
             'id' => (string) $post->getKey(),
             'body' => $post->body,
             'mentions' => $post->getAttribute('content_mentions') ?? [],
+            'topics' => $post->topics
+                ->map(fn (Topic $topic): array => [
+                    'name' => $topic->name,
+                    'url' => route('topics.show', $topic),
+                ])
+                ->values()
+                ->all(),
             'published_at' => $post->published_at?->toIso8601String(),
             'edited_at' => $post->edited_at?->toIso8601String(),
             'media' => $media instanceof PostMedia ? [

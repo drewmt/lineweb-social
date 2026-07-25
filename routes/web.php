@@ -25,6 +25,7 @@ use App\Http\Controllers\SpaceMemberController;
 use App\Http\Controllers\SpaceMembershipController;
 use App\Http\Controllers\SpaceModerationController;
 use App\Http\Controllers\SuspendedAccountController;
+use App\Http\Controllers\TopicController;
 use App\Http\Controllers\UserFollowController;
 use App\Http\Controllers\UserRelationshipController;
 use Illuminate\Support\Facades\Route;
@@ -42,6 +43,9 @@ Route::middleware(['auth', 'account.active', 'verified'])->group(function () {
     Route::get('search', SearchController::class)
         ->middleware('throttle:community-search')
         ->name('search');
+    Route::get('topics/{topic:name}', TopicController::class)
+        ->middleware('throttle:community-search')
+        ->name('topics.show');
     Route::get('notifications', [NotificationController::class, 'index'])
         ->name('notifications.index');
     Route::post('notifications/{notification}/open', [NotificationController::class, 'open'])

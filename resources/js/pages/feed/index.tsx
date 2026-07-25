@@ -5,6 +5,7 @@ import {
     ChevronDown,
     Flag,
     Globe2,
+    Hash,
     ImagePlus,
     LockKeyhole,
     MessageCircle,
@@ -23,7 +24,10 @@ import { CommentThread } from '@/components/social/comment-thread';
 import type { SocialComment } from '@/components/social/comment-thread';
 import { CommunitySignal } from '@/components/social/community-signal';
 import { MentionText } from '@/components/social/mention-text';
-import type { ContentMention } from '@/components/social/mention-text';
+import type {
+    ContentMention,
+    ContentTopic,
+} from '@/components/social/mention-text';
 import { PostImage } from '@/components/social/post-image';
 import type { PostMedia } from '@/components/social/post-image';
 import { PostReactions } from '@/components/social/post-reactions';
@@ -52,6 +56,7 @@ type FeedPost = {
     url: string;
     body: string;
     mentions: ContentMention[];
+    topics: ContentTopic[];
     media: PostMedia | null;
     publishedAt: string | null;
     editedAt: string | null;
@@ -73,13 +78,20 @@ type ReportReason = {
     label: string;
 };
 
+type FeedTopic = {
+    name: string;
+    url: string;
+    visiblePostCount: number;
+};
+
 type FeedProps = {
     spaces: Space[];
     posts: FeedPost[];
     reportReasons: ReportReason[];
     reactionTypes: ReactionType[];
     selectedSpace: string | null;
-    viewMode?: 'feed' | 'saved' | 'following';
+    viewMode?: 'feed' | 'saved' | 'following' | 'topic';
+    topic?: FeedTopic;
     status?: string;
 };
 
@@ -551,7 +563,11 @@ function PostCard({
                 </div>
             </header>
             <p className="mt-4 text-[1.01rem] leading-7 whitespace-pre-wrap text-foreground/92 sm:text-[1.04rem] sm:leading-8">
-                <MentionText body={previewBody} mentions={item.mentions} />
+                <MentionText
+                    body={previewBody}
+                    mentions={item.mentions}
+                    topics={item.topics}
+                />
             </p>
             {hasLongBody && (
                 <button
@@ -735,6 +751,59 @@ function FeedRail({
     );
 }
 
+function TopicHeader({ topic }: { topic: FeedTopic }) {
+    return (
+        <header className="social-card relative mb-5 overflow-hidden rounded-[1.55rem] border-foreground bg-foreground px-5 py-6 text-background sm:px-7 sm:py-8">
+            <div
+                className="pointer-events-none absolute -top-16 -right-10 size-48 rounded-full border-[2.25rem] border-white/[0.045]"
+                aria-hidden="true"
+            />
+            <div className="relative flex items-start gap-4">
+                <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-mint text-ink shadow-[0_14px_28px_-18px_rgba(0,0,0,.8)] sm:size-14">
+                    <Hash
+                        className="size-6 sm:size-7"
+                        strokeWidth={2.5}
+                        aria-hidden="true"
+                    />
+                </span>
+                <div className="min-w-0 flex-1">
+                    <p className="text-[0.68rem] font-extrabold tracking-[0.15em] text-mint uppercase">
+                        Topic trail
+                    </p>
+                    <h1 className="mt-1 text-3xl leading-none font-black tracking-[-0.055em] break-words sm:text-[2.65rem]">
+                        #{topic.name}
+                    </h1>
+                    <p className="mt-3 max-w-xl text-sm leading-6 text-background/67">
+                        {topic.visiblePostCount.toLocaleString()} visible{' '}
+                        {topic.visiblePostCount === 1
+                            ? 'conversation'
+                            : 'conversations'}
+                        , filtered for your current access and ordered by time.
+                    </p>
+                    <div className="mt-4 flex flex-wrap items-center gap-2">
+                        <span className="rounded-full bg-white/[0.08] px-3 py-1.5 text-[0.68rem] font-extrabold text-background/80">
+                            Chronological
+                        </span>
+                        <span className="rounded-full bg-white/[0.08] px-3 py-1.5 text-[0.68rem] font-extrabold text-background/80">
+                            Access-aware
+                        </span>
+                        <Link
+                            href="/search"
+                            className="social-focus inline-flex min-h-9 items-center gap-1.5 rounded-full px-3 text-xs font-extrabold text-mint transition-colors hover:bg-white/[0.07]"
+                        >
+                            Find another topic
+                            <ArrowRight
+                                className="size-3.5"
+                                aria-hidden="true"
+                            />
+                        </Link>
+                    </div>
+                </div>
+            </div>
+        </header>
+    );
+}
+
 export default function Feed({
     spaces,
     posts,
@@ -742,10 +811,12 @@ export default function Feed({
     reactionTypes,
     selectedSpace,
     viewMode = 'feed',
+    topic,
     status,
 }: FeedProps) {
     const savedView = viewMode === 'saved';
     const followingView = viewMode === 'following';
+    const topicView = viewMode === 'topic' && topic !== undefined;
     const selected = spaces.find((space) => space.slug === selectedSpace);
     const postingSpaces = selected
         ? selected.isMember
@@ -770,83 +841,94 @@ export default function Feed({
                         ? 'Saved posts'
                         : followingView
                           ? 'Following'
-                          : selected
-                            ? selected.name
-                            : 'Home'
+                          : topicView
+                            ? `#${topic.name}`
+                            : selected
+                              ? selected.name
+                              : 'Home'
                 }
             />
             <main className="social-page">
                 <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,44rem)_20rem] xl:justify-center">
                     <div className="min-w-0">
-                        <header className="mb-4 px-1 sm:mb-5">
-                            <div className="flex flex-wrap items-end justify-between gap-3">
-                                <div>
-                                    <div className="flex items-center gap-2 text-xs font-extrabold tracking-[0.12em] text-primary uppercase">
-                                        <CommunitySignal />
-                                        {savedView
-                                            ? 'Your private library'
-                                            : followingView
-                                              ? 'People you chose'
-                                              : selected
-                                                ? 'Inside this space'
-                                                : 'Your social home'}
+                        {topicView ? (
+                            <TopicHeader topic={topic} />
+                        ) : (
+                            <header className="mb-4 px-1 sm:mb-5">
+                                <div className="flex flex-wrap items-end justify-between gap-3">
+                                    <div>
+                                        <div className="flex items-center gap-2 text-xs font-extrabold tracking-[0.12em] text-primary uppercase">
+                                            <CommunitySignal />
+                                            {savedView
+                                                ? 'Your private library'
+                                                : followingView
+                                                  ? 'People you chose'
+                                                  : selected
+                                                    ? 'Inside this space'
+                                                    : 'Your social home'}
+                                        </div>
+                                        <h1 className="mt-1 text-2xl font-black tracking-[-0.035em] sm:text-[2rem]">
+                                            {savedView
+                                                ? 'Saved posts'
+                                                : followingView
+                                                  ? 'Following'
+                                                  : (selected?.name ??
+                                                    'Good to see you.')}
+                                        </h1>
+                                        <p className="mt-1 max-w-xl text-sm leading-6 text-muted-foreground">
+                                            {savedView
+                                                ? 'A private reading list of conversations you want to revisit.'
+                                                : followingView
+                                                  ? 'Recent posts from people you follow — in chronological order.'
+                                                  : (selected?.description ??
+                                                    'Fresh conversations from the communities you chose — always chronological.')}
+                                        </p>
                                     </div>
-                                    <h1 className="mt-1 text-2xl font-black tracking-[-0.035em] sm:text-[2rem]">
-                                        {savedView
-                                            ? 'Saved posts'
-                                            : followingView
-                                              ? 'Following'
-                                              : (selected?.name ??
-                                                'Good to see you.')}
-                                    </h1>
-                                    <p className="mt-1 max-w-xl text-sm leading-6 text-muted-foreground">
-                                        {savedView
-                                            ? 'A private reading list of conversations you want to revisit.'
-                                            : followingView
-                                              ? 'Recent posts from people you follow — in chronological order.'
-                                              : (selected?.description ??
-                                                'Fresh conversations from the communities you chose — always chronological.')}
-                                    </p>
-                                </div>
-                                {selected && !savedView && (
-                                    <div className="flex flex-wrap items-center gap-2">
-                                        {selected.canManage && (
-                                            <Button asChild variant="outline">
-                                                <Link
-                                                    href={`/spaces/${selected.slug}/manage`}
-                                                >
-                                                    Manage
-                                                </Link>
-                                            </Button>
-                                        )}
-                                        {!selected.isMember &&
-                                            selected.visibility ===
-                                                'public' && (
-                                                <Button onClick={joinSelected}>
-                                                    Join space
-                                                </Button>
-                                            )}
-                                        {selected.isMember &&
-                                            !selected.isOwner && (
+                                    {selected && !savedView && (
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            {selected.canManage && (
                                                 <Button
-                                                    onClick={leaveSelected}
+                                                    asChild
                                                     variant="outline"
                                                 >
-                                                    Leave
+                                                    <Link
+                                                        href={`/spaces/${selected.slug}/manage`}
+                                                    >
+                                                        Manage
+                                                    </Link>
                                                 </Button>
                                             )}
-                                        <Link
-                                            href="/feed"
-                                            className="social-focus rounded-xl px-3 py-2 text-sm font-bold text-primary transition-colors hover:bg-primary/8"
-                                        >
-                                            Full feed
-                                        </Link>
-                                    </div>
-                                )}
-                            </div>
-                        </header>
+                                            {!selected.isMember &&
+                                                selected.visibility ===
+                                                    'public' && (
+                                                    <Button
+                                                        onClick={joinSelected}
+                                                    >
+                                                        Join space
+                                                    </Button>
+                                                )}
+                                            {selected.isMember &&
+                                                !selected.isOwner && (
+                                                    <Button
+                                                        onClick={leaveSelected}
+                                                        variant="outline"
+                                                    >
+                                                        Leave
+                                                    </Button>
+                                                )}
+                                            <Link
+                                                href="/feed"
+                                                className="social-focus rounded-xl px-3 py-2 text-sm font-bold text-primary transition-colors hover:bg-primary/8"
+                                            >
+                                                Full feed
+                                            </Link>
+                                        </div>
+                                    )}
+                                </div>
+                            </header>
+                        )}
 
-                        {!selected && !savedView && (
+                        {!selected && !savedView && !topicView && (
                             <nav
                                 className="mb-4 flex w-fit rounded-full bg-secondary/70 p-1"
                                 aria-label="Choose timeline"
@@ -880,13 +962,16 @@ export default function Feed({
                             </nav>
                         )}
 
-                        {!selected && !savedView && !followingView && (
-                            <SpacePulse
-                                spaces={spaces.filter(
-                                    (space) => space.isMember,
-                                )}
-                            />
-                        )}
+                        {!selected &&
+                            !savedView &&
+                            !followingView &&
+                            !topicView && (
+                                <SpacePulse
+                                    spaces={spaces.filter(
+                                        (space) => space.isMember,
+                                    )}
+                                />
+                            )}
                         {status && (
                             <div
                                 role="status"
@@ -903,10 +988,12 @@ export default function Feed({
                                     ? 'Saved posts'
                                     : followingView
                                       ? 'Following feed'
-                                      : 'Community feed'
+                                      : topicView
+                                        ? `Posts about ${topic.name}`
+                                        : 'Community feed'
                             }
                         >
-                            {!savedView && !followingView && (
+                            {!savedView && !followingView && !topicView && (
                                 <Composer spaces={postingSpaces} />
                             )}
                             {posts.length === 0 ? (
@@ -922,6 +1009,11 @@ export default function Feed({
                                                 className="size-6"
                                                 aria-hidden="true"
                                             />
+                                        ) : topicView ? (
+                                            <Hash
+                                                className="size-6"
+                                                aria-hidden="true"
+                                            />
                                         ) : (
                                             <UsersRound
                                                 className="size-6"
@@ -934,14 +1026,18 @@ export default function Feed({
                                             ? 'Nothing saved yet.'
                                             : followingView
                                               ? 'Your Following feed is ready.'
-                                              : 'The room is ready.'}
+                                              : topicView
+                                                ? `No visible posts for #${topic.name}.`
+                                                : 'The room is ready.'}
                                     </h2>
                                     <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
                                         {savedView
                                             ? 'Use Save on any post to keep it here for later.'
                                             : followingView
                                               ? 'Follow people from their profiles to see their visible posts here.'
-                                              : 'Be the first member to start a thoughtful conversation here.'}
+                                              : topicView
+                                                ? 'Posts may have been removed, moderated, or moved outside your current community access.'
+                                                : 'Be the first member to start a thoughtful conversation here.'}
                                     </p>
                                     {followingView && (
                                         <Button
