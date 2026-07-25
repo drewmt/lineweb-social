@@ -12,6 +12,8 @@ The core owns invariants that an extension must not bypass:
 - profile visibility, discovery, idempotent follows, mute, and mutual block
   boundaries;
 - Space visibility, roles, membership, invitations, and ownership;
+- bounded Space highlights with moderator-only writes, chronological timeline
+  isolation, and append-only audit records;
 - chronological posts and comments;
 - author-only unpublished posts, bounded draft ownership, and explicit
   publication side effects;
@@ -78,6 +80,13 @@ reaction per member and post, serializes changes with the parent post, and emits
 projections expose aggregate counts plus the current viewer's type; they never
 expose reactor identities. Extensions may listen to the event for analytics or
 batched notifications, but must recheck post visibility before delivery.
+
+Space highlights are a bounded curation layer rather than a ranking signal.
+Owners and moderators can select at most three published, visible posts under a
+serialized Space lock. The highlight projection reuses normal post visibility,
+does not reorder the timeline, and exposes no selecting-member identity to web
+or API readers. The full contract is documented in
+[`space-highlights.md`](space-highlights.md).
 
 Post topics are normalized indexes, not independent public content. Topic pages
 and search counts begin from the same policy-filtered post query, so a tag never

@@ -9,6 +9,7 @@ import {
     ImagePlus,
     LockKeyhole,
     MessageCircle,
+    Pin,
     Share2,
     Send,
     UserRoundCheck,
@@ -60,6 +61,8 @@ type FeedPost = {
     media: PostMedia | null;
     publishedAt: string | null;
     editedAt: string | null;
+    isHighlighted: boolean;
+    highlightedAt: string | null;
     canComment: boolean;
     canReport: boolean;
     canEdit: boolean;
@@ -87,6 +90,7 @@ type FeedTopic = {
 type FeedProps = {
     spaces: Space[];
     posts: FeedPost[];
+    highlights?: FeedPost[];
     reportReasons: ReportReason[];
     reactionTypes: ReactionType[];
     selectedSpace: string | null;
@@ -107,6 +111,7 @@ const publishedLabel = (value: string | null) => {
 };
 
 const FEED_PREVIEW_LENGTH = 280;
+const MAX_SPACE_HIGHLIGHTS = 3;
 
 function SpacePulse({ spaces }: { spaces: Space[] }) {
     if (spaces.length === 0) {
@@ -418,19 +423,140 @@ function MobileComposerLauncher({ spaces }: { spaces: Space[] }) {
     );
 }
 
+function SpaceHighlights({
+    posts,
+    canManage,
+}: {
+    posts: FeedPost[];
+    canManage: boolean;
+}) {
+    if (posts.length === 0) {
+        return canManage ? (
+            <section
+                className="social-card mb-4 flex items-start gap-3 rounded-[1.35rem] border-dashed p-4 sm:mb-5 sm:p-5"
+                aria-labelledby="space-highlights-title"
+            >
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                    <Pin className="size-5" aria-hidden="true" />
+                </span>
+                <div>
+                    <h2
+                        id="space-highlights-title"
+                        className="font-extrabold tracking-tight"
+                    >
+                        Set the starting point
+                    </h2>
+                    <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                        Highlight up to three useful posts using the pin
+                        controls in the timeline below.
+                    </p>
+                </div>
+            </section>
+        ) : null;
+    }
+
+    return (
+        <section
+            className="mb-4 sm:mb-5"
+            aria-labelledby="space-highlights-title"
+        >
+            <div className="mb-3 flex items-end justify-between px-1">
+                <div>
+                    <p className="text-[0.68rem] font-extrabold tracking-[0.16em] text-primary uppercase">
+                        Curated by the Space team
+                    </p>
+                    <h2
+                        id="space-highlights-title"
+                        className="mt-0.5 text-xl font-black tracking-[-0.025em]"
+                    >
+                        Start here
+                    </h2>
+                </div>
+                <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-extrabold text-muted-foreground">
+                    {posts.length} / {MAX_SPACE_HIGHLIGHTS}
+                </span>
+            </div>
+            <div className="-mx-3 flex snap-x scroll-px-4 [scrollbar-width:none] gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden">
+                {posts.map((post, index) => (
+                    <Link
+                        key={post.id}
+                        href={post.url}
+                        className="social-card social-card-interactive social-focus group flex w-[82vw] max-w-[21rem] shrink-0 snap-start flex-col overflow-hidden rounded-[1.35rem] sm:w-auto"
+                    >
+                        {post.media ? (
+                            <div className="relative h-32 overflow-hidden bg-secondary">
+                                <img
+                                    src={post.media.url}
+                                    alt={post.media.alt}
+                                    width={post.media.width}
+                                    height={post.media.height}
+                                    loading="lazy"
+                                    decoding="async"
+                                    className="size-full object-cover transition-transform duration-300 group-hover:scale-[1.025]"
+                                />
+                                <span className="absolute top-3 left-3 inline-flex min-h-8 items-center gap-1.5 rounded-full bg-card/92 px-2.5 text-[0.68rem] font-extrabold text-foreground shadow-sm backdrop-blur">
+                                    <Pin
+                                        className="size-3.5 text-primary"
+                                        aria-hidden="true"
+                                    />
+                                    Highlight {index + 1}
+                                </span>
+                            </div>
+                        ) : (
+                            <div className="flex h-20 items-center justify-between border-b border-border/60 bg-secondary/38 px-4">
+                                <span className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                                    <Pin
+                                        className="size-4"
+                                        aria-hidden="true"
+                                    />
+                                </span>
+                                <span className="text-2xl font-black tracking-[-0.06em] text-muted-foreground/45">
+                                    0{index + 1}
+                                </span>
+                            </div>
+                        )}
+                        <div className="flex min-h-36 flex-1 flex-col p-4">
+                            <p className="line-clamp-3 text-sm leading-6 font-bold tracking-[-0.01em]">
+                                {post.body}
+                            </p>
+                            <div className="mt-auto flex items-end justify-between gap-3 pt-4 text-xs font-semibold text-muted-foreground">
+                                <span className="truncate">
+                                    {post.author.name}
+                                </span>
+                                <span className="shrink-0">
+                                    {post.commentsCount.toLocaleString()}{' '}
+                                    {post.commentsCount === 1
+                                        ? 'reply'
+                                        : 'replies'}
+                                </span>
+                            </div>
+                        </div>
+                    </Link>
+                ))}
+            </div>
+        </section>
+    );
+}
+
 function PostCard({
     item,
     reportReasons,
     reactionTypes,
+    highlightControls,
 }: {
     item: FeedPost;
     reportReasons: ReportReason[];
     reactionTypes: ReactionType[];
+    highlightControls?: {
+        spaceSlug: string;
+        limitReached: boolean;
+    } | null;
 }) {
     const [reporting, setReporting] = useState(false);
     const [copyFeedback, setCopyFeedback] = useState(false);
     const [copyTimer, setCopyTimer] = useState<number | null>(null);
     const [saving, setSaving] = useState(false);
+    const [highlighting, setHighlighting] = useState(false);
     const [, copy] = useClipboard();
     const { data, setData, post, processing, errors, reset } = useForm({
         reason: '',
@@ -490,6 +616,27 @@ function PostCard({
         router.put(url, {}, options);
     };
 
+    const toggleHighlight = () => {
+        if (!highlightControls) {
+            return;
+        }
+
+        const url = `/spaces/${encodeURIComponent(highlightControls.spaceSlug)}/posts/${item.id}/highlight`;
+        const options = {
+            preserveScroll: true,
+            onStart: () => setHighlighting(true),
+            onFinish: () => setHighlighting(false),
+        };
+
+        if (item.isHighlighted) {
+            router.delete(url, options);
+
+            return;
+        }
+
+        router.put(url, {}, options);
+    };
+
     return (
         <article className="social-card rounded-[1.35rem] p-4 sm:p-5">
             <header className="flex flex-wrap items-start gap-3">
@@ -533,6 +680,13 @@ function PostCard({
                                 · Edited
                             </span>
                         )}
+                        {item.isHighlighted && (
+                            <span className="ml-1.5 inline-flex items-center gap-1 font-extrabold text-primary">
+                                ·
+                                <Pin className="size-3" aria-hidden="true" />
+                                Highlighted
+                            </span>
+                        )}
                     </Link>
                 </div>
                 <div className="flex w-full flex-wrap items-center gap-1 border-t border-border/60 pt-2 sm:w-auto sm:shrink-0 sm:gap-2 sm:border-0 sm:pt-0">
@@ -545,6 +699,46 @@ function PostCard({
                         deleteUrl={`/posts/${item.id}`}
                         maxLength={2000}
                     />
+                    {highlightControls && (
+                        <button
+                            type="button"
+                            onClick={toggleHighlight}
+                            disabled={
+                                highlighting ||
+                                (!item.isHighlighted &&
+                                    highlightControls.limitReached)
+                            }
+                            aria-pressed={item.isHighlighted}
+                            aria-label={
+                                item.isHighlighted
+                                    ? 'Remove from Space highlights'
+                                    : 'Add to Space highlights'
+                            }
+                            title={
+                                !item.isHighlighted &&
+                                highlightControls.limitReached
+                                    ? 'Remove a current highlight before adding another.'
+                                    : item.isHighlighted
+                                      ? 'Remove from Space highlights'
+                                      : 'Add to Space highlights'
+                            }
+                            className={`social-focus inline-flex size-11 shrink-0 items-center justify-center rounded-xl text-xs font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-45 ${
+                                item.isHighlighted
+                                    ? 'bg-primary/10 text-primary hover:bg-primary/15'
+                                    : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                            }`}
+                        >
+                            <Pin
+                                className={`size-3.5 ${item.isHighlighted ? 'fill-current' : ''}`}
+                                aria-hidden="true"
+                            />
+                            <span className="sr-only">
+                                {item.isHighlighted
+                                    ? 'Remove from Space highlights'
+                                    : 'Add to Space highlights'}
+                            </span>
+                        </button>
+                    )}
                     <button
                         type="button"
                         onClick={toggleSaved}
@@ -848,6 +1042,7 @@ function TopicHeader({ topic }: { topic: FeedTopic }) {
 export default function Feed({
     spaces,
     posts,
+    highlights = [],
     reportReasons,
     reactionTypes,
     selectedSpace,
@@ -1021,6 +1216,12 @@ export default function Feed({
                                 {status}
                             </div>
                         )}
+                        {selected && !savedView && !topicView && (
+                            <SpaceHighlights
+                                posts={highlights}
+                                canManage={selected.canManage}
+                            />
+                        )}
 
                         <section
                             className="space-y-3 sm:space-y-4"
@@ -1106,6 +1307,16 @@ export default function Feed({
                                         item={item}
                                         reportReasons={reportReasons}
                                         reactionTypes={reactionTypes}
+                                        highlightControls={
+                                            selected?.canManage
+                                                ? {
+                                                      spaceSlug: selected.slug,
+                                                      limitReached:
+                                                          highlights.length >=
+                                                          MAX_SPACE_HIGHLIGHTS,
+                                                  }
+                                                : null
+                                        }
                                     />
                                 ))
                             )}

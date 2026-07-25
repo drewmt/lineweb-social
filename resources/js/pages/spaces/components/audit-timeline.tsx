@@ -12,6 +12,8 @@ const actionLabels: Record<string, string> = {
     'member.role_changed': 'changed a member role',
     'member.removed': 'removed a member',
     'ownership.transferred': 'transferred ownership',
+    'post.highlighted': 'added a post to Space highlights',
+    'post.unhighlighted': 'removed a post from Space highlights',
     'post_report.review_started': 'started reviewing a post report',
     'post_report.resolved': 'hid a reported post',
     'post_report.dismissed': 'dismissed a post report',

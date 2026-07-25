@@ -30,6 +30,7 @@ final class VisiblePostQuery
             ->with([
                 'author:id,name,handle,headline',
                 'media',
+                'highlight',
                 'topics:id,name',
                 'space' => fn ($spaces) => $spaces
                     ->addSelect([

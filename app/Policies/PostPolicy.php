@@ -71,4 +71,16 @@ class PostPolicy
             && $post->published_at === null
             && $post->hidden_at === null;
     }
+
+    public function highlight(User $user, Post $post): bool
+    {
+        return $post->published_at !== null
+            && $post->hidden_at === null
+            && $user->can('moderate', $post->space);
+    }
+
+    public function removeHighlight(User $user, Post $post): bool
+    {
+        return $user->can('moderate', $post->space);
+    }
 }

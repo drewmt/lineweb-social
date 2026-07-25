@@ -6,6 +6,10 @@ All notable project changes will be documented here.
 
 ### Added
 
+- Bounded Space highlights with owner/moderator-only transactional pinning,
+  append-only audit history, after-write events, visibility-safe web and API
+  projections, and a swipeable app-first presentation that leaves the
+  chronological timeline unchanged.
 - Author-only post drafts with a focused mobile-first composer, dedicated
   private library, 50-draft bound, normalized image retention and replacement,
   accessible alt text, Space reassignment, deletion, and stable-ID publication

@@ -200,7 +200,9 @@ The first resources expose only allowlisted fields:
 - Spaces exclude invitation recipients, audit records, and hidden membership;
 - posts and comments exclude storage paths, report details, moderator notes,
   hidden timestamps, and author account identifiers; nullable `edited_at`
-  communicates an author change without exposing internal update timestamps;
+  communicates an author change without exposing internal update timestamps,
+  while nullable post `highlighted_at` exposes current Space curation without
+  revealing the moderator who selected it;
   each `mentions` array contains at most ten profile summaries that the current
   viewer may open, while inaccessible or unknown handles remain plain body text;
   each post `topics` array contains at most ten normalized topic names and web

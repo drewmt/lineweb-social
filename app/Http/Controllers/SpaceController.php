@@ -55,6 +55,11 @@ class SpaceController extends Controller
         return Inertia::render('feed/index', [
             'spaces' => $feed->spaces($user),
             'posts' => $feed->posts($user, $space),
+            'highlights' => $feed->posts(
+                user: $user,
+                space: $space,
+                highlightedOnly: true,
+            ),
             'reportReasons' => ReportReason::options(),
             'reactionTypes' => PostReactionType::options(),
             'selectedSpace' => $space->slug,
