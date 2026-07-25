@@ -377,6 +377,47 @@ function Composer({ spaces }: { spaces: Space[] }) {
     );
 }
 
+function MobileComposerLauncher({ spaces }: { spaces: Space[] }) {
+    const { auth, draftSummary } = usePage<{
+        auth: Auth;
+        draftSummary: { count: number };
+    }>().props;
+    const selectedSpace = spaces[0]?.slug;
+    const composeUrl = selectedSpace
+        ? `/compose?space=${encodeURIComponent(selectedSpace)}`
+        : '/compose';
+
+    return (
+        <div className="social-card overflow-hidden rounded-[1.35rem] sm:hidden">
+            <Link
+                href={composeUrl}
+                className="social-focus flex min-h-20 items-center gap-3 px-4 py-4"
+            >
+                <AvatarMark name={auth.user.name} className="size-11" />
+                <span className="flex min-h-12 min-w-0 flex-1 items-center rounded-full bg-secondary/70 px-4 text-sm font-semibold text-muted-foreground">
+                    Share something with your community
+                </span>
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-full text-primary">
+                    <ImagePlus className="size-5" aria-hidden="true" />
+                </span>
+            </Link>
+            <div className="flex items-center justify-between gap-3 border-t border-border/65 bg-secondary/25 px-4 py-2.5">
+                <span className="text-xs font-semibold text-muted-foreground">
+                    Opens a focused, full-screen composer
+                </span>
+                <Link
+                    href="/drafts"
+                    className="social-focus rounded-full px-2.5 py-1.5 text-xs font-extrabold text-primary hover:bg-primary/8"
+                >
+                    {draftSummary.count > 0
+                        ? `${draftSummary.count} ${draftSummary.count === 1 ? 'draft' : 'drafts'}`
+                        : 'Drafts'}
+                </Link>
+            </div>
+        </div>
+    );
+}
+
 function PostCard({
     item,
     reportReasons,
@@ -994,7 +1035,14 @@ export default function Feed({
                             }
                         >
                             {!savedView && !followingView && !topicView && (
-                                <Composer spaces={postingSpaces} />
+                                <>
+                                    <MobileComposerLauncher
+                                        spaces={postingSpaces}
+                                    />
+                                    <div className="hidden sm:block">
+                                        <Composer spaces={postingSpaces} />
+                                    </div>
+                                </>
                             )}
                             {posts.length === 0 ? (
                                 <div className="social-card rounded-[1.35rem] px-6 py-12 text-center">

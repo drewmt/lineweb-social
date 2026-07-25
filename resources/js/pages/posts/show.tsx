@@ -236,7 +236,7 @@ export default function ShowPost({
                             {(post.isDraft || post.isHidden) && (
                                 <div className="border-b border-coral/20 bg-coral/10 px-4 py-3 text-sm font-bold sm:px-5">
                                     {post.isDraft
-                                        ? 'This draft is visible only to its author and Space moderators.'
+                                        ? 'This private draft is visible only to its author.'
                                         : 'This post is hidden from community feeds.'}
                                 </div>
                             )}

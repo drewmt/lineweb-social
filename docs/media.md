@@ -14,8 +14,9 @@ can stabilize before extensions depend on them.
 - The decoded source may contain at most 12 million pixels.
 - The stored result is a single static WebP image, at most 2,048 pixels on its
   longest edge.
+- Draft authors may replace or remove their image before publication.
 - Galleries, animated images, video, audio, remote URL imports, direct-to-cloud
-  uploads, editing, and replacement are outside this release.
+  uploads, and published-media replacement are outside this release.
 
 ## Upload trust boundary
 
@@ -34,6 +35,11 @@ whole post instead of keeping a partially trusted file.
 The image is owned by its post and inherits the post's author, Space, visibility,
 mute/block, publication, and moderation rules. Metadata uses an explicit foreign
 key to the post; the public projection never exposes a storage disk or path.
+
+An unpublished image is author-only. Space owners and moderators do not gain
+access to another member's draft or its image. Draft replacement stores the new
+normalized object before removing the previous object after commit, so a failed
+write does not discard the last saved image.
 
 Files live on the configured private media disk. They are not symlinked into the
 web root and do not receive public object-store URLs. An authenticated controller

@@ -78,6 +78,32 @@ relationship, and navigation paths.
   </tr>
 </table>
 
+### Publishing without pressure
+
+A focused composer keeps unfinished text and images private until the author
+chooses to publish. Members can return through a dedicated draft library, move a
+draft to another Space they can post in, and publish without changing its post
+identity.
+
+<table>
+  <tr>
+    <td width="58%">
+      <img src="docs/screenshots/composer-desktop.jpg" alt="Lineweb Social private post composer on desktop" />
+    </td>
+    <td width="21%">
+      <img src="docs/screenshots/composer-mobile.jpg" alt="Lineweb Social app-like private post composer on mobile" />
+    </td>
+    <td width="21%">
+      <img src="docs/screenshots/drafts-mobile.jpg" alt="Lineweb Social private draft library on mobile" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Focused writing and explicit publication</sub></td>
+    <td align="center"><sub>App-first mobile composer</sub></td>
+    <td align="center"><sub>Private unfinished work</sub></td>
+  </tr>
+</table>
+
 ### Spaces and community operations
 
 Public, private, and hidden Spaces combine publishing context with explicit
@@ -231,7 +257,7 @@ manage account access and private safety reviews.
 | Accounts            | Verified registration, stable handles, passkeys, two-factor authentication, strong password defaults, and active-account enforcement.                                       |
 | Profiles            | Editable member identity, headlines, real activity, public/shared/private visibility, and discovery opt-out.                                                                |
 | Spaces              | Public/private/hidden communities, searchable directory, join/leave rules, restricted invitations, roles, ownership transfer, and member removal.                           |
-| Publishing          | Chronological posts, one normalized private WebP image with required alt text, comments, permanent conversations, author editing/deletion, and visible edited state.        |
+| Publishing          | Focused composer, author-only drafts, private normalized WebP images with required alt text, chronological posts, comments, permanent conversations, and author controls.     |
 | Discovery           | Policy-filtered search across posts, Spaces, and People; Unicode hashtags; chronological topic trails; and privacy-aware Following.                                         |
 | Interactions        | Typed Like, Celebrate, and Insightful reactions, private Saved Posts, follows, mentions, comments, copy links, and conversation shortcuts.                                  |
 | Messaging           | Canonical one-to-one conversations, participant-only history, unread state, block-aware delivery, and responsive inbox/thread views.                                        |
@@ -339,6 +365,7 @@ only code structure.
 | Private message reporting and evidence retention | [`docs/message-reporting.md`](docs/message-reporting.md)                             |
 | Post/comment moderation and domain events        | [`docs/moderation.md`](docs/moderation.md)                                           |
 | Notification privacy and delivery categories     | [`docs/notifications.md`](docs/notifications.md)                                     |
+| Private post drafts and publication boundary     | [`docs/post-drafts.md`](docs/post-drafts.md)                                         |
 | Post media validation and lifecycle              | [`docs/media.md`](docs/media.md)                                                     |
 | Unicode topics and visibility                    | [`docs/topics.md`](docs/topics.md)                                                   |
 | Platform administration                          | [`docs/platform-administration.md`](docs/platform-administration.md)                 |

@@ -18,6 +18,9 @@ declare module '@inertiajs/core' {
             messageSummary: {
                 unreadCount: number;
             };
+            draftSummary: {
+                count: number;
+            };
             sidebarOpen: boolean;
             [key: string]: unknown;
         };

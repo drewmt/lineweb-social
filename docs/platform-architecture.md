@@ -13,6 +13,8 @@ The core owns invariants that an extension must not bypass:
   boundaries;
 - Space visibility, roles, membership, invitations, and ownership;
 - chronological posts and comments;
+- author-only unpublished posts, bounded draft ownership, and explicit
+  publication side effects;
 - normalized post topics whose pages, visible counts, and search results reuse
   current post-visibility boundaries;
 - a separate chronological Following projection that reapplies current profile,
@@ -49,6 +51,13 @@ projection. It preserves Space visibility, publication, moderation, mute, block,
 profile-visibility, and report-state boundaries while exposing comments in
 chronological 20-item pages. Feed previews link into this canonical view instead
 of attempting to load an unbounded thread inline.
+
+The post composer writes unfinished content through a separate draft service.
+Drafts reuse post identifiers and normalized private media, but remain
+author-only and absent from feeds, search, profiles, topics, mentions, APIs, and
+moderation queues. Publication revalidates current Space membership, commits the
+final post state, and only then emits the normal publication event. The full
+contract is documented in [`post-drafts.md`](post-drafts.md).
 
 The notification center consumes a separate server-side projection over Laravel
 database notifications. Stored payloads contain identifiers only. Every render
