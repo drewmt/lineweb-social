@@ -1,59 +1,107 @@
-# Lineweb Social
+<div align="center">
+  <img src="public/favicon.svg" width="84" height="84" alt="Lineweb Social" />
 
-[![Tests](https://github.com/drewmt/lineweb-social/actions/workflows/tests.yml/badge.svg)](https://github.com/drewmt/lineweb-social/actions/workflows/tests.yml)
-[![License: GPL-3.0-or-later](https://img.shields.io/badge/license-GPL--3.0--or--later-254ada.svg)](LICENSE)
-[![Release: alpha](https://img.shields.io/badge/release-alpha-f97316.svg)](https://github.com/drewmt/lineweb-social/releases)
+  <h1>Lineweb Social</h1>
 
-Lineweb Social is a Laravel-native, self-hosted foundation for calm, branded online communities and modern social products. It is built as a complete open core: useful community fundamentals first, followed by a stable extension ecosystem only after the core contract is proven.
+  <p><strong>Build the social product people want to stay in.</strong></p>
 
-The current release is `0.1.0-alpha.1`. It is suitable for local evaluation and community feedback, not production deployment.
+  <p>
+    A Laravel-native, self-hosted foundation for modern communities,<br />
+    creator networks, local platforms, and focused social products.
+  </p>
 
-## Product preview
+  <p>
+    <a href="https://github.com/drewmt/lineweb-social/actions/workflows/tests.yml"><img src="https://github.com/drewmt/lineweb-social/actions/workflows/tests.yml/badge.svg" alt="Tests" /></a>
+    <a href="https://github.com/drewmt/lineweb-social/releases"><img src="https://img.shields.io/badge/release-0.1.0--alpha.1-f97316.svg" alt="Release 0.1.0 alpha 1" /></a>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0--or--later-254ada.svg" alt="GPL 3.0 or later" /></a>
+    <img src="https://img.shields.io/badge/Laravel-13-FF2D20.svg?logo=laravel&logoColor=white" alt="Laravel 13" />
+    <img src="https://img.shields.io/badge/React-19-087EA4.svg?logo=react&logoColor=white" alt="React 19" />
+  </p>
+
+  <p>
+    <a href="#product-tour">Product tour</a> ·
+    <a href="#feature-map">Features</a> ·
+    <a href="#quick-start">Quick start</a> ·
+    <a href="#architecture-and-contracts">Architecture</a> ·
+    <a href="CONTRIBUTING.md">Contributing</a>
+  </p>
+</div>
 
 ![Lineweb Social product homepage on desktop](docs/screenshots/home-desktop.jpg)
+
+## A social foundation with a point of view
+
+Lineweb Social is not a generic feed demo and it is not trying to hide important
+platform decisions behind plugins. The core owns identity, visibility,
+conversations, moderation, and member safety so teams can build distinctive
+products without rebuilding the difficult boundaries first.
+
+| Community-owned                                                                  | Calm by default                                                                                   | Built to extend                                                                                                  |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Self-hosted source, data, rules, and branding stay under the operator's control. | Chronological feeds, explicit relationships, and low-noise notifications avoid engagement tricks. | Stable domain events, a contract-first API, and an allowlisted extension model create room for focused products. |
+
+### What you can build on it
+
+- Branded customer or product communities.
+- Creator, professional, alumni, or membership networks.
+- Local and interest-based social platforms.
+- Private organizational communities.
+- A focused social startup with its own media, commerce, events, learning, or
+  professional layer.
+
+The goal is a strong shared core—not a clone with someone else's product
+decisions baked in.
+
+## Product tour
+
+Every preview below uses synthetic local demo content. No private member data,
+credentials, database, uploads, or generated build output are part of the public
+repository.
+
+### Community home
+
+A responsive, chronological experience with clear publishing, conversation,
+relationship, and navigation paths.
+
+<table>
+  <tr>
+    <td width="68%">
+      <img src="docs/screenshots/feed-desktop.jpg" alt="Lineweb Social chronological community feed on desktop" />
+    </td>
+    <td width="32%">
+      <img src="docs/screenshots/feed-mobile.jpg" alt="Lineweb Social chronological community feed on mobile" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Focused desktop timeline</sub></td>
+    <td align="center"><sub>App-first mobile feed</sub></td>
+  </tr>
+</table>
+
+### Spaces and community operations
+
+Public, private, and hidden Spaces combine publishing context with explicit
+membership, invitation, role, ownership, and moderation boundaries.
 
 <table>
   <tr>
     <td width="50%">
-      <img src="docs/screenshots/feed-desktop.jpg" alt="Lineweb Social chronological feed on desktop" />
+      <img src="docs/screenshots/spaces-desktop.jpg" alt="Lineweb Social searchable Spaces directory" />
     </td>
     <td width="50%">
-      <img src="docs/screenshots/spaces-desktop.jpg" alt="Lineweb Social searchable Spaces directory on desktop" />
+      <img src="docs/screenshots/space-detail-desktop.jpg" alt="Lineweb Social Space detail and publishing experience" />
     </td>
   </tr>
   <tr>
-    <td align="center"><sub>Chronological community feed</sub></td>
-    <td align="center"><sub>Searchable Spaces directory</sub></td>
-  </tr>
-  <tr>
-    <td width="50%">
-      <img src="docs/screenshots/space-detail-desktop.jpg" alt="Lineweb Social Space detail and publishing surface on desktop" />
-    </td>
-    <td width="50%">
-      <img src="docs/screenshots/moderation-mobile.jpg" alt="Lineweb Social moderation queue on mobile" />
-    </td>
-  </tr>
-  <tr>
-    <td align="center"><sub>Space publishing and context</sub></td>
-    <td align="center"><sub>Accountable moderation queue</sub></td>
-  </tr>
-  <tr>
-    <td width="33%">
-      <img src="docs/screenshots/feed-mobile.jpg" alt="Lineweb Social chronological feed on mobile" />
-    </td>
-    <td width="33%">
-      <img src="docs/screenshots/profile-mobile.jpg" alt="Lineweb Social member profile on mobile" />
-    </td>
-    <td width="33%">
-      <img src="docs/screenshots/notifications-mobile.jpg" alt="Lineweb Social notification center on mobile" />
-    </td>
-  </tr>
-  <tr>
-    <td align="center"><sub>Mobile feed</sub></td>
-    <td align="center"><sub>Privacy-aware profile</sub></td>
-    <td align="center"><sub>Low-noise notifications</sub></td>
+    <td align="center"><sub>Searchable community directory</sub></td>
+    <td align="center"><sub>Space identity, context, and publishing</sub></td>
   </tr>
 </table>
+
+### Discovery without weakening privacy
+
+People, posts, Spaces, relationships, and topics remain discoverable only when
+the current member is allowed to see them.
 
 <table>
   <tr>
@@ -65,8 +113,8 @@ The current release is `0.1.0-alpha.1`. It is suitable for local evaluation and 
     </td>
   </tr>
   <tr>
-    <td align="center"><sub>Privacy-aware Following timeline</sub></td>
-    <td align="center"><sub>Mobile Following feed</sub></td>
+    <td align="center"><sub>People you chose, in chronological order</sub></td>
+    <td align="center"><sub>Private relationship state on mobile</sub></td>
   </tr>
 </table>
 
@@ -76,12 +124,12 @@ The current release is `0.1.0-alpha.1`. It is suitable for local evaluation and 
       <img src="docs/screenshots/search-desktop.jpg" alt="Lineweb Social policy-filtered global search on desktop" />
     </td>
     <td width="32%">
-      <img src="docs/screenshots/search-mobile.jpg" alt="Lineweb Social global search results on mobile" />
+      <img src="docs/screenshots/search-mobile.jpg" alt="Lineweb Social policy-filtered global search on mobile" />
     </td>
   </tr>
   <tr>
     <td align="center"><sub>Grouped search across visible community content</sub></td>
-    <td align="center"><sub>Mobile search and results</sub></td>
+    <td align="center"><sub>Focused mobile discovery</sub></td>
   </tr>
 </table>
 
@@ -91,22 +139,28 @@ The current release is `0.1.0-alpha.1`. It is suitable for local evaluation and 
       <img src="docs/screenshots/topic-desktop.jpg" alt="Lineweb Social privacy-aware topic trail on desktop" />
     </td>
     <td width="32%">
-      <img src="docs/screenshots/topic-mobile.jpg" alt="Lineweb Social topic trail on mobile" />
+      <img src="docs/screenshots/topic-mobile.jpg" alt="Lineweb Social privacy-aware topic trail on mobile" />
     </td>
   </tr>
   <tr>
-    <td align="center"><sub>Chronological, access-aware topic discovery</sub></td>
-    <td align="center"><sub>Mobile topic trail</sub></td>
+    <td align="center"><sub>Chronological, access-aware topic trails</sub></td>
+    <td align="center"><sub>Mobile hashtag discovery</sub></td>
   </tr>
 </table>
+
+### Private conversations with a visible safety boundary
+
+Direct Messages are participant-only, block-aware, and honest about server
+access. A member can report the exact incoming message without exposing the
+surrounding conversation to administrators.
 
 <table>
   <tr>
     <td width="68%">
-      <img src="docs/screenshots/messages-desktop.png" alt="Lineweb Social participant-only direct messages on desktop" />
+      <img src="docs/screenshots/messages-desktop.png" alt="Lineweb Social participant-only Direct Messages on desktop" />
     </td>
     <td width="32%">
-      <img src="docs/screenshots/messages-mobile.png" alt="Lineweb Social direct-message thread on mobile" />
+      <img src="docs/screenshots/messages-mobile.png" alt="Lineweb Social Direct Message thread on mobile" />
     </td>
   </tr>
   <tr>
@@ -118,17 +172,23 @@ The current release is `0.1.0-alpha.1`. It is suitable for local evaluation and 
 <table>
   <tr>
     <td width="68%">
-      <img src="docs/screenshots/message-safety-admin-desktop.jpg" alt="Lineweb Social evidence-limited direct-message safety queue on desktop" />
+      <img src="docs/screenshots/message-safety-admin-desktop.jpg" alt="Lineweb Social evidence-limited Direct Message safety queue on desktop" />
     </td>
     <td width="32%">
-      <img src="docs/screenshots/message-report-dialog-mobile.jpg" alt="Lineweb Social privacy-aware direct-message report dialog on mobile" />
+      <img src="docs/screenshots/message-report-dialog-mobile.jpg" alt="Lineweb Social privacy-aware Direct Message report dialog on mobile" />
     </td>
   </tr>
   <tr>
     <td align="center"><sub>Exact-message evidence and documented operator decisions</sub></td>
-    <td align="center"><sub>Clear member reporting boundary on mobile</sub></td>
+    <td align="center"><sub>Clear reporting scope before submission</sub></td>
   </tr>
 </table>
+
+### Moderation and platform ownership
+
+Space moderation and platform administration are separate permission
+boundaries. Community teams manage their Spaces; trusted platform operators
+manage account access and private safety reviews.
 
 <table>
   <tr>
@@ -136,7 +196,7 @@ The current release is `0.1.0-alpha.1`. It is suitable for local evaluation and 
       <img src="docs/screenshots/admin-desktop.jpg" alt="Lineweb Social protected platform administration dashboard on desktop" />
     </td>
     <td width="32%">
-      <img src="docs/screenshots/admin-mobile.jpg" alt="Lineweb Social platform metrics on mobile" />
+      <img src="docs/screenshots/admin-mobile.jpg" alt="Lineweb Social protected platform administration dashboard on mobile" />
     </td>
   </tr>
   <tr>
@@ -145,76 +205,104 @@ The current release is `0.1.0-alpha.1`. It is suitable for local evaluation and 
   </tr>
 </table>
 
-<sub>Current desktop and mobile screenshots use a local demo dataset; no private member data is included.</sub>
+<table>
+  <tr>
+    <td width="33%">
+      <img src="docs/screenshots/moderation-mobile.jpg" alt="Lineweb Social Space moderation queue on mobile" />
+    </td>
+    <td width="33%">
+      <img src="docs/screenshots/profile-mobile.jpg" alt="Lineweb Social privacy-aware member profile on mobile" />
+    </td>
+    <td width="33%">
+      <img src="docs/screenshots/notifications-mobile.jpg" alt="Lineweb Social low-noise notification center on mobile" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Accountable moderation</sub></td>
+    <td align="center"><sub>Complete member profiles</sub></td>
+    <td align="center"><sub>Low-noise notifications</sub></td>
+  </tr>
+</table>
 
-## Current vertical slice
+## Feature map
 
-- Verified accounts with passkey and two-factor support from Laravel Fortify.
-- Public, private, and hidden spaces.
-- Space creation, a searchable directory, public join/leave rules, and membership-based publishing.
-- Expiring email invitations for restricted Spaces with hashed tokens and verified-account matching.
-- Owner transfer, moderator role changes, reason-required member removal, and an auditable management log.
-- A chronological, non-algorithmic feed.
-- Idempotent Follow/Unfollow relationships with aggregate-only profile counts
-  and a separate chronological Following feed that preserves every privacy,
-  mute, block, moderation, and Space visibility boundary.
-- Policy-filtered global search across visible posts, accessible Spaces, and
-  discoverable people, with dedicated desktop and mobile entry points.
-- Privacy-safe Unicode hashtags with transactional post indexing, clickable
-  topic trails, viewer-specific visible counts, and topic results in global
-  search and read-only API resources.
-- Private Saved Posts with policy-filtered retrieval and quick access from the
-  desktop rail and mobile header.
-- Typed Like, Celebrate, and Insightful post reactions with one viewer choice,
-  aggregate-only counts, and a responsive feed/permalink interaction.
-- Membership-protected comments with compact feed previews, permanent post
-  links, and a full visibility-filtered paginated conversation view.
-- Privacy-safe `@handle` mentions in posts and comments, with bounded parsing,
-  viewer-resolved profile links, deduplicated alerts, and access rechecked when
-  a notification is opened.
-- Author-controlled editing and deletion for posts and comments, with visible
-  edited state and content changes locked while an active moderation review is
-  in progress.
-- One optional image per post with required alternative text, private storage,
-  policy-protected delivery, and metadata-stripping WebP normalization.
-- Private post and comment reporting with allowlisted reasons, duplicate protection, and separate rate limits.
-- A unified, policy-backed moderator queue with documented decisions, content hide/restore behavior, and append-only Space audit entries.
-- A low-noise in-app notification center for replies, direct mentions, and new
-  moderation reports, with per-category preferences, unread state, and access
-  rechecked when opened.
-- Participant-only direct messages with one canonical conversation per member
-  pair, owner-scoped unread state, block-aware sending, bounded history, and
-  responsive inbox/thread views.
-- Privacy-bounded direct-message reporting with incoming-message-only
-  authorization, exact-message evidence, no surrounding-thread disclosure, a
-  dedicated administrator queue, audited decisions, and scheduled retention.
-- Stable member handles, editable profiles with headlines, real visible
-  activity summaries, and privacy-aware People discovery.
-- Public, shared-Space-only, and private profile visibility with discovery opt-out.
-- Private one-way muting, mutual blocking, feed filtering, and a dedicated Safety recovery screen.
-- Password-confirmed, rate-limited personal JSON exports that stream complete
-  member-authored collections without exposing secrets or other participants'
-  messages.
-- Self-service account deletion that protects active communities by requiring
-  ownership transfer before another member's Space activity can be removed.
-- Console-bootstrapped platform administrators with a private operational
-  dashboard, reason-required account suspension, immediate session and API
-  revocation, safe reinstatement, and an append-only privileged audit trail.
-- An editorial, app-first responsive interface with dedicated desktop and
-  mobile navigation, a public product homepage, and complete member profiles.
-- Server-side authorization, validation, and publishing rate limits.
-- A local extension-manifest contract with explicit permission and UI-slot allowlists.
-- React 19, Inertia 3, TypeScript, Tailwind CSS 4, and Laravel 13.
+| Area                | Included today                                                                                                                                                              |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Accounts            | Verified registration, stable handles, passkeys, two-factor authentication, strong password defaults, and active-account enforcement.                                       |
+| Profiles            | Editable member identity, headlines, real activity, public/shared/private visibility, and discovery opt-out.                                                                |
+| Spaces              | Public/private/hidden communities, searchable directory, join/leave rules, restricted invitations, roles, ownership transfer, and member removal.                           |
+| Publishing          | Chronological posts, one normalized private WebP image with required alt text, comments, permanent conversations, author editing/deletion, and visible edited state.        |
+| Discovery           | Policy-filtered search across posts, Spaces, and People; Unicode hashtags; chronological topic trails; and privacy-aware Following.                                         |
+| Interactions        | Typed Like, Celebrate, and Insightful reactions, private Saved Posts, follows, mentions, comments, copy links, and conversation shortcuts.                                  |
+| Messaging           | Canonical one-to-one conversations, participant-only history, unread state, block-aware delivery, and responsive inbox/thread views.                                        |
+| Trust and safety    | Mute, mutual block, Safety recovery, post/comment reporting, Space moderation queues, Direct Message reporting, and audited decisions.                                      |
+| Notifications       | Database-backed replies, mentions, and moderation alerts with per-category preferences and destination access revalidation.                                                 |
+| Platform operations | Console-granted administrators, protected metrics/member search, reason-required suspension/reinstatement, session and API-token revocation, and append-only audit history. |
+| Data rights         | Password-confirmed personal JSON export and self-service deletion with active-community ownership safeguards.                                                               |
+| Developer surface   | Contract-first bearer API, scoped expiring Sanctum tokens, domain events, OpenAPI draft, and allowlisted local extension manifests.                                         |
 
-This is an early development build, not a production release. Message
-attachments, galleries and video, email and push notification delivery,
-advanced indexed search, generalized administrator audit retention tooling,
-and a supported extension lifecycle are still pending.
+## Product principles
 
-## Local setup
+### Chronological before algorithmic
 
-Requirements: PHP 8.3+ with GD/WebP, EXIF, and Fileinfo, Composer, Node.js, npm,
-and SQLite (or another Laravel-supported database).
+The core does not rank a member's home or Following feed. Products can add a
+different discovery layer later without making the shared social graph depend
+on opaque engagement scoring.
+
+### Safety belongs in the core
+
+Visibility, mute, block, moderation, account access, report evidence, and audit
+history are server-side contracts—not frontend decoration.
+
+### Private means policy-enforced, not magically encrypted
+
+Direct Messages and private media are access-controlled by the application.
+Messages are not end-to-end encrypted, and server operators retain normal
+database access.
+
+### Extension points should not bypass the platform
+
+The current extension prototype accepts configured local manifests with known
+permissions and UI slots. Remote downloads, arbitrary ZIP installation, and
+automatic execution of unreviewed code are intentionally unavailable.
+
+## Alpha status
+
+> [!IMPORTANT]
+> `0.1.0-alpha.1` is for local evaluation, extension-contract discussion, and
+> early community feedback. It is not a production release.
+
+The following are deliberately still outside the supported core:
+
+- Message attachments, group conversations, realtime presence, and delivery
+  receipts.
+- Galleries, video, and direct-to-object-storage uploads.
+- Email and push notification delivery.
+- Advanced indexed search and a stable extension installation lifecycle.
+- Complete audit archival/export and deployment-specific retention tooling.
+- A production support, upgrade, and compatibility policy.
+
+This boundary is intentional: the public source should be honest about what is
+implemented, tested, and supported.
+
+## Technology
+
+| Layer                  | Stack                                                         |
+| ---------------------- | ------------------------------------------------------------- |
+| Backend                | PHP 8.3+, Laravel 13, Fortify, Sanctum                        |
+| Frontend               | React 19, Inertia 3, TypeScript, Tailwind CSS 4               |
+| Interface primitives   | Radix UI, Lucide icons                                        |
+| Default local database | SQLite                                                        |
+| Quality                | PHPUnit, PHPStan/Larastan, Pint, ESLint, Prettier, TypeScript |
+| License                | GPL-3.0-or-later                                              |
+
+## Quick start
+
+Requirements:
+
+- PHP 8.3+ with GD/WebP, EXIF, Fileinfo, and SQLite support.
+- Composer 2.
+- Node.js 22 and npm.
 
 ```bash
 git clone https://github.com/drewmt/lineweb-social.git
@@ -223,75 +311,60 @@ composer run setup
 composer run dev
 ```
 
-The default development database is SQLite. Copy `.env.example` to `.env` if the setup script has not already done so.
+`composer run setup` installs dependencies, creates the local environment,
+generates the application key, runs migrations, and builds the frontend. The
+default example mailer writes messages to the local log; configure a real
+transactional provider before inviting members in a deployment.
 
-Invitation emails use Laravel's configured mailer. The example environment logs mail locally; configure a real transactional provider before inviting people in a deployed environment.
-
-## Quality checks
+### Quality checks
 
 ```bash
-composer run test
-npm run lint:check
-npm run format:check
-npm run types:check
+composer run ci:check
 npm run build
+composer validate --strict
 composer audit
 npm audit --omit=dev
 ```
 
-## Extension safety model
+## Architecture and contracts
 
-The current manifest prototype discovers extensions only from configured local directories during deployment. Manifests must use known permissions and UI slots. Runtime remote downloads, arbitrary ZIP installation, and automatic execution of unreviewed code are intentionally out of scope.
+The implementation is intentionally documented around boundaries rather than
+only code structure.
 
-See [`extensions/example-polls/extension.json`](extensions/example-polls/extension.json) for the first contract example.
-
-Moderation integrations can listen to after-transaction domain events. See [`docs/moderation.md`](docs/moderation.md) for the lifecycle, authorization boundaries, and guidance for adding new reportable content types.
-
-The first notification contract deliberately stores identifiers rather than
-content excerpts or report details. See [`docs/notifications.md`](docs/notifications.md)
-for delivery categories, privacy boundaries, and extension guidance.
-
-Post images are decoded from untrusted uploads, normalized to static WebP, kept
-on a private disk, and authorized through their parent post. See
-[`docs/media.md`](docs/media.md) for the limits, lifecycle, and storage contract.
-
-The authenticated native/decoupled API is being developed contract-first. Its
-available operations expose the member's safe profile, visible profiles and
-Spaces, and a policy-filtered chronological feed with bearer-protected private
-images. Expiring, explicitly scoped tokens are created from recently confirmed
-Security settings. Cursor pagination, throttling, CORS, stable errors, and
-allowlisted resources are enforced before each planned endpoint becomes
-available. See
-[`docs/api-v1.md`](docs/api-v1.md) and the machine-readable
-[`docs/openapi.json`](docs/openapi.json).
-
-The core owns identity, Spaces, visibility, follow and safety relationships,
-conversations, and moderation. Product-specific experiences—photo grids,
-short-video feeds, professional timelines, events, commerce, or
-learning—should build on those boundaries through presentation layers and
-extensions rather than weakening core policies. See
-[`docs/platform-architecture.md`](docs/platform-architecture.md) for the current
-separation and the contracts that still need to mature.
-
-Personal JSON export and account deletion are implemented as security-sensitive
-account flows, not as a compliance claim. See
-[`docs/privacy-and-data-rights.md`](docs/privacy-and-data-rights.md) for the
-included data, explicit secret and third-party exclusions, ownership-transfer
-guard, and deployment responsibilities.
-
-Platform administration is intentionally small and fail-closed. Administrator
-access is granted only from a trusted console, while suspension and
-reinstatement require an audited reason. See
-[`docs/platform-administration.md`](docs/platform-administration.md) for the
-role, access, audit, and account-restriction contracts.
+| Contract                                         | Documentation                                                                        |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------ |
+| Platform boundaries and extension direction      | [`docs/platform-architecture.md`](docs/platform-architecture.md)                     |
+| Authenticated API and machine-readable draft     | [`docs/api-v1.md`](docs/api-v1.md) · [`docs/openapi.json`](docs/openapi.json)        |
+| Direct Messages                                  | [`docs/direct-messages.md`](docs/direct-messages.md)                                 |
+| Private message reporting and evidence retention | [`docs/message-reporting.md`](docs/message-reporting.md)                             |
+| Post/comment moderation and domain events        | [`docs/moderation.md`](docs/moderation.md)                                           |
+| Notification privacy and delivery categories     | [`docs/notifications.md`](docs/notifications.md)                                     |
+| Post media validation and lifecycle              | [`docs/media.md`](docs/media.md)                                                     |
+| Unicode topics and visibility                    | [`docs/topics.md`](docs/topics.md)                                                   |
+| Platform administration                          | [`docs/platform-administration.md`](docs/platform-administration.md)                 |
+| Personal export and account deletion             | [`docs/privacy-and-data-rights.md`](docs/privacy-and-data-rights.md)                 |
+| Example extension manifest                       | [`extensions/example-polls/extension.json`](extensions/example-polls/extension.json) |
 
 ## Contributing
 
-Contributions are welcome when they strengthen the shared core without weakening privacy, moderation, or authorization boundaries. Start with [`CONTRIBUTING.md`](CONTRIBUTING.md) and open an issue before beginning a large change.
+Contributions are welcome when they strengthen the shared core without
+weakening privacy, moderation, or authorization boundaries.
 
-## License
+1. Read [`CONTRIBUTING.md`](CONTRIBUTING.md).
+2. Check existing issues and pull requests before starting.
+3. Open an issue before a large architectural change.
+4. Keep changes focused, tested, documented, and compatible with the public
+   contracts.
+
+Please also follow the [`Code of Conduct`](CODE_OF_CONDUCT.md) and report
+security concerns through [`SECURITY.md`](SECURITY.md), not a public issue.
+
+## License and credits
 
 Lineweb Social is free and open-source software licensed under
 [`GPL-3.0-or-later`](LICENSE).
 
-Copyright © 2026 Andrew Matia and [Lineweb](https://www.lineweb.gr).
+Created by [Andrew Matia](https://andrewmatia.eu) and
+[Lineweb](https://www.lineweb.gr).
+
+Copyright © 2026 Andrew Matia and Lineweb.

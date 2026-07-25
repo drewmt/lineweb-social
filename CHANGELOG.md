@@ -101,8 +101,9 @@ All notable project changes will be documented here.
   into one clear surface with accessible mobile touch targets.
 - Mobile Space cards now begin on the shared 16px content gutter while their
   horizontal scroll rail remains edge-to-edge.
-- README product previews now show the current desktop feed, mobile feed, and
-  member-profile interfaces.
+- The README now presents the project as a product: grouped feature coverage,
+  an experience-led desktop/mobile tour, honest alpha boundaries, a quick-start
+  path, and a navigable map of the public architecture contracts.
 - Long feed posts, comments, and Space-card descriptions now stay compact with
   explicit read-more controls that preserve the complete content on demand.
 - Read-only post and comment API resources now include a nullable `edited_at`
