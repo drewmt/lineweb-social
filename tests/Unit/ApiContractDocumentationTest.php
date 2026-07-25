@@ -151,7 +151,7 @@ class ApiContractDocumentationTest extends TestCase
             array_keys($schemas['Space']['properties']),
         );
         $this->assertSame(
-            ['id', 'body', 'mentions', 'published_at', 'edited_at', 'media', 'comments_count', 'reactions', 'author', 'space', 'viewer'],
+            ['id', 'body', 'mentions', 'topics', 'published_at', 'edited_at', 'media', 'comments_count', 'reactions', 'author', 'space', 'viewer'],
             array_keys($schemas['Post']['properties']),
         );
         $this->assertSame(
@@ -161,6 +161,10 @@ class ApiContractDocumentationTest extends TestCase
         $this->assertSame(
             ['handle', 'name', 'url'],
             array_keys($schemas['ContentMention']['properties']),
+        );
+        $this->assertSame(
+            ['name', 'url'],
+            array_keys($schemas['ContentTopic']['properties']),
         );
         $this->assertSame(
             ['handle', 'name', 'headline', 'profile_visible'],

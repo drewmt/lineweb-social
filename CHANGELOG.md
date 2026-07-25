@@ -6,6 +6,10 @@ All notable project changes will be documented here.
 
 ### Added
 
+- Privacy-safe Unicode hashtags for posts with bounded case-insensitive parsing,
+  transactional indexing and migration backfill, chronological topic pages,
+  viewer-specific visible counts, clickable web rendering, search discovery,
+  and additive API projections.
 - A protected platform-administration dashboard with real community metrics,
   bounded member search, account status controls, and recent privileged audit
   activity.

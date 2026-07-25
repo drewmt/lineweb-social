@@ -11,6 +11,7 @@ use App\Models\CommentReport;
 use App\Models\Post;
 use App\Models\PostReport;
 use App\Models\Space;
+use App\Models\Topic;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -66,6 +67,7 @@ final class CommunityFeed
         ?Space $space = null,
         bool $savedOnly = false,
         bool $followingOnly = false,
+        ?Topic $topic = null,
     ): array {
         $hiddenActorIds = DB::table('user_relationships')
             ->select('target_id')
@@ -93,6 +95,7 @@ final class CommunityFeed
                 'author:id,name,handle',
                 'space:id,name,slug,visibility',
                 'media',
+                'topics:id,name',
                 'comments' => fn ($comments) => $visibleComments($comments)
                     ->with('author:id,name,handle')
                     ->latest('published_at')
@@ -121,6 +124,13 @@ final class CommunityFeed
                 DB::table('user_follows')
                     ->select('followed_id')
                     ->where('follower_id', $user->getKey()),
+            );
+        }
+
+        if ($topic instanceof Topic) {
+            $query->whereHas(
+                'topics',
+                fn (Builder $topics): Builder => $topics->whereKey($topic->getKey()),
             );
         }
 
@@ -195,6 +205,13 @@ final class CommunityFeed
                 'url' => route('posts.show', $post),
                 'body' => $post->body,
                 'mentions' => $this->mentions->forBody($post->body, $resolvedMentions),
+                'topics' => $post->topics
+                    ->map(fn (Topic $topic): array => [
+                        'name' => $topic->name,
+                        'url' => route('topics.show', $topic),
+                    ])
+                    ->values()
+                    ->all(),
                 'media' => $this->media->for($post),
                 'publishedAt' => $post->published_at?->toIso8601String(),
                 'editedAt' => $post->edited_at?->toIso8601String(),

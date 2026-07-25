@@ -13,6 +13,8 @@ The core owns invariants that an extension must not bypass:
   boundaries;
 - Space visibility, roles, membership, invitations, and ownership;
 - chronological posts and comments;
+- normalized post topics whose pages, visible counts, and search results reuse
+  current post-visibility boundaries;
 - a separate chronological Following projection that reapplies current profile,
   Space, moderation, mute, and block visibility;
 - one allowlisted post reaction per member, aggregate-only public projections,
@@ -67,6 +69,11 @@ reaction per member and post, serializes changes with the parent post, and emits
 projections expose aggregate counts plus the current viewer's type; they never
 expose reactor identities. Extensions may listen to the event for analytics or
 batched notifications, but must recheck post visibility before delivery.
+
+Post topics are normalized indexes, not independent public content. Topic pages
+and search counts begin from the same policy-filtered post query, so a tag never
+grants access to a private Space or muted, blocked, draft, or moderated content.
+The full contract is documented in [`topics.md`](topics.md).
 
 Follow relationships are distinct from safety relationships. Blocking removes
 follows in both directions inside the same serialized transaction, while muting

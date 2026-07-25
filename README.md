@@ -88,6 +88,21 @@ The current release is `0.1.0-alpha.1`. It is suitable for local evaluation and 
 <table>
   <tr>
     <td width="68%">
+      <img src="docs/screenshots/topic-desktop.jpg" alt="Lineweb Social privacy-aware topic trail on desktop" />
+    </td>
+    <td width="32%">
+      <img src="docs/screenshots/topic-mobile.jpg" alt="Lineweb Social topic trail on mobile" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Chronological, access-aware topic discovery</sub></td>
+    <td align="center"><sub>Mobile topic trail</sub></td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td width="68%">
       <img src="docs/screenshots/messages-desktop.png" alt="Lineweb Social participant-only direct messages on desktop" />
     </td>
     <td width="32%">
@@ -130,6 +145,9 @@ The current release is `0.1.0-alpha.1`. It is suitable for local evaluation and 
   mute, block, moderation, and Space visibility boundary.
 - Policy-filtered global search across visible posts, accessible Spaces, and
   discoverable people, with dedicated desktop and mobile entry points.
+- Privacy-safe Unicode hashtags with transactional post indexing, clickable
+  topic trails, viewer-specific visible counts, and topic results in global
+  search and read-only API resources.
 - Private Saved Posts with policy-filtered retrieval and quick access from the
   desktop rail and mobile header.
 - Typed Like, Celebrate, and Insightful post reactions with one viewer choice,

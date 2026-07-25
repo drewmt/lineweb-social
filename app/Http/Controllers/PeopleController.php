@@ -8,6 +8,7 @@ use App\Enums\ReportStatus;
 use App\Models\Post;
 use App\Models\PostReport;
 use App\Models\Space;
+use App\Models\Topic;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -96,7 +97,7 @@ class PeopleController extends Controller
         $postCount = (clone $visiblePosts)->count();
 
         $postModels = $visiblePosts
-            ->with(['space:id,name,slug', 'media'])
+            ->with(['space:id,name,slug', 'media', 'topics:id,name'])
             ->latest('published_at')
             ->limit(12)
             ->get();
@@ -117,6 +118,13 @@ class PeopleController extends Controller
                 'url' => route('posts.show', $post),
                 'body' => $post->body,
                 'mentions' => $mentions->forBody($post->body, $resolvedMentions),
+                'topics' => $post->topics
+                    ->map(fn (Topic $topic): array => [
+                        'name' => $topic->name,
+                        'url' => route('topics.show', $topic),
+                    ])
+                    ->values()
+                    ->all(),
                 'media' => $media->for($post),
                 'publishedAt' => $post->published_at?->toIso8601String(),
                 'editedAt' => $post->edited_at?->toIso8601String(),
