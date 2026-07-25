@@ -8,6 +8,7 @@ import {
     Globe2,
     LockKeyhole,
     MessageCircle,
+    Pin,
     Share2,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -49,6 +50,8 @@ type ConversationPost = {
     media: PostMedia | null;
     publishedAt: string | null;
     editedAt: string | null;
+    isHighlighted: boolean;
+    highlightedAt: string | null;
     isDraft: boolean;
     isHidden: boolean;
     isSaved: boolean;
@@ -276,6 +279,20 @@ export default function ShowPost({
                                                         ·
                                                     </span>
                                                     <span>Edited</span>
+                                                </>
+                                            )}
+                                            {post.isHighlighted && (
+                                                <>
+                                                    <span aria-hidden="true">
+                                                        ·
+                                                    </span>
+                                                    <span className="inline-flex items-center gap-1 font-extrabold text-primary">
+                                                        <Pin
+                                                            className="size-3"
+                                                            aria-hidden="true"
+                                                        />
+                                                        Space highlight
+                                                    </span>
                                                 </>
                                             )}
                                             <span aria-hidden="true">·</span>

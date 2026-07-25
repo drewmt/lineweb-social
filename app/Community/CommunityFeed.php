@@ -11,6 +11,7 @@ use App\Models\CommentReport;
 use App\Models\Post;
 use App\Models\PostReport;
 use App\Models\Space;
+use App\Models\SpacePostHighlight;
 use App\Models\Topic;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
@@ -60,7 +61,7 @@ final class CommunityFeed
     }
 
     /**
-     * @return list<array{id: int, url: string, body: string, media: array{url: string, alt: string, width: int, height: int}|null, publishedAt: string|null, editedAt: string|null, isSaved: bool, canComment: bool, canReport: bool, canEdit: bool, canDelete: bool, hasReported: bool, commentsCount: int, comments: list<array{id: int, body: string, publishedAt: string, editedAt: string|null, canReport: bool, canEdit: bool, canDelete: bool, hasReported: bool, author: array{name: string, handle: string, profileVisible: bool}}>, author: array{name: string, handle: string, profileVisible: bool}, space: array{name: string, slug: string}}>
+     * @return list<array{id: int, url: string, body: string, media: array{url: string, alt: string, width: int, height: int}|null, publishedAt: string|null, editedAt: string|null, isHighlighted: bool, highlightedAt: string|null, isSaved: bool, canComment: bool, canReport: bool, canEdit: bool, canDelete: bool, hasReported: bool, commentsCount: int, comments: list<array{id: int, body: string, publishedAt: string, editedAt: string|null, canReport: bool, canEdit: bool, canDelete: bool, hasReported: bool, author: array{name: string, handle: string, profileVisible: bool}}>, author: array{name: string, handle: string, profileVisible: bool}, space: array{name: string, slug: string}}>
      */
     public function posts(
         User $user,
@@ -68,6 +69,7 @@ final class CommunityFeed
         bool $savedOnly = false,
         bool $followingOnly = false,
         ?Topic $topic = null,
+        bool $highlightedOnly = false,
     ): array {
         $hiddenActorIds = DB::table('user_relationships')
             ->select('target_id')
@@ -95,6 +97,7 @@ final class CommunityFeed
                 'author:id,name,handle',
                 'space:id,name,slug,visibility',
                 'media',
+                'highlight',
                 'topics:id,name',
                 'comments' => fn ($comments) => $visibleComments($comments)
                     ->with('author:id,name,handle')
@@ -115,6 +118,12 @@ final class CommunityFeed
                         ->on('post_saves.post_id', '=', 'posts.id')
                         ->where('post_saves.user_id', $user->getKey());
                 })
+                ->addSelect('posts.*');
+        }
+
+        if ($highlightedOnly) {
+            $query
+                ->join('space_post_highlights', 'space_post_highlights.post_id', '=', 'posts.id')
                 ->addSelect('posts.*');
         }
 
@@ -143,7 +152,11 @@ final class CommunityFeed
             );
         }
 
-        if ($savedOnly) {
+        if ($highlightedOnly) {
+            $query
+                ->orderByDesc('space_post_highlights.created_at')
+                ->orderByDesc('space_post_highlights.id');
+        } elseif ($savedOnly) {
             $query
                 ->orderByDesc('post_saves.created_at')
                 ->orderByDesc('post_saves.id');
@@ -153,7 +166,7 @@ final class CommunityFeed
                 ->latest('posts.id');
         }
 
-        $posts = $query->limit(30)->get();
+        $posts = $query->limit($highlightedOnly ? 3 : 30)->get();
         $reactionProjection = $this->reactions->forPosts($posts, $user);
 
         $comments = $posts->flatMap(fn (Post $post) => $post->comments);
@@ -215,6 +228,8 @@ final class CommunityFeed
                 'media' => $this->media->for($post),
                 'publishedAt' => $post->published_at?->toIso8601String(),
                 'editedAt' => $post->edited_at?->toIso8601String(),
+                'isHighlighted' => $post->highlight instanceof SpacePostHighlight,
+                'highlightedAt' => $post->highlight?->created_at->toIso8601String(),
                 'isSaved' => (bool) $post->is_saved,
                 'reactions' => $reactionProjection[$post->getKey()],
                 'canComment' => in_array($post->space_id, $memberSpaceIds, true),

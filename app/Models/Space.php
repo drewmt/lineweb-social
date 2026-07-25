@@ -96,6 +96,12 @@ class Space extends Model
         return $this->hasMany(SpaceAuditLog::class);
     }
 
+    /** @return HasMany<SpacePostHighlight, $this> */
+    public function highlights(): HasMany
+    {
+        return $this->hasMany(SpacePostHighlight::class);
+    }
+
     /** @return HasMany<PostReport, $this> */
     public function postReports(): HasMany
     {

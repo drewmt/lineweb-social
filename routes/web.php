@@ -14,6 +14,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PeopleController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\PostDraftController;
+use App\Http\Controllers\PostHighlightController;
 use App\Http\Controllers\PostImageController;
 use App\Http\Controllers\PostReactionController;
 use App\Http\Controllers\PostReportController;
@@ -163,6 +164,14 @@ Route::middleware(['auth', 'account.active', 'verified'])->group(function () {
     Route::post('spaces/{space:slug}/posts', [PostController::class, 'store'])
         ->middleware('throttle:post-publishing')
         ->name('spaces.posts.store');
+    Route::put('spaces/{space:slug}/posts/{post}/highlight', [PostHighlightController::class, 'store'])
+        ->scopeBindings()
+        ->middleware('throttle:space-highlights')
+        ->name('spaces.posts.highlights.store');
+    Route::delete('spaces/{space:slug}/posts/{post}/highlight', [PostHighlightController::class, 'destroy'])
+        ->scopeBindings()
+        ->middleware('throttle:space-highlights')
+        ->name('spaces.posts.highlights.destroy');
     Route::get('posts/{post}', [PostController::class, 'show'])
         ->name('posts.show');
     Route::patch('posts/{post}', [PostController::class, 'update'])

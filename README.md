@@ -107,20 +107,25 @@ identity.
 ### Spaces and community operations
 
 Public, private, and hidden Spaces combine publishing context with explicit
-membership, invitation, role, ownership, and moderation boundaries.
+membership, invitation, role, ownership, moderation, and a bounded highlights
+layer that never reorders the chronological timeline.
 
 <table>
   <tr>
-    <td width="50%">
+    <td width="38%">
       <img src="docs/screenshots/spaces-desktop.jpg" alt="Lineweb Social searchable Spaces directory" />
     </td>
-    <td width="50%">
-      <img src="docs/screenshots/space-detail-desktop.jpg" alt="Lineweb Social Space detail and publishing experience" />
+    <td width="42%">
+      <img src="docs/screenshots/space-highlights-desktop.jpg" alt="Lineweb Social curated Space highlights on desktop" />
+    </td>
+    <td width="20%">
+      <img src="docs/screenshots/space-highlights-mobile.jpg" alt="Lineweb Social swipeable Space highlights on mobile" />
     </td>
   </tr>
   <tr>
     <td align="center"><sub>Searchable community directory</sub></td>
-    <td align="center"><sub>Space identity, context, and publishing</sub></td>
+    <td align="center"><sub>Bounded curation without timeline ranking</sub></td>
+    <td align="center"><sub>App-first swipe rail</sub></td>
   </tr>
 </table>
 
@@ -256,7 +261,7 @@ manage account access and private safety reviews.
 | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Accounts            | Verified registration, stable handles, passkeys, two-factor authentication, strong password defaults, and active-account enforcement.                                       |
 | Profiles            | Editable member identity, headlines, real activity, public/shared/private visibility, and discovery opt-out.                                                                |
-| Spaces              | Public/private/hidden communities, searchable directory, join/leave rules, restricted invitations, roles, ownership transfer, and member removal.                           |
+| Spaces              | Public/private/hidden communities, searchable directory, join/leave rules, restricted invitations, roles, ownership transfer, member removal, and bounded curated highlights. |
 | Publishing          | Focused composer, author-only drafts, private normalized WebP images with required alt text, chronological posts, comments, permanent conversations, and author controls.     |
 | Discovery           | Policy-filtered search across posts, Spaces, and People; Unicode hashtags; chronological topic trails; and privacy-aware Following.                                         |
 | Interactions        | Typed Like, Celebrate, and Insightful reactions, private Saved Posts, follows, mentions, comments, copy links, and conversation shortcuts.                                  |

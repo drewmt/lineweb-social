@@ -1230,6 +1230,7 @@
           "topics",
           "published_at",
           "edited_at",
+          "highlighted_at",
           "media",
           "comments_count",
           "reactions",
@@ -1264,6 +1265,13 @@
             "format": "date-time"
           },
           "edited_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "highlighted_at": {
             "type": [
               "string",
               "null"

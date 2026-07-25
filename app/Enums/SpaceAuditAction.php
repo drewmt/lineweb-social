@@ -10,6 +10,8 @@ enum SpaceAuditAction: string
     case MemberRoleChanged = 'member.role_changed';
     case MemberRemoved = 'member.removed';
     case OwnershipTransferred = 'ownership.transferred';
+    case PostHighlighted = 'post.highlighted';
+    case PostUnhighlighted = 'post.unhighlighted';
     case PostReportReviewStarted = 'post_report.review_started';
     case PostReportResolved = 'post_report.resolved';
     case PostReportDismissed = 'post_report.dismissed';

@@ -11,6 +11,7 @@ use App\Models\Post;
 use App\Models\PostReaction;
 use App\Models\PostReport;
 use App\Models\Space;
+use App\Models\SpacePostHighlight;
 use App\Models\Topic;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -33,6 +34,11 @@ class PostApiTest extends TestCase
         $space->addMember($viewer);
         $post = Post::factory()->for($space)->for($author, 'author')->create([
             'body' => 'A stable #laravel post for @api-viewer.',
+        ]);
+        $highlight = SpacePostHighlight::query()->create([
+            'space_id' => $space->getKey(),
+            'post_id' => $post->getKey(),
+            'highlighted_by' => $author->getKey(),
         ]);
         $topic = Topic::query()->create(['name' => 'laravel']);
         $post->topics()->attach($topic);
@@ -89,6 +95,7 @@ class PostApiTest extends TestCase
             ->assertJsonPath('data.mentions.0.url', route('people.show', $viewer))
             ->assertJsonPath('data.topics.0.name', 'laravel')
             ->assertJsonPath('data.topics.0.url', route('topics.show', $topic))
+            ->assertJsonPath('data.highlighted_at', $highlight->created_at->toIso8601String())
             ->assertJsonPath('data.comments_count', 1)
             ->assertJsonPath('data.reactions.total', 1)
             ->assertJsonPath('data.reactions.counts.celebrate', 1)
@@ -108,7 +115,7 @@ class PostApiTest extends TestCase
             ->assertJsonMissingPath('data.media.author_id');
 
         $this->assertSame(
-            ['id', 'body', 'mentions', 'topics', 'published_at', 'edited_at', 'media', 'comments_count', 'reactions', 'author', 'space', 'viewer'],
+            ['id', 'body', 'mentions', 'topics', 'published_at', 'edited_at', 'highlighted_at', 'media', 'comments_count', 'reactions', 'author', 'space', 'viewer'],
             array_keys($response->json('data')),
         );
         $this->assertSame(

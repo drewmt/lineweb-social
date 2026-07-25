@@ -24,6 +24,7 @@ use Illuminate\Support\Carbon;
  * @property-read Space $space
  * @property-read User $author
  * @property-read PostMedia|null $media
+ * @property-read SpacePostHighlight|null $highlight
  * @property-read int $is_saved
  */
 class Post extends Model
@@ -112,5 +113,11 @@ class Post extends Model
     public function media(): HasOne
     {
         return $this->hasOne(PostMedia::class);
+    }
+
+    /** @return HasOne<SpacePostHighlight, $this> */
+    public function highlight(): HasOne
+    {
+        return $this->hasOne(SpacePostHighlight::class);
     }
 }
