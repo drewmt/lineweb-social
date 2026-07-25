@@ -23,9 +23,9 @@ All notable project changes will be documented here.
   transactional indexing and migration backfill, chronological topic pages,
   viewer-specific visible counts, clickable web rendering, search discovery,
   and additive API projections.
-- A protected platform-administration dashboard with real community metrics,
-  bounded member search, account status controls, and recent privileged audit
-  activity.
+- A dedicated responsive platform-administration control center with separate
+  Overview, Members, evidence-limited Safety, and searchable append-only Audit
+  surfaces, plus a collapsible desktop sidebar and mobile operator drawer.
 - Console-only administrator grant and revoke commands with last-administrator
   lockout protection.
 - Reason-required member suspension and reinstatement with serialized

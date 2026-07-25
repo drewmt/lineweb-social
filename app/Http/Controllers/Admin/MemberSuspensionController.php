@@ -23,7 +23,7 @@ class MemberSuspensionController extends Controller
             $request->string('reason')->toString(),
         );
 
-        return to_route('admin.index', $this->dashboardQuery($request))
+        return to_route('admin.members.index', $this->directoryQuery($request))
             ->with('status', "{$member->name}'s account was suspended.");
     }
 
@@ -40,15 +40,19 @@ class MemberSuspensionController extends Controller
             $request->string('reason')->toString(),
         );
 
-        return to_route('admin.index', $this->dashboardQuery($request))
+        return to_route('admin.members.index', $this->directoryQuery($request))
             ->with('status', "{$member->name}'s access was restored.");
     }
 
-    /** @return array{q: string}|array{} */
-    private function dashboardQuery(UpdatePlatformSuspensionRequest $request): array
+    /** @return array{q?: string, status?: string} */
+    private function directoryQuery(UpdatePlatformSuspensionRequest $request): array
     {
         $query = trim((string) $request->validated('q', ''));
+        $status = (string) $request->validated('status', 'all');
 
-        return $query === '' ? [] : ['q' => $query];
+        return array_filter([
+            'q' => $query,
+            'status' => $status === 'all' ? null : $status,
+        ], fn (?string $value): bool => $value !== null && $value !== '');
     }
 }

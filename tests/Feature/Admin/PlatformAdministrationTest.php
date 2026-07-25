@@ -22,6 +22,14 @@ class PlatformAdministrationTest extends TestCase
             ->assertForbidden();
 
         $this->actingAs($member)
+            ->get(route('admin.members.index'))
+            ->assertForbidden();
+
+        $this->actingAs($member)
+            ->get(route('admin.audit.index'))
+            ->assertForbidden();
+
+        $this->actingAs($member)
             ->put(route('admin.members.suspension.store', $member), [
                 'reason' => 'Attempted privilege escalation.',
             ])
@@ -42,13 +50,25 @@ class PlatformAdministrationTest extends TestCase
         Space::factory()->for($target, 'owner')->create();
 
         $this->actingAs($administrator)
-            ->get(route('admin.index', ['q' => 'target@example.com']))
+            ->get(route('admin.index'))
             ->assertInertia(fn (Assert $page) => $page
                 ->component('admin/index')
                 ->where('metrics.membersTotal', 3)
                 ->where('metrics.membersSuspended', 0)
+                ->where('metrics.administratorsTotal', 1)
                 ->where('metrics.spacesTotal', 1)
+                ->where('metrics.communityReportsActive', 0)
+                ->where('metrics.messageReportsActive', 0)
+                ->has('auditLogs', 0));
+
+        $this->actingAs($administrator)
+            ->get(route('admin.members.index', ['q' => 'target@example.com']))
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('admin/members')
                 ->where('query', 'target@example.com')
+                ->where('filter', 'all')
+                ->where('counts.all', 3)
+                ->where('counts.administrators', 1)
                 ->has('members.data', 1)
                 ->where('members.data.0.name', 'Target Member')
                 ->where('members.data.0.email', 'target@example.com')
@@ -78,11 +98,15 @@ class PlatformAdministrationTest extends TestCase
             ->put(route('admin.members.suspension.store', [
                 'member' => $member,
                 'q' => 'known member',
+                'status' => 'active',
             ]), [
                 'reason' => 'Repeated targeted harassment after a warning.',
             ])
             ->assertSessionHasNoErrors()
-            ->assertRedirect(route('admin.index', ['q' => 'known member']));
+            ->assertRedirect(route('admin.members.index', [
+                'q' => 'known member',
+                'status' => 'active',
+            ]));
 
         $member->refresh();
 
@@ -103,6 +127,25 @@ class PlatformAdministrationTest extends TestCase
             'action' => 'member.suspended',
             'reason' => 'Repeated targeted harassment after a warning.',
         ]);
+
+        $this->actingAs($administrator)
+            ->get(route('admin.audit.index', [
+                'category' => 'accounts',
+                'q' => 'targeted harassment',
+            ]))
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('admin/audit')
+                ->where('category', 'accounts')
+                ->where('query', 'targeted harassment')
+                ->where('counts.accounts', 1)
+                ->has('logs.data', 1)
+                ->where('logs.data.0.action', 'member.suspended')
+                ->where('logs.data.0.actorName', $administrator->name)
+                ->where('logs.data.0.subjectHandle', $member->handle)
+                ->where(
+                    'logs.data.0.reason',
+                    'Repeated targeted harassment after a warning.',
+                ));
     }
 
     public function test_suspension_requires_a_meaningful_reason(): void
@@ -210,7 +253,7 @@ class PlatformAdministrationTest extends TestCase
                 'reason' => 'Review completed and access can be restored.',
             ])
             ->assertSessionHasNoErrors()
-            ->assertRedirect(route('admin.index'));
+            ->assertRedirect(route('admin.members.index'));
 
         $member->refresh();
 
@@ -227,6 +270,40 @@ class PlatformAdministrationTest extends TestCase
         $this->actingAs($member)
             ->get(route('feed'))
             ->assertOk();
+    }
+
+    public function test_member_directory_filters_accounts_without_weakening_protected_actions(): void
+    {
+        $administrator = User::factory()->create([
+            'platform_role' => 'administrator',
+        ]);
+        $suspended = User::factory()->create([
+            'name' => 'Restricted Member',
+            'suspended_at' => now(),
+            'suspension_reason' => 'A documented access restriction.',
+            'suspended_by' => $administrator->getKey(),
+        ]);
+        User::factory()->unverified()->create();
+        User::factory()->create();
+
+        $this->actingAs($administrator)
+            ->get(route('admin.members.index', ['status' => 'suspended']))
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('admin/members')
+                ->where('filter', 'suspended')
+                ->where('counts.all', 4)
+                ->where('counts.suspended', 1)
+                ->where('counts.unverified', 1)
+                ->has('members.data', 1)
+                ->where('members.data.0.handle', $suspended->handle)
+                ->where(
+                    'members.data.0.suspensionReason',
+                    'A documented access restriction.',
+                ));
+
+        $this->actingAs($administrator)
+            ->get(route('admin.members.index', ['status' => 'unknown']))
+            ->assertSessionHasErrors('status');
     }
 
     public function test_console_command_bootstraps_admins_and_protects_the_last_one(): void
