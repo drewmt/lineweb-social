@@ -8,7 +8,9 @@ export type Member = {
     handle: string;
     email: string;
     platformRole: 'member' | 'administrator';
+    emailVerifiedAt: string | null;
     suspendedAt: string | null;
+    suspensionReason: string | null;
     joinedAt: string | null;
     isSelf: boolean;
     canSuspend: boolean;
@@ -52,6 +54,11 @@ export function MemberRow({
                                 Suspended
                             </span>
                         )}
+                        {!member.emailVerifiedAt && (
+                            <span className="rounded-full bg-secondary px-2 py-1 text-[0.66rem] font-extrabold text-muted-foreground">
+                                Unverified
+                            </span>
+                        )}
                         {member.isSelf && (
                             <span className="rounded-full bg-secondary px-2 py-1 text-[0.66rem] font-extrabold">
                                 You
@@ -67,6 +74,14 @@ export function MemberRow({
                             ? ` · Suspended ${formatDate(member.suspendedAt)}`
                             : ''}
                     </p>
+                    {member.suspendedAt && member.suspensionReason && (
+                        <p className="mt-2 line-clamp-2 text-xs leading-5 text-foreground/80">
+                            <span className="font-extrabold">
+                                Current reason:
+                            </span>{' '}
+                            {member.suspensionReason}
+                        </p>
+                    )}
                 </div>
 
                 <div className="shrink-0">

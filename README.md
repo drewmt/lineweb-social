@@ -219,20 +219,23 @@ surrounding conversation to administrators.
 
 Space moderation and platform administration are separate permission
 boundaries. Community teams manage their Spaces; trusted platform operators
-manage account access and private safety reviews.
+work from a dedicated responsive control center with separate Overview,
+Members, Safety, and append-only Audit surfaces. Account restrictions remain
+reason-required, while private safety reviews expose only the evidence a member
+explicitly submitted.
 
 <table>
   <tr>
     <td width="68%">
-      <img src="docs/screenshots/admin-desktop.jpg" alt="Lineweb Social protected platform administration dashboard on desktop" />
+      <img src="docs/screenshots/admin-desktop.jpg" alt="Lineweb Social dedicated platform administration control center on desktop" />
     </td>
     <td width="32%">
-      <img src="docs/screenshots/admin-mobile.jpg" alt="Lineweb Social protected platform administration dashboard on mobile" />
+      <img src="docs/screenshots/admin-mobile.jpg" alt="Lineweb Social protected mobile administration sidebar" />
     </td>
   </tr>
   <tr>
-    <td align="center"><sub>Account operations and privileged audit trail</sub></td>
-    <td align="center"><sub>Responsive platform metrics</sub></td>
+    <td align="center"><sub>Focused operations, real queues, and privileged audit trail</sub></td>
+    <td align="center"><sub>App-like mobile operator navigation</sub></td>
   </tr>
 </table>
 
@@ -268,7 +271,7 @@ manage account access and private safety reviews.
 | Messaging           | Canonical one-to-one conversations, participant-only history, unread state, block-aware delivery, and responsive inbox/thread views.                                        |
 | Trust and safety    | Mute, mutual block, Safety recovery, post/comment reporting, Space moderation queues, Direct Message reporting, and audited decisions.                                      |
 | Notifications       | Database-backed replies, mentions, and moderation alerts with per-category preferences and destination access revalidation.                                                 |
-| Platform operations | Console-granted administrators, protected metrics/member search, reason-required suspension/reinstatement, session and API-token revocation, and append-only audit history. |
+| Platform operations | Dedicated responsive control center, console-granted administrators, focused member and private-safety queues, reason-required suspension/reinstatement, session and API-token revocation, and searchable append-only audit history. |
 | Data rights         | Password-confirmed personal JSON export and self-service deletion with active-community ownership safeguards.                                                               |
 | Developer surface   | Contract-first bearer API, scoped expiring Sanctum tokens, domain events, OpenAPI draft, and allowlisted local extension manifests.                                         |
 

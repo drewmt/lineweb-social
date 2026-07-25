@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminAuditLogController;
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminMemberController;
 use App\Http\Controllers\Admin\MemberSuspensionController;
 use App\Http\Controllers\Admin\MessageReportController as AdminMessageReportController;
 use App\Http\Controllers\CommentController;
@@ -222,6 +224,10 @@ Route::prefix('admin')
     ])
     ->group(function (): void {
         Route::get('/', AdminDashboardController::class)->name('admin.index');
+        Route::get('members', AdminMemberController::class)
+            ->name('admin.members.index');
+        Route::get('audit', AdminAuditLogController::class)
+            ->name('admin.audit.index');
         Route::get('message-reports', [AdminMessageReportController::class, 'index'])
             ->name('admin.message-reports.index');
         Route::patch('message-reports/{directMessageReport}', [AdminMessageReportController::class, 'update'])

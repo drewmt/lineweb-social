@@ -5,6 +5,28 @@ owners. It is separate from Space moderation: Space owners and moderators
 manage their communities, while platform administrators manage account access
 across the deployment.
 
+## Operator control center
+
+The protected `/admin` workspace uses its own responsive shell instead of the
+member-facing social navigation:
+
+- **Overview** shows real deployment metrics, actionable account and private
+  message-safety queues, recent privileged activity, and the explicit boundary
+  between platform operations and Space moderation.
+- **Members** provides bounded account search, status filters, current
+  restriction context, and the existing reason-required suspend/reinstate
+  controls.
+- **Safety** contains the evidence-limited direct-message report workflow
+  described below.
+- **Audit** provides a paginated, searchable, category-filtered read-only view
+  of privileged actions.
+
+The desktop sidebar can collapse without removing access to any section. On
+mobile it becomes a modal navigation drawer with an explicit return to the
+community. These are navigation improvements only; every page and mutation
+still passes through the same server-side administrator middleware and
+transactional authorization checks.
+
 ## Bootstrap an administrator
 
 Administrator access cannot be granted from the web interface or public API.
@@ -98,8 +120,10 @@ response procedures.
 
 Privileged actions are stored in `platform_audit_logs` with nullable actor and
 subject references so the record can survive later account deletion. The
-dashboard exposes only the latest entries; retention, archival, and protected
-operator exports are intentionally not implemented yet.
+Overview shows the latest entries and the dedicated Audit surface provides
+paginated category filters plus bounded member/operator/reason search.
+Retention, archival, and protected operator exports are intentionally not
+implemented yet.
 
 Core code must append audit records through `PlatformAdministration`. Do not
 add edit or delete controls for audit rows. Extensions that introduce new

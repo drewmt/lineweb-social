@@ -18,12 +18,14 @@ export function AccountActionDialog({
     member,
     action,
     query,
+    filter,
     open,
     onOpenChange,
 }: {
     member: Member | null;
     action: 'suspend' | 'reinstate';
     query: string;
+    filter: string;
     open: boolean;
     onOpenChange: (open: boolean) => void;
 }) {
@@ -51,8 +53,18 @@ export function AccountActionDialog({
             preserveScroll: true,
             onSuccess: () => onOpenChange(false),
         };
+        const params = new URLSearchParams();
+
+        if (query) {
+            params.set('q', query);
+        }
+
+        if (filter !== 'all') {
+            params.set('status', filter);
+        }
+
         const url = `/admin/members/${member.handle}/suspension${
-            query ? `?q=${encodeURIComponent(query)}` : ''
+            params.size > 0 ? `?${params.toString()}` : ''
         }`;
 
         if (isSuspension) {

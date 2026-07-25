@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdatePlatformSuspensionRequest extends FormRequest
 {
@@ -19,6 +20,7 @@ class UpdatePlatformSuspensionRequest extends FormRequest
         return [
             'reason' => ['required', 'string', 'min:10', 'max:500'],
             'q' => ['nullable', 'string', 'max:100'],
+            'status' => ['nullable', Rule::in(['all', 'active', 'suspended', 'administrators', 'unverified'])],
         ];
     }
 }

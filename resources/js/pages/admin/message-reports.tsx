@@ -1,6 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
 import {
-    ArrowLeft,
     CheckCircle2,
     ChevronLeft,
     ChevronRight,
@@ -92,21 +91,11 @@ export default function MessageReports({
     return (
         <>
             <Head title="Message safety reports" />
-            <main className="social-page max-w-6xl">
-                <header className="social-page-heading overflow-hidden">
+            <div className="relative z-[1] mx-auto w-full max-w-[82rem] px-3 py-4 sm:px-6 sm:py-7 xl:px-8">
+                <header className="max-w-3xl overflow-hidden">
                     <div className="flex flex-wrap items-end justify-between gap-5">
                         <div>
-                            <Link
-                                href="/admin"
-                                className="social-focus inline-flex min-h-10 items-center gap-2 rounded-lg text-sm font-extrabold text-primary hover:underline"
-                            >
-                                <ArrowLeft
-                                    className="size-4"
-                                    aria-hidden="true"
-                                />
-                                Platform administration
-                            </Link>
-                            <p className="social-eyebrow mt-4">
+                            <p className="social-eyebrow">
                                 <MessageSquareWarning className="size-3.5" />
                                 Private trust &amp; safety
                             </p>
@@ -240,7 +229,7 @@ export default function MessageReports({
                         )}
                     </nav>
                 )}
-            </main>
+            </div>
         </>
     );
 }
@@ -483,7 +472,7 @@ function PersonPanel({
                             className="mt-3 w-full"
                         >
                             <Link
-                                href={`/admin?q=${encodeURIComponent(person.handle)}`}
+                                href={`/admin/members?q=${encodeURIComponent(person.handle)}`}
                             >
                                 <UserRoundSearch className="size-4" />
                                 Review account
@@ -499,10 +488,3 @@ function PersonPanel({
         </section>
     );
 }
-
-MessageReports.layout = {
-    breadcrumbs: [
-        { title: 'Administration', href: '/admin' },
-        { title: 'Message reports', href: '/admin/message-reports' },
-    ],
-};
