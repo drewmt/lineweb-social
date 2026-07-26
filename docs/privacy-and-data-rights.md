@@ -19,7 +19,8 @@ The export currently includes:
 - published posts and private drafts, including publication state and safe image
   metadata, plus comments, reactions, saves, follows, and safety relationships;
 - messages authored by the member;
-- notification metadata and notification preferences;
+- notification metadata and notification preferences, including the member's
+  daily-email choice but not the internal delivery cursor;
 - invitation and moderation activity without recipient addresses or internal
   audit context;
 - reports submitted by the member, including the exact direct-message snapshot
@@ -93,7 +94,9 @@ processor. A deployed service needs documented retention and deletion
 procedures for every such system.
 
 Laravel's scheduler must run for closed direct-message report evidence to be
-pruned. Deployers must document their lawful basis, safety-review process,
+pruned and for daily notification digests to be queued. Digest delivery also
+requires a queue worker and a deliberately configured email provider. Deployers
+must document their lawful basis, processor relationship, safety-review process,
 appeal route, retention schedule, and any legally required preservation before
 changing the default.
 

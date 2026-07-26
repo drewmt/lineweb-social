@@ -110,6 +110,17 @@ final class NotificationCenter
         return $this->resolve($viewer, $notification)['destination'];
     }
 
+    public function availableKind(User $viewer, DatabaseNotification $notification): ?NotificationType
+    {
+        $resolved = $this->resolve($viewer, $notification);
+
+        if ($resolved['destination'] === null) {
+            return null;
+        }
+
+        return NotificationType::tryFrom($resolved['kind']);
+    }
+
     /** @return array{kind: string, title: string, description: string, destination: string|null} */
     private function resolve(User $viewer, DatabaseNotification $notification): array
     {

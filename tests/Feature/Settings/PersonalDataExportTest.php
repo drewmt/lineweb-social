@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Settings;
 
+use App\Enums\NotificationDigestFrequency;
 use App\Models\Comment;
 use App\Models\Conversation;
 use App\Models\DirectMessage;
@@ -50,12 +51,17 @@ class PersonalDataExportTest extends TestCase
             'follower_id' => $user->getKey(),
             'followed_id' => $other->getKey(),
         ]);
-        NotificationPreference::query()->create([
+        $notificationPreference = NotificationPreference::query()->create([
             'user_id' => $user->getKey(),
             'comment_replies' => false,
             'content_mentions' => true,
             'space_moderation' => true,
+            'email_digest_frequency' => NotificationDigestFrequency::Daily,
         ]);
+        $notificationPreference->forceFill([
+            'email_digest_cursor_at' => now()->subHour(),
+            'email_digest_cursor_notification_id' => (string) Str::uuid(),
+        ])->save();
 
         $conversation = Conversation::between($user, $other);
         DirectMessage::query()->create([
@@ -155,6 +161,10 @@ class PersonalDataExportTest extends TestCase
         );
         $this->assertSame('My phone', $export['security']['api_tokens'][0]['name']);
         $this->assertFalse($export['notification_preferences']['comment_replies']);
+        $this->assertSame(
+            NotificationDigestFrequency::Daily->value,
+            $export['notification_preferences']['email_digest_frequency'],
+        );
         $this->assertSame('sent', $export['space_invitation_activity'][0]['relationship']);
         $this->assertSame('content.mentioned', $export['notifications'][0]['type']);
 
@@ -170,6 +180,8 @@ class PersonalDataExportTest extends TestCase
         $this->assertStringNotContainsString('private-recovery-codes', $content);
         $this->assertStringNotContainsString($user->password, $content);
         $this->assertStringNotContainsString($token->accessToken->token, $content);
+        $this->assertStringNotContainsString('email_digest_cursor_at', $content);
+        $this->assertStringNotContainsString('email_digest_cursor_notification_id', $content);
     }
 
     public function test_data_export_requires_a_verified_account_and_recent_password_confirmation(): void
