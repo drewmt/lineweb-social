@@ -25,11 +25,13 @@ class PersonalDataExport
                 'comment_replies' => true,
                 'content_mentions' => true,
                 'space_moderation' => true,
+                'email_digest_frequency' => 'off',
             ]
             : [
                 'comment_replies' => (bool) $preferences->comment_replies,
                 'content_mentions' => (bool) $preferences->content_mentions,
                 'space_moderation' => (bool) $preferences->space_moderation,
+                'email_digest_frequency' => $preferences->email_digest_frequency,
             ];
 
         return [

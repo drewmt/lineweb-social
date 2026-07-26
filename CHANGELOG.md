@@ -6,6 +6,11 @@ All notable project changes will be documented here.
 
 ### Added
 
+- Opt-in daily notification digests with queued provider-independent delivery,
+  verified and active-account checks, delivery-time authorization, low-data
+  category counts, stable high-volume cursors, privacy-safe settings and mail
+  presentation, personal-export coverage, and no dependency from core writes
+  on an external transport.
 - Human-reviewed account appeals with one submission per unique suspension
   cycle, a polished member Account Status flow, a dedicated responsive
   administrator queue, explicit approve/deny decisions, transactional access

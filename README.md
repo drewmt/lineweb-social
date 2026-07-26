@@ -179,6 +179,28 @@ the current member is allowed to see them.
   </tr>
 </table>
 
+### Useful notifications without inbox leakage
+
+Members can keep delivery entirely in-app or opt into one daily email when
+unread updates are waiting. The queued digest exposes only category counts,
+rechecks access before delivery, and keeps private content and identities out of
+email.
+
+<table>
+  <tr>
+    <td width="68%">
+      <img src="docs/screenshots/notification-digest-desktop.png" alt="Lineweb Social privacy-safe daily notification digest settings on desktop" />
+    </td>
+    <td width="32%">
+      <img src="docs/screenshots/notification-digest-mobile.png" alt="Lineweb Social daily notification digest settings in the mobile app layout" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Separate in-app categories and opt-in email delivery</sub></td>
+    <td align="center"><sub>Clear privacy boundary in an app-first layout</sub></td>
+  </tr>
+</table>
+
 ### Private conversations with a visible safety boundary
 
 Direct Messages are participant-only, block-aware, and honest about server
@@ -292,7 +314,7 @@ makes the final decision.
 | Interactions        | Typed Like, Celebrate, and Insightful reactions, private Saved Posts, follows, mentions, comments, copy links, and conversation shortcuts.                                  |
 | Messaging           | Canonical one-to-one conversations, participant-only history, unread state, block-aware delivery, and responsive inbox/thread views.                                        |
 | Trust and safety    | Mute, mutual block, Safety recovery, post/comment reporting, Space moderation queues, Direct Message reporting, and audited decisions.                                      |
-| Notifications       | Database-backed replies, mentions, and moderation alerts with per-category preferences and destination access revalidation.                                                 |
+| Notifications       | Database-backed replies, mentions, and moderation alerts with per-category preferences, destination access revalidation, and opt-in privacy-safe daily email digests.       |
 | Platform operations | Dedicated responsive control center, console-granted administrators, focused member, appeals, and private-safety queues, transactional suspension/reinstatement, session and API-token revocation, and searchable append-only audit history. |
 | Data rights         | Password-confirmed personal JSON export and self-service deletion with active-community ownership safeguards.                                                               |
 | Developer surface   | Contract-first bearer API, scoped expiring Sanctum tokens, domain events, OpenAPI draft, and allowlisted local extension manifests.                                         |
@@ -333,7 +355,7 @@ The following are deliberately still outside the supported core:
 - Message attachments, group conversations, realtime presence, and delivery
   receipts.
 - Galleries, video, and direct-to-object-storage uploads.
-- Email and push notification delivery.
+- Web/mobile push delivery, instant email, and custom digest schedules.
 - Advanced indexed search and a stable extension installation lifecycle.
 - Complete audit archival/export and deployment-specific retention tooling.
 - A production support, upgrade, and compatibility policy.
@@ -370,7 +392,11 @@ composer run dev
 `composer run setup` installs dependencies, creates the local environment,
 generates the application key, runs migrations, and builds the frontend. The
 default example mailer writes messages to the local log; configure a real
-transactional provider before inviting members in a deployment.
+transactional provider before inviting members in a deployment. Daily email
+delivery is off by default; enabling it also requires Laravel's scheduler and a
+worker that processes the `notifications` queue (for example,
+`php artisan queue:work --queue=notifications,default`). Read the
+[`notification delivery contract`](docs/notifications.md) before turning it on.
 
 ### Quality checks
 

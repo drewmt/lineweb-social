@@ -10,3 +10,7 @@ Artisan::command('inspire', function () {
 
 Schedule::command('sanctum:prune-expired --hours=24')->daily();
 Schedule::command('message-reports:prune')->daily()->withoutOverlapping();
+Schedule::command('notifications:dispatch-digests')
+    ->dailyAt('08:00')
+    ->withoutOverlapping()
+    ->onOneServer();

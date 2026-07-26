@@ -66,6 +66,11 @@ database notifications. Stored payloads contain identifiers only. Every render
 and open action resolves the current entity state, policy authorization, profile
 visibility, and Space role before exposing a destination. This lets a stale
 notification become unavailable without leaking deleted or newly restricted data.
+The opt-in daily email digest reuses that projection at queue-processing time but
+exports only category counts. A timestamp-and-notification cursor bounds each
+job without dropping a high-volume backlog, while scheduler dispatch and mail
+transport remain outside content-write transactions. The full contract is
+documented in [`notifications.md`](notifications.md).
 
 The first post-image projection exposes only an authorized application URL,
 alternative text, and normalized dimensions. Storage disks, object paths,
@@ -134,7 +139,8 @@ in [`platform-administration.md`](platform-administration.md) and
    resources using the contract-first [`api-v1.md`](api-v1.md) and
    [`openapi.json`](openapi.json) draft, preserving the stable web conversation,
    notification, and media policy boundaries.
-2. Define queued email and push delivery contracts without making the current web UI or database writes depend on an external transport.
+2. Define a separately opt-in push delivery contract without making the current
+   web UI or database writes depend on an external transport.
 3. Implement and test the extension lifecycle before calling the manifest a plugin system.
 4. Define quotas and asynchronous processing before expanding post media to
    galleries, video, direct uploads, or CDN delivery.
