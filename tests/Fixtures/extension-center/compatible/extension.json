@@ -1,0 +1,19 @@
+{
+    "id": "compatible-extension",
+    "name": "Compatible Extension",
+    "version": "1.2.0",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Lineweb"
+        }
+    ],
+    "core": "^0.1.0-alpha.1",
+    "provider": "Extensions\\Compatible\\CompatibleServiceProvider",
+    "permissions": [
+        "posts.read"
+    ],
+    "ui_slots": [
+        "feed.item.after"
+    ]
+}

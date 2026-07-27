@@ -26,6 +26,7 @@
         "self-hosted"
     ],
     "require": {
+        "composer/semver": "^3.4",
         "php": "^8.3",
         "ext-exif": "*",
         "ext-fileinfo": "*",

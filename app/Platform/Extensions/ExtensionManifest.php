@@ -2,8 +2,10 @@
 
 namespace App\Platform\Extensions;
 
+use Composer\Semver\VersionParser;
 use InvalidArgumentException;
 use JsonException;
+use UnexpectedValueException;
 
 final readonly class ExtensionManifest
 {
@@ -80,8 +82,13 @@ final readonly class ExtensionManifest
             throw new InvalidArgumentException('Extension version must be a semantic version.');
         }
 
-        if (preg_match('/^[0-9.^~<>=|* x-]+$/i', $core) !== 1) {
-            throw new InvalidArgumentException('Core compatibility constraint contains unsupported characters.');
+        try {
+            (new VersionParser)->parseConstraints($core);
+        } catch (UnexpectedValueException $exception) {
+            throw new InvalidArgumentException(
+                'Core compatibility constraint must use Composer version syntax.',
+                previous: $exception,
+            );
         }
 
         if (preg_match('/^(?:[A-Z][A-Za-z0-9_]*\\\\)+[A-Z][A-Za-z0-9_]*$/', $provider) !== 1) {

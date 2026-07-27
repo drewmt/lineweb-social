@@ -3,6 +3,17 @@
 return [
     /*
     |--------------------------------------------------------------------------
+    | Core compatibility
+    |--------------------------------------------------------------------------
+    |
+    | Extension manifests declare the Lineweb Social core versions they
+    | support. Keep this value aligned with the public application release.
+    |
+    */
+    'core_version' => env('LINEWEB_SOCIAL_CORE_VERSION', '0.1.0-alpha.1'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Local extension discovery
     |--------------------------------------------------------------------------
     |

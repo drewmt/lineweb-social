@@ -149,6 +149,28 @@ the current member is allowed to see them.
   </tr>
 </table>
 
+### A guarded foundation for extensions
+
+Operators can inspect every local extension manifest, its declared access, and
+its compatibility with the running core before deployment. A broken package is
+reported independently, while the web surface remains deliberately read-only:
+it never downloads, activates, or executes extension code.
+
+<table>
+  <tr>
+    <td width="68%">
+      <img src="docs/screenshots/extensions-desktop.jpg" alt="Lineweb Social extension compatibility center on desktop" />
+    </td>
+    <td width="32%">
+      <img src="docs/screenshots/extensions-mobile.jpg" alt="Lineweb Social extension manifest details on mobile" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Core compatibility and deployment readiness at a glance</sub></td>
+    <td align="center"><sub>Declared provider, permissions, and UI slots without code execution</sub></td>
+  </tr>
+</table>
+
 <table>
   <tr>
     <td width="68%">
@@ -317,7 +339,7 @@ makes the final decision.
 | Notifications       | Database-backed replies, mentions, and moderation alerts with per-category preferences, destination access revalidation, and opt-in privacy-safe daily email digests.       |
 | Platform operations | Dedicated responsive control center, console-granted administrators, focused member, appeals, and private-safety queues, transactional suspension/reinstatement, session and API-token revocation, and searchable append-only audit history. |
 | Data rights         | Password-confirmed personal JSON export and self-service deletion with active-community ownership safeguards.                                                               |
-| Developer surface   | Contract-first bearer API, scoped expiring Sanctum tokens, domain events, OpenAPI draft, and allowlisted local extension manifests.                                         |
+| Developer surface   | Contract-first bearer API, scoped expiring Sanctum tokens, domain events, OpenAPI draft, allowlisted local extension manifests, and a read-only compatibility center with a CI-ready audit command. |
 
 ## Product principles
 
@@ -340,9 +362,12 @@ database access.
 
 ### Extension points should not bypass the platform
 
-The current extension prototype accepts configured local manifests with known
-permissions and UI slots. Remote downloads, arbitrary ZIP installation, and
-automatic execution of unreviewed code are intentionally unavailable.
+The current extension foundation accepts configured local manifests with known
+permissions and UI slots. Administrators can review each manifest and its core
+compatibility without loading the declared provider; deployers can enforce the
+same contract with `php artisan platform:extensions`. Remote downloads,
+arbitrary ZIP installation, and automatic execution of unreviewed code are
+intentionally unavailable.
 
 ## Alpha status
 
@@ -356,7 +381,8 @@ The following are deliberately still outside the supported core:
   receipts.
 - Galleries, video, and direct-to-object-storage uploads.
 - Web/mobile push delivery, instant email, and custom digest schedules.
-- Advanced indexed search and a stable extension installation lifecycle.
+- Advanced indexed search and extension activation, migration, asset, and
+  uninstall lifecycles.
 - Complete audit archival/export and deployment-specific retention tooling.
 - A production support, upgrade, and compatibility policy.
 
@@ -416,6 +442,7 @@ only code structure.
 | Contract                                         | Documentation                                                                        |
 | ------------------------------------------------ | ------------------------------------------------------------------------------------ |
 | Platform boundaries and extension direction      | [`docs/platform-architecture.md`](docs/platform-architecture.md)                     |
+| Extension manifests and compatibility inspection | [`docs/extensions.md`](docs/extensions.md)                                           |
 | Authenticated API and machine-readable draft     | [`docs/api-v1.md`](docs/api-v1.md) · [`docs/openapi.json`](docs/openapi.json)        |
 | Direct Messages                                  | [`docs/direct-messages.md`](docs/direct-messages.md)                                 |
 | Private message reporting and evidence retention | [`docs/message-reporting.md`](docs/message-reporting.md)                             |

@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
     ArrowLeft,
+    Boxes,
     FileQuestion,
     LayoutDashboard,
     MessageSquareWarning,
@@ -58,6 +59,13 @@ const adminSections = [
         description: 'Message reports',
         href: '/admin/message-reports',
         icon: MessageSquareWarning,
+        exact: false,
+    },
+    {
+        title: 'Extensions',
+        description: 'Compatibility checks',
+        href: '/admin/extensions',
+        icon: Boxes,
         exact: false,
     },
     {

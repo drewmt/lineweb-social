@@ -1,0 +1,15 @@
+{
+    "id": "next-core-extension",
+    "name": "Next Core Extension",
+    "version": "0.1.0",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Lineweb"
+        }
+    ],
+    "core": ">=0.2.0",
+    "provider": "Extensions\\NextCore\\NextCoreServiceProvider",
+    "permissions": [],
+    "ui_slots": []
+}
