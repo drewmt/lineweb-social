@@ -33,11 +33,13 @@ class ExtensionCenterTest extends TestCase
                 ->component('admin/extensions')
                 ->where('coreVersion', '0.1.0-alpha.1')
                 ->where('summary.discovered', 1)
+                ->where('summary.active', 0)
                 ->where('summary.compatible', 1)
                 ->where('summary.actionRequired', 0)
                 ->has('extensions', 1)
                 ->where('extensions.0.id', 'example-polls')
                 ->where('extensions.0.status', 'compatible')
+                ->where('extensions.0.active', false)
                 ->where('extensions.0.permissions', [
                     'posts.read',
                     'posts.write',
@@ -66,7 +68,9 @@ class ExtensionCenterTest extends TestCase
         $payload = json_decode(Artisan::output(), true, 32, JSON_THROW_ON_ERROR);
 
         $this->assertTrue($payload['ready']);
+        $this->assertSame([], $payload['enabled']);
         $this->assertSame('example-polls', $payload['extensions'][0]['id']);
+        $this->assertFalse($payload['extensions'][0]['active']);
     }
 
     public function test_extension_audit_command_fails_for_unsafe_deployment_state(): void

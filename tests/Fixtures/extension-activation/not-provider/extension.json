@@ -1,0 +1,15 @@
+{
+    "id": "not-provider",
+    "name": "Not A Provider",
+    "version": "1.0.0",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Lineweb"
+        }
+    ],
+    "core": "^0.1.0-alpha.1",
+    "provider": "Tests\\Fixtures\\ExtensionProviders\\NotAServiceProvider",
+    "permissions": [],
+    "ui_slots": []
+}

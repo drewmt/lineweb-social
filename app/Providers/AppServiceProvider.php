@@ -2,8 +2,11 @@
 
 namespace App\Providers;
 
+use App\Platform\Extensions\ExtensionActivator;
+use App\Platform\Extensions\ExtensionInspector;
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +22,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(
+            ExtensionActivator::class,
+            static fn (Application $app): ExtensionActivator => new ExtensionActivator(
+                $app,
+                $app->make(ExtensionInspector::class),
+            ),
+        );
+
+        $this->app->make(ExtensionActivator::class)->activateConfigured();
     }
 
     /**

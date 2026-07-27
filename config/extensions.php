@@ -25,6 +25,20 @@ return [
         base_path('extensions'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Explicit activation
+    |--------------------------------------------------------------------------
+    |
+    | Only reviewed extensions listed here may register a service provider.
+    | Activation is a deployment decision; the web interface remains read-only.
+    |
+    */
+    'enabled' => array_values(array_filter(array_map(
+        static fn (string $id): string => trim($id),
+        explode(',', (string) env('LINEWEB_SOCIAL_EXTENSIONS', '')),
+    ))),
+
     'permissions' => [
         'comments.read',
         'comments.write',

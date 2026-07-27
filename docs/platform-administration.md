@@ -20,8 +20,8 @@ member-facing social navigation:
   appeals and explicit approve-or-deny decisions.
 - **Safety** contains the evidence-limited direct-message report workflow
   described below.
-- **Extensions** reports deploy-time manifest and core-compatibility readiness
-  without loading, uploading, or activating extension code.
+- **Extensions** reports deploy-time manifest, core-compatibility, and explicit
+  activation state without offering uploads or executable browser actions.
 - **Audit** provides a paginated, searchable, category-filtered read-only view
   of privileged actions.
 
@@ -31,9 +31,9 @@ community. These are navigation improvements only; every page and mutation
 still passes through the same server-side administrator middleware and
 transactional authorization checks.
 
-The Extensions surface is informational. Source installation remains an
-infrastructure deployment action and its full boundary is documented in
-[`extensions.md`](extensions.md).
+The Extensions surface is informational. Source installation and activation
+remain infrastructure deployment actions, and their full boundary is
+documented in [`extensions.md`](extensions.md).
 
 ## Bootstrap an administrator
 
