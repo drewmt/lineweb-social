@@ -151,10 +151,10 @@ the current member is allowed to see them.
 
 ### A guarded foundation for extensions
 
-Operators can inspect every local extension manifest, its declared access, and
-its compatibility with the running core before deployment. A broken package is
-reported independently, while the web surface remains deliberately read-only:
-it never downloads, activates, or executes extension code.
+Operators can inspect every local extension manifest, its declared access,
+compatibility, and explicit activation state before deployment. A broken
+package is reported independently, while executable activation stays in trusted
+deploy configuration rather than the browser.
 
 <table>
   <tr>
@@ -166,8 +166,8 @@ it never downloads, activates, or executes extension code.
     </td>
   </tr>
   <tr>
-    <td align="center"><sub>Core compatibility and deployment readiness at a glance</sub></td>
-    <td align="center"><sub>Declared provider, permissions, and UI slots without code execution</sub></td>
+    <td align="center"><sub>Compatibility and explicit activation at a glance</sub></td>
+    <td align="center"><sub>Provider declarations without browser activation</sub></td>
   </tr>
 </table>
 
@@ -363,11 +363,11 @@ database access.
 ### Extension points should not bypass the platform
 
 The current extension foundation accepts configured local manifests with known
-permissions and UI slots. Administrators can review each manifest and its core
-compatibility without loading the declared provider; deployers can enforce the
-same contract with `php artisan platform:extensions`. Remote downloads,
-arbitrary ZIP installation, and automatic execution of unreviewed code are
-intentionally unavailable.
+permissions and UI slots. Administrators can review each manifest,
+compatibility, and active state; deployers explicitly allowlist reviewed
+providers and enforce the same contract with `php artisan
+platform:extensions`. Remote downloads, arbitrary ZIP installation, and browser
+execution of unreviewed code are intentionally unavailable.
 
 ## Alpha status
 
@@ -381,8 +381,8 @@ The following are deliberately still outside the supported core:
   receipts.
 - Galleries, video, and direct-to-object-storage uploads.
 - Web/mobile push delivery, instant email, and custom digest schedules.
-- Advanced indexed search and extension activation, migration, asset, and
-  uninstall lifecycles.
+- Advanced indexed search and extension migration, asset, rollback, data
+  ownership, and uninstall lifecycles.
 - Complete audit archival/export and deployment-specific retention tooling.
 - A production support, upgrade, and compatibility policy.
 

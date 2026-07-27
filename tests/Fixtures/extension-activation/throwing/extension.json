@@ -1,0 +1,15 @@
+{
+    "id": "throwing-extension",
+    "name": "Throwing Extension",
+    "version": "1.0.0",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Lineweb"
+        }
+    ],
+    "core": "^0.1.0-alpha.1",
+    "provider": "Tests\\Fixtures\\ExtensionProviders\\ThrowingExtensionProvider",
+    "permissions": [],
+    "ui_slots": []
+}

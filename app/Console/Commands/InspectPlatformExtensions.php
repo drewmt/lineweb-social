@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Platform\Extensions\ExtensionActivator;
 use App\Platform\Extensions\ExtensionInspection;
 use App\Platform\Extensions\ExtensionInspector;
 use Illuminate\Console\Command;
@@ -12,12 +13,18 @@ class InspectPlatformExtensions extends Command
 
     protected $description = 'Inspect local Lineweb Social extension manifests and core compatibility';
 
-    public function handle(ExtensionInspector $inspector): int
-    {
+    public function handle(
+        ExtensionInspector $inspector,
+        ExtensionActivator $activator,
+    ): int {
         $coreVersion = (string) config('extensions.core_version');
         $inspections = $inspector->inspect();
+        $enabledIds = $activator->enabledIds();
         $results = array_map(
-            static fn (ExtensionInspection $inspection): array => $inspection->toArray(),
+            static fn (ExtensionInspection $inspection): array => [
+                ...$inspection->toArray(),
+                'active' => in_array($inspection->manifest?->id, $enabledIds, true),
+            ],
             $inspections,
         );
 
@@ -25,6 +32,7 @@ class InspectPlatformExtensions extends Command
             $this->line((string) json_encode([
                 'coreVersion' => $coreVersion,
                 'ready' => collect($inspections)->every->isCompatible(),
+                'enabled' => $enabledIds,
                 'extensions' => $results,
             ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
         } else {
@@ -34,12 +42,13 @@ class InspectPlatformExtensions extends Command
                 $this->components->warn('No local extension manifests were found.');
             } else {
                 $this->table(
-                    ['Extension', 'Version', 'Core constraint', 'Status'],
+                    ['Extension', 'Version', 'Core constraint', 'Status', 'Activation'],
                     array_map(static fn (array $result): array => [
                         $result['name'],
                         $result['version'] ?? '—',
                         $result['core'] ?? '—',
                         $result['status'],
+                        $result['active'] ? 'active' : 'inactive',
                     ], $results),
                 );
 

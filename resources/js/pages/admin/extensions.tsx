@@ -6,6 +6,7 @@ import {
     CodeXml,
     FileCode2,
     LockKeyhole,
+    Power,
     ShieldCheck,
     TerminalSquare,
 } from 'lucide-react';
@@ -31,12 +32,14 @@ type Extension = {
     provider: string | null;
     status: Status;
     message: string;
+    active: boolean;
 };
 
 type Props = {
     coreVersion: string;
     summary: {
         discovered: number;
+        active: number;
         compatible: number;
         actionRequired: number;
     };
@@ -70,10 +73,9 @@ export default function AdminExtensions({
                                 Know what can run.
                             </h1>
                             <p className="mt-3 max-w-2xl text-sm leading-6 text-background/68 sm:text-base">
-                                Inspect local extension manifests and core
-                                compatibility before a deployment. This screen
-                                never downloads, activates, or executes
-                                extension code.
+                                Review local manifests, compatibility, and
+                                explicit activation state. Only providers
+                                selected in deploy configuration can run.
                             </p>
                         </div>
                         <div className="flex w-fit items-center gap-3 rounded-2xl border border-white/12 bg-white/[0.07] px-4 py-3">
@@ -97,13 +99,19 @@ export default function AdminExtensions({
 
                 <section
                     aria-label="Extension readiness"
-                    className="mt-5 grid gap-3 sm:grid-cols-3"
+                    className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4"
                 >
                     <SummaryCard
                         label="Discovered"
                         value={summary.discovered}
                         detail="Local manifests"
                         icon={Boxes}
+                    />
+                    <SummaryCard
+                        label="Active"
+                        value={summary.active}
+                        detail="Deploy-approved"
+                        icon={Power}
                     />
                     <SummaryCard
                         label="Compatible"
@@ -172,12 +180,13 @@ export default function AdminExtensions({
                             />
                         </div>
                         <h2 className="mt-4 text-lg font-black tracking-[-0.025em]">
-                            Deliberately read-only
+                            No browser activation
                         </h2>
                         <p className="mt-2 text-sm leading-6 text-muted-foreground">
                             Web uploads and one-click activation are not safe
-                            defaults for executable PHP. Operators install
-                            reviewed source during deployment.
+                            defaults for executable PHP. Operators review,
+                            install, and enable trusted source during
+                            deployment.
                         </p>
                         <div className="mt-5 border-t border-border/70 pt-5">
                             <p className="text-[0.68rem] font-extrabold tracking-[0.13em] text-muted-foreground uppercase">
@@ -190,10 +199,13 @@ export default function AdminExtensions({
                                 />
                                 php artisan platform:extensions
                             </code>
+                            <code className="mt-2 block overflow-x-auto rounded-xl border border-border/70 bg-secondary/55 px-3 py-3 font-mono text-[0.68rem] font-bold whitespace-nowrap">
+                                LINEWEB_SOCIAL_EXTENSIONS=trusted-extension
+                            </code>
                             <p className="mt-3 text-xs leading-5 text-muted-foreground">
-                                The command exits with failure when any manifest
-                                is invalid, duplicated, or incompatible, making
-                                it suitable for CI and release scripts.
+                                The application validates every enabled provider
+                                before registration and fails startup when the
+                                trusted activation plan is unsafe.
                             </p>
                         </div>
                     </aside>
@@ -252,6 +264,11 @@ function SummaryCard({
 
 function ExtensionCard({ extension }: { extension: Extension }) {
     const ready = extension.status === 'compatible';
+    const stateLabel = ready
+        ? extension.active
+            ? 'Active'
+            : 'Available'
+        : statusLabel[extension.status];
 
     return (
         <article className="social-card overflow-hidden rounded-[1.5rem]">
@@ -287,17 +304,26 @@ function ExtensionCard({ extension }: { extension: Extension }) {
                             <span
                                 className={cn(
                                     'inline-flex min-h-8 items-center rounded-full border px-3 text-[0.68rem] font-extrabold',
-                                    ready
+                                    extension.active
                                         ? 'border-mint/55 bg-mint/18 text-foreground'
-                                        : 'border-coral/45 bg-coral/10 text-foreground',
+                                        : ready
+                                          ? 'border-border bg-secondary/65 text-muted-foreground'
+                                          : 'border-coral/45 bg-coral/10 text-foreground',
                                 )}
                             >
-                                {statusLabel[extension.status]}
+                                {stateLabel}
                             </span>
                         </div>
                         <p className="mt-3 text-sm leading-6 text-muted-foreground">
                             {extension.message}
                         </p>
+                        {ready && (
+                            <p className="mt-1.5 text-xs font-bold text-muted-foreground">
+                                {extension.active
+                                    ? 'Provider registered from the explicit deploy allowlist.'
+                                    : 'Compatible source is present, but its provider is not enabled.'}
+                            </p>
+                        )}
                     </div>
                 </div>
 

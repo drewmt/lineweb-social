@@ -45,11 +45,13 @@ core entities with explicit foreign keys.
 The current manifest and compatibility inspector form a deploy-time declaration
 boundary. Permission and UI-slot allowlists document intent, while the
 administrator Extension Center and `platform:extensions` command validate each
-manifest independently without loading its provider. This is not a runtime
+manifest independently. Reviewed providers may be enabled only from deploy
+configuration; every selected provider is preflighted before registration, and
+an unsafe activation plan fails application startup. This is not a runtime
 sandbox or a supported marketplace API. No extension should be advertised as
-one-click installable until provider bootstrapping, migrations, asset loading,
-failure isolation, and uninstall behavior are implemented and tested. The
-current contract is documented in [`extensions.md`](extensions.md).
+one-click installable until migrations, asset loading, rollback, data ownership,
+and uninstall behavior are implemented and tested. The current contract is
+documented in [`extensions.md`](extensions.md).
 
 ## Presentation boundary
 
