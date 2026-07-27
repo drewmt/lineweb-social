@@ -42,7 +42,14 @@ search indexes, analytics, commerce, learning, events, or alternative feed
 presentation. Extension data belongs in extension-owned tables and must reference
 core entities with explicit foreign keys.
 
-The current manifest is a deploy-time declaration prototype. Its permission and UI-slot allowlists document intent, but they are not yet a runtime sandbox or a supported marketplace API. No extension should be advertised as one-click installable until provider bootstrapping, migrations, compatibility checks, asset loading, failure isolation, and uninstall behavior are implemented and tested.
+The current manifest and compatibility inspector form a deploy-time declaration
+boundary. Permission and UI-slot allowlists document intent, while the
+administrator Extension Center and `platform:extensions` command validate each
+manifest independently without loading its provider. This is not a runtime
+sandbox or a supported marketplace API. No extension should be advertised as
+one-click installable until provider bootstrapping, migrations, asset loading,
+failure isolation, and uninstall behavior are implemented and tested. The
+current contract is documented in [`extensions.md`](extensions.md).
 
 ## Presentation boundary
 
@@ -141,7 +148,9 @@ in [`platform-administration.md`](platform-administration.md) and
    notification, and media policy boundaries.
 2. Define a separately opt-in push delivery contract without making the current
    web UI or database writes depend on an external transport.
-3. Implement and test the extension lifecycle before calling the manifest a plugin system.
+3. Implement and test explicit provider activation, migrations, assets, failure
+   isolation, and uninstall behavior before calling the manifest a plugin
+   system.
 4. Define quotas and asynchronous processing before expanding post media to
    galleries, video, direct uploads, or CDN delivery.
 

@@ -3,6 +3,7 @@
 use App\Http\Controllers\AccountStatusController;
 use App\Http\Controllers\Admin\AdminAuditLogController;
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminExtensionController;
 use App\Http\Controllers\Admin\AdminMemberController;
 use App\Http\Controllers\Admin\MemberSuspensionController;
 use App\Http\Controllers\Admin\MessageReportController as AdminMessageReportController;
@@ -232,6 +233,8 @@ Route::prefix('admin')
     ])
     ->group(function (): void {
         Route::get('/', AdminDashboardController::class)->name('admin.index');
+        Route::get('extensions', AdminExtensionController::class)
+            ->name('admin.extensions.index');
         Route::get('members', AdminMemberController::class)
             ->name('admin.members.index');
         Route::get('audit', AdminAuditLogController::class)

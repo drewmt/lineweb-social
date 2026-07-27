@@ -47,6 +47,7 @@ class ExtensionManifestTest extends TestCase
     {
         yield 'unsafe id' => [['id' => '../polls']];
         yield 'invalid version' => [['version' => 'first-release']];
+        yield 'invalid core constraint' => [['core' => 'latest release please']];
         yield 'unknown permission' => [['permissions' => ['database.admin']]];
         yield 'unknown slot' => [['ui_slots' => ['feed.anywhere']]];
         yield 'unqualified provider' => [['provider' => 'PollsProvider']];

@@ -6,6 +6,10 @@ All notable project changes will be documented here.
 
 ### Added
 
+- A read-only administrator Extension Center and CI-ready
+  `platform:extensions` command that discover local manifests independently,
+  validate Composer-compatible core constraints, identify duplicate IDs, and
+  report incompatible or invalid packages without loading extension providers.
 - Opt-in daily notification digests with queued provider-independent delivery,
   verified and active-account checks, delivery-time authorization, low-data
   category counts, stable high-volume cursors, privacy-safe settings and mail
