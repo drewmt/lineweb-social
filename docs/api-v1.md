@@ -6,7 +6,8 @@ This document defines the first public contract for authenticated native and
 decoupled clients. `GET /api/v1/me`, `GET /api/v1/profiles/{handle}`,
 `GET /api/v1/spaces`, `GET /api/v1/spaces/{slug}`, `GET /api/v1/feed`,
 `GET /api/v1/posts/{post}`, `GET /api/v1/posts/{post}/comments`, 
-`GET /api/v1/posts/{post}/media`, `GET /api/v1/notifications`,
+`GET /api/v1/posts/{post}/media`,
+`GET /api/v1/posts/{post}/media/{media}`, `GET /api/v1/notifications`,
 `PATCH /api/v1/notifications/{notification}/read`, and
 `PATCH /api/v1/notifications/read-all` are available;
 the remaining endpoints in
@@ -209,8 +210,10 @@ The first resources expose only allowlisted fields:
   URLs, while topic discovery and counts always reapply current post visibility;
   post reactions expose bounded counts and only the current viewer's selected
   type, never reactor identities;
-- media exposes only the authorized API URL, alt text, normalized dimensions,
-  and MIME type;
+- `media` preserves the primary-image contract for existing clients, while the
+  additive ordered `media_items` array contains up to four opaque item
+  identifiers, authorized API URLs, alt text, normalized dimensions, and MIME
+  type;
 - notifications are re-resolved at read time and expose a safe structured
   target or `null`, never their stored internal payload.
 
@@ -236,6 +239,7 @@ The implemented API roadmap contains:
 - `GET /api/v1/posts/{post}` — available
 - `GET /api/v1/posts/{post}/comments` — available
 - `GET /api/v1/posts/{post}/media` — available
+- `GET /api/v1/posts/{post}/media/{media}` — available
 - `GET /api/v1/notifications` — available
 - `PATCH /api/v1/notifications/{notification}/read` — available
 - `PATCH /api/v1/notifications/read-all` — available
@@ -243,7 +247,8 @@ The implemented API roadmap contains:
 OpenAPI operations carry `x-lineweb-status: planned` until their routes,
 resources, authorization, throttling, and feature tests exist. `/me`,
 `/profiles/{handle}`, `/spaces`, `/spaces/{slug}`, `/feed`,
-`/posts/{post}`, `/posts/{post}/comments`, `/posts/{post}/media`, and
+`/posts/{post}`, `/posts/{post}/comments`, `/posts/{post}/media`,
+`/posts/{post}/media/{media}`, and
 `/notifications`, `/notifications/{notification}/read`, and `/notifications/read-all`
 currently carry `x-lineweb-status: available`.
 Documentation must never make a planned endpoint look available.

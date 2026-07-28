@@ -23,4 +23,26 @@ final class PostMediaView
             'height' => $post->media->height,
         ];
     }
+
+    /**
+     * @return list<array{id: int, url: string, alt: string, width: int, height: int}>
+     */
+    public function galleryFor(Post $post): array
+    {
+        $post->loadMissing('mediaItems');
+
+        return array_values(
+            $post->mediaItems->map(fn (PostMedia $media): array => [
+                'id' => $media->id,
+                'url' => route('posts.media.show', [
+                    'post' => $post,
+                    'media' => $media->id,
+                ]),
+                'alt' => $media->alt_text,
+                'width' => $media->width,
+                'height' => $media->height,
+            ])
+                ->all(),
+        );
+    }
 }

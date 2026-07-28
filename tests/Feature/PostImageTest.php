@@ -106,6 +106,151 @@ class PostImageTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page->where('posts.0.media', $expectedMedia));
     }
 
+    public function test_members_can_publish_an_ordered_four_image_gallery_with_private_item_delivery(): void
+    {
+        Event::fake([PostPublished::class]);
+
+        $author = User::factory()->create();
+        $space = Space::factory()->for($author, 'owner')->private()->create();
+        $altTexts = [
+            'A wide community workshop.',
+            'A square table covered in prototypes.',
+            'Two members presenting their work.',
+            'The group gathered for a final photo.',
+        ];
+
+        $this->actingAs($author)
+            ->post(route('spaces.posts.store', $space), [
+                'body' => 'A four-part workshop recap.',
+                'images' => [
+                    UploadedFile::fake()->image('wide.jpg', 1600, 900),
+                    UploadedFile::fake()->image('square.png', 900, 900),
+                    UploadedFile::fake()->image('portrait.webp', 800, 1200),
+                    UploadedFile::fake()->image('final.jpg', 1200, 800),
+                ],
+                'image_alts' => $altTexts,
+            ])
+            ->assertSessionHasNoErrors();
+
+        $post = Post::query()->with(['media', 'mediaItems'])->sole();
+
+        $this->assertCount(4, $post->mediaItems);
+        $this->assertSame([0, 1, 2, 3], $post->mediaItems->pluck('position')->all());
+        $this->assertSame($altTexts, $post->mediaItems->pluck('alt_text')->all());
+        $this->assertSame($post->mediaItems->first()?->getKey(), $post->media?->getKey());
+        $this->assertSame(
+            4,
+            $post->mediaItems->pluck('path')->unique()->count(),
+        );
+
+        foreach ($post->mediaItems as $media) {
+            $this->assertSame('image/webp', $media->mime_type);
+            Storage::disk('media')->assertExists($media->path);
+        }
+
+        $second = $post->mediaItems->get(1);
+        $this->assertInstanceOf(PostMedia::class, $second);
+
+        $this->actingAs($author)
+            ->get(route('posts.media.show', [
+                'post' => $post,
+                'media' => $second,
+            ]))
+            ->assertOk()
+            ->assertHeader('Content-Type', 'image/webp')
+            ->assertHeader('Cross-Origin-Resource-Policy', 'same-origin');
+
+        $this->actingAs($author)
+            ->get(route('feed', ['space' => $space->slug]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('posts.0.media.url', route('posts.image', $post))
+                ->has('posts.0.mediaItems', 4)
+                ->where('posts.0.mediaItems.1.id', $second->getKey())
+                ->where(
+                    'posts.0.mediaItems.1.url',
+                    route('posts.media.show', [
+                        'post' => $post,
+                        'media' => $second,
+                    ]),
+                )
+                ->where('posts.0.mediaItems.1.alt', $altTexts[1])
+                ->missing('posts.0.mediaItems.1.path')
+                ->missing('posts.0.mediaItems.1.disk'));
+
+        Event::assertDispatchedTimes(PostPublished::class, 1);
+    }
+
+    public function test_gallery_validation_rejects_too_many_images_mismatched_alts_and_mixed_upload_contracts(): void
+    {
+        $author = User::factory()->create();
+        $space = Space::factory()->for($author, 'owner')->create();
+        $fiveImages = array_map(
+            fn (int $position): UploadedFile => UploadedFile::fake()
+                ->image("photo-{$position}.jpg", 640, 480),
+            range(1, 5),
+        );
+
+        $this->actingAs($author)
+            ->post(route('spaces.posts.store', $space), [
+                'body' => 'Too many images.',
+                'images' => $fiveImages,
+                'image_alts' => array_fill(0, 5, 'A gallery image.'),
+            ])
+            ->assertSessionHasErrors('images');
+
+        $this->actingAs($author)
+            ->post(route('spaces.posts.store', $space), [
+                'body' => 'Missing one description.',
+                'images' => [
+                    UploadedFile::fake()->image('one.jpg', 640, 480),
+                    UploadedFile::fake()->image('two.jpg', 640, 480),
+                ],
+                'image_alts' => ['Only the first image is described.'],
+            ])
+            ->assertSessionHasErrors('image_alts');
+
+        $this->actingAs($author)
+            ->post(route('spaces.posts.store', $space), [
+                'body' => 'Mixed upload fields.',
+                'images' => [
+                    UploadedFile::fake()->image('gallery.jpg', 640, 480),
+                ],
+                'image_alts' => ['A gallery image.'],
+                'image' => UploadedFile::fake()->image('legacy.jpg', 640, 480),
+                'image_alt' => 'A legacy image.',
+            ])
+            ->assertSessionHasErrors('images');
+
+        $this->assertDatabaseCount('posts', 0);
+        $this->assertDatabaseCount('post_media', 0);
+        Storage::disk('media')->assertDirectoryEmpty('/');
+    }
+
+    public function test_gallery_item_routes_cannot_cross_post_ownership_boundaries(): void
+    {
+        $author = User::factory()->create();
+        $space = Space::factory()->for($author, 'owner')->create();
+        $firstPost = Post::factory()->for($space)->for($author, 'author')->create();
+        $secondPost = Post::factory()->for($space)->for($author, 'author')->create();
+        $firstMedia = $this->attachMedia($firstPost, 'posts/first.webp');
+        $secondMedia = $this->attachMedia($secondPost, 'posts/second.webp');
+
+        $this->actingAs($author)
+            ->get(route('posts.media.show', [
+                'post' => $firstPost,
+                'media' => $firstMedia,
+            ]))
+            ->assertOk();
+
+        $this->actingAs($author)
+            ->get(route('posts.media.show', [
+                'post' => $firstPost,
+                'media' => $secondMedia,
+            ]))
+            ->assertNotFound();
+    }
+
     public function test_upload_validation_rejects_missing_alt_text_invalid_content_and_oversized_files(): void
     {
         $author = User::factory()->create();
@@ -249,14 +394,18 @@ class PostImageTest extends TestCase
         $this->assertDatabaseCount('post_media', 0);
     }
 
-    private function attachMedia(Post $post, ?string $path = null): PostMedia
-    {
+    private function attachMedia(
+        Post $post,
+        ?string $path = null,
+        int $position = 0,
+    ): PostMedia {
         $contents = $this->imageContents();
         $path ??= 'posts/'.$post->getKey().'.webp';
 
         Storage::disk('media')->put($path, $contents);
 
-        return $post->media()->create([
+        return $post->mediaItems()->create([
+            'position' => $position,
             'disk' => 'media',
             'path' => $path,
             'mime_type' => 'image/webp',

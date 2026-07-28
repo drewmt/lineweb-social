@@ -23,28 +23,35 @@ final class PublishPost
         private readonly SyncPostTopics $topics,
     ) {}
 
+    /**
+     * @param  list<UploadedFile>  $uploads
+     * @param  list<string>  $altTexts
+     */
     public function publish(
         User $author,
         Space $space,
         string $body,
-        ?UploadedFile $upload,
-        ?string $altText,
+        array $uploads,
+        array $altTexts,
     ): Post {
-        $normalized = $upload instanceof UploadedFile
-            ? $this->images->normalize($upload)
-            : null;
+        /** @var list<NormalizedImage> $normalized */
+        $normalized = array_map(
+            fn (UploadedFile $upload): NormalizedImage => $this->images->normalize($upload),
+            $uploads,
+        );
         $disk = $this->mediaDisk();
-        $path = null;
+        /** @var list<string> $paths */
+        $paths = [];
 
         try {
             $post = DB::transaction(function () use (
                 $author,
                 $space,
                 $body,
-                $altText,
+                $altTexts,
                 $normalized,
                 $disk,
-                &$path,
+                &$paths,
             ): Post {
                 $post = $space->posts()->create([
                     'user_id' => $author->getKey(),
@@ -52,32 +59,35 @@ final class PublishPost
                     'published_at' => now(),
                 ]);
 
-                if ($normalized instanceof NormalizedImage) {
+                foreach ($normalized as $position => $image) {
                     $path = 'posts/'.now()->format('Y/m').'/'.Str::uuid().'.webp';
 
-                    if (! Storage::disk($disk)->put($path, $normalized->contents)) {
+                    $paths[] = $path;
+
+                    if (! Storage::disk($disk)->put($path, $image->contents)) {
                         throw new RuntimeException('The normalized post image could not be stored.');
                     }
 
-                    $media = $post->media()->create([
+                    $post->mediaItems()->create([
+                        'position' => $position,
                         'disk' => $disk,
                         'path' => $path,
-                        'mime_type' => $normalized->mimeType,
-                        'width' => $normalized->width,
-                        'height' => $normalized->height,
-                        'size_bytes' => $normalized->sizeBytes,
-                        'checksum' => $normalized->checksum,
-                        'alt_text' => trim((string) $altText),
+                        'mime_type' => $image->mimeType,
+                        'width' => $image->width,
+                        'height' => $image->height,
+                        'size_bytes' => $image->sizeBytes,
+                        'checksum' => $image->checksum,
+                        'alt_text' => trim($altTexts[$position] ?? ''),
                     ]);
-                    $post->setRelation('media', $media);
                 }
 
+                $post->load(['media', 'mediaItems']);
                 $this->topics->sync($post);
 
                 return $post;
             });
         } catch (Throwable $exception) {
-            if (is_string($path)) {
+            foreach ($paths as $path) {
                 try {
                     Storage::disk($disk)->delete($path);
                 } catch (Throwable $cleanupException) {

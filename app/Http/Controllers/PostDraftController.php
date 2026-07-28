@@ -10,7 +10,6 @@ use App\Models\Space;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
@@ -25,7 +24,7 @@ class PostDraftController extends Controller
         $drafts = $user->posts()
             ->whereNull('published_at')
             ->whereNull('hidden_at')
-            ->with(['space:id,name,slug,visibility', 'media'])
+            ->with(['space:id,name,slug,visibility', 'media', 'mediaItems'])
             ->latest('updated_at')
             ->latest('id')
             ->limit(ManagePostDrafts::MAX_DRAFTS_PER_MEMBER)
@@ -68,10 +67,8 @@ class PostDraftController extends Controller
             $user,
             $space,
             $request->string('body')->toString(),
-            $this->uploadedImage($request),
-            $request->filled('image_alt')
-                ? $request->string('image_alt')->toString()
-                : null,
+            $request->galleryUploads(),
+            $request->galleryAltTexts(),
         );
 
         return to_route('drafts.edit', $draft)->with('status', 'Draft saved privately.');
@@ -93,7 +90,7 @@ class PostDraftController extends Controller
         return Inertia::render('compose/index', [
             'spaces' => $this->spaceViews($spaces),
             'selectedSpace' => $selectedSpace,
-            'draft' => $this->draftView($post->load('media'), $media),
+            'draft' => $this->draftView($post->load(['media', 'mediaItems']), $media),
         ]);
     }
 
@@ -109,11 +106,9 @@ class PostDraftController extends Controller
             $post,
             $this->validatedSpace($request),
             $request->string('body')->toString(),
-            $this->uploadedImage($request),
-            $request->filled('image_alt')
-                ? $request->string('image_alt')->toString()
-                : null,
-            $request->boolean('remove_image'),
+            $request->galleryUploads(),
+            $request->galleryAltTexts(),
+            $request->retainedMediaAltTexts($post),
         );
 
         return back()->with('status', 'Draft updated privately.');
@@ -131,11 +126,9 @@ class PostDraftController extends Controller
             $post,
             $this->validatedSpace($request),
             $request->string('body')->toString(),
-            $this->uploadedImage($request),
-            $request->filled('image_alt')
-                ? $request->string('image_alt')->toString()
-                : null,
-            $request->boolean('remove_image'),
+            $request->galleryUploads(),
+            $request->galleryAltTexts(),
+            $request->retainedMediaAltTexts($post),
         );
 
         return to_route('posts.show', $published)->with('status', 'Post published.');
@@ -179,7 +172,7 @@ class PostDraftController extends Controller
     }
 
     /**
-     * @return array{id: int, body: string, updatedAt: string, editUrl: string, space: array{name: string, slug: string}, media: array{url: string, alt: string, width: int, height: int}|null}
+     * @return array{id: int, body: string, updatedAt: string, editUrl: string, space: array{name: string, slug: string}, media: array{url: string, alt: string, width: int, height: int}|null, mediaItems: list<array{id: int, url: string, alt: string, width: int, height: int}>}
      */
     private function draftView(Post $draft, PostMediaView $media): array
     {
@@ -193,6 +186,7 @@ class PostDraftController extends Controller
                 'slug' => $draft->space->slug,
             ],
             'media' => $media->for($draft),
+            'mediaItems' => $media->galleryFor($draft),
         ];
     }
 
@@ -201,12 +195,5 @@ class PostDraftController extends Controller
         return Space::query()
             ->where('slug', $request->string('space')->toString())
             ->firstOrFail();
-    }
-
-    private function uploadedImage(SavePostDraftRequest $request): ?UploadedFile
-    {
-        $upload = $request->file('image');
-
-        return $upload instanceof UploadedFile ? $upload : null;
     }
 }

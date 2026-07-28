@@ -191,8 +191,11 @@ Route::middleware(['auth', 'account.active', 'verified'])->group(function () {
     Route::delete('posts/{post}', [PostController::class, 'destroy'])
         ->middleware('throttle:content-management')
         ->name('posts.destroy');
-    Route::get('posts/{post}/image', PostImageController::class)
+    Route::get('posts/{post}/image', [PostImageController::class, 'primary'])
         ->name('posts.image');
+    Route::get('posts/{post}/media/{media}', [PostImageController::class, 'show'])
+        ->whereNumber('media')
+        ->name('posts.media.show');
     Route::post('posts/{post}/reports', [PostReportController::class, 'store'])
         ->middleware('throttle:post-reporting')
         ->name('posts.reports.store');

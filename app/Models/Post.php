@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Database\Factories\PostFactory;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -24,6 +25,7 @@ use Illuminate\Support\Carbon;
  * @property-read Space $space
  * @property-read User $author
  * @property-read PostMedia|null $media
+ * @property-read Collection<int, PostMedia> $mediaItems
  * @property-read SpacePostHighlight|null $highlight
  * @property-read int $is_saved
  */
@@ -35,8 +37,11 @@ class Post extends Model
     protected static function booted(): void
     {
         static::deleting(function (Post $post): void {
-            $post->loadMissing('media');
-            $post->media?->deleteStoredFile();
+            $post->loadMissing('mediaItems');
+
+            foreach ($post->mediaItems as $media) {
+                $media->deleteStoredFile();
+            }
         });
     }
 
@@ -112,7 +117,17 @@ class Post extends Model
     /** @return HasOne<PostMedia, $this> */
     public function media(): HasOne
     {
-        return $this->hasOne(PostMedia::class);
+        return $this->hasOne(PostMedia::class)
+            ->orderBy('position')
+            ->orderBy('id');
+    }
+
+    /** @return HasMany<PostMedia, $this> */
+    public function mediaItems(): HasMany
+    {
+        return $this->hasMany(PostMedia::class)
+            ->orderBy('position')
+            ->orderBy('id');
     }
 
     /** @return HasOne<SpacePostHighlight, $this> */

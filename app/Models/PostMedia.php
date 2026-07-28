@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Storage;
 /**
  * @property int $id
  * @property int $post_id
+ * @property int $position
  * @property string $disk
  * @property string $path
  * @property string $mime_type
@@ -34,6 +35,7 @@ class PostMedia extends Model
     protected $table = 'post_media';
 
     protected $fillable = [
+        'position',
         'disk',
         'path',
         'mime_type',

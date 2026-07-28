@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Storage;
 
 class PostMediaController extends Controller
 {
-    public function __invoke(
+    public function primary(
         Request $request,
         string $post,
         VisiblePostQuery $visiblePosts,
@@ -24,6 +24,27 @@ class PostMediaController extends Controller
 
         abort_unless($media instanceof PostMedia, 404);
 
+        return $this->respond($request, $media);
+    }
+
+    public function show(
+        Request $request,
+        string $post,
+        string $media,
+        VisiblePostQuery $visiblePosts,
+    ): Response {
+        /** @var User $viewer */
+        $viewer = $request->user();
+        $visiblePost = $visiblePosts->findVisible($viewer, $post);
+        $mediaItem = $visiblePost->mediaItems->firstWhere('id', (int) $media);
+
+        abort_unless($mediaItem instanceof PostMedia, 404);
+
+        return $this->respond($request, $mediaItem);
+    }
+
+    private function respond(Request $request, PostMedia $media): Response
+    {
         $storage = Storage::disk($media->disk);
 
         abort_unless($storage->exists($media->path), 404);

@@ -1,79 +1,100 @@
-# Post image contract
+# Post gallery contract
 
-Lineweb Social treats uploaded media as untrusted content. The first media slice
-supports one optional image on a text post. It is intentionally narrower than a
-gallery or video system so storage, privacy, accessibility, and deletion behavior
-can stabilize before extensions depend on them.
+Lineweb Social treats uploaded media as untrusted content. Core posts and drafts
+may contain a bounded gallery of static images, while storage, authorization,
+accessibility, and deletion remain server-enforced platform contracts.
 
 ## Current scope
 
 - Post text remains required.
-- A post may contain one JPEG, PNG, or WebP upload of at most 8 MiB.
-- Alternative text is required when an image is attached and is limited to 300
-  characters.
-- The decoded source may contain at most 12 million pixels.
-- The stored result is a single static WebP image, at most 2,048 pixels on its
+- A post may contain up to four JPEG, PNG, or WebP uploads.
+- Each upload may be at most 8 MiB and the combined raw gallery upload may be at
+  most 20 MiB.
+- Alternative text is required for every image and is limited to 300
+  characters per item.
+- Each decoded source may contain at most 12 million pixels.
+- Every stored result is a static WebP image, at most 2,048 pixels on its
   longest edge.
-- Draft authors may replace or remove their image before publication.
-- Galleries, animated images, video, audio, remote URL imports, direct-to-cloud
-  uploads, and published-media replacement are outside this release.
+- Draft authors may retain or remove existing items, edit their alternative
+  text, and append new items. Retained order is stable and new items append.
+- A published gallery is immutable in this release. Video, audio, animation,
+  drag reordering, remote URL imports, direct-to-cloud uploads, and public CDN
+  URLs remain outside the contract.
+
+The legacy single `image` and `image_alt` request fields remain accepted during
+the alpha transition. A legacy draft upload replaces the previous primary
+image. New clients use `images[]` and `image_alts[]`; requests cannot mix the
+two upload contracts.
 
 ## Upload trust boundary
 
 File extensions and browser-provided content types are not trusted. The server
-checks the detected MIME type, parses image dimensions before full decoding,
-rejects unsupported or oversized input, and then decodes the image with GD.
+checks detected MIME type and dimensions before full decoding, enforces byte
+and pixel bounds, and decodes each item with GD.
 
-The original upload is never stored. The decoded pixels are orientation-corrected,
-resized when needed, and re-encoded as WebP under a generated name. This removes
-the original filename, EXIF/GPS metadata, embedded profiles, animation, and data
-appended to an otherwise valid image. A decoder or encoder failure rejects the
-whole post instead of keeping a partially trusted file.
+Original uploads are never stored. Pixels are orientation-corrected, resized
+when necessary, and re-encoded as WebP under generated names. This removes
+original filenames, EXIF/GPS metadata, embedded profiles, animation, and data
+appended to otherwise valid images. All items are normalized before the
+database transaction begins. A decoder, encoder, storage, or database failure
+rejects the write and cleans every new object instead of leaving a partial
+gallery.
 
-## Ownership and authorization
+## Ordering, ownership, and authorization
 
-The image is owned by its post and inherits the post's author, Space, visibility,
-mute/block, publication, and moderation rules. Metadata uses an explicit foreign
-key to the post; the public projection never exposes a storage disk or path.
+Each media row belongs to exactly one post and has a unique zero-based position
+within that post. The first item is the primary image for backward-compatible
+web and API projections. Additive `mediaItems` and `media_items` projections
+expose the complete ordered gallery.
 
-An unpublished image is author-only. Space owners and moderators do not gain
-access to another member's draft or its image. Draft replacement stores the new
-normalized object before removing the previous object after commit, so a failed
-write does not discard the last saved image.
+Every item inherits its post's author, Space, visibility, mute/block,
+publication, and moderation rules. Public projections expose only an opaque
+item identifier, authorized application URL, alternative text, normalized
+dimensions, and, on the API, MIME type. Storage disks, paths, checksums, sizes,
+and original filenames are never public.
 
-Files live on the configured private media disk. They are not symlinked into the
-web root and do not receive public object-store URLs. An authenticated controller
-re-authorizes the parent post on every request, verifies the stored object still
-exists, and serves only the normalized WebP response with private caching,
-`nosniff`, and same-origin resource protection.
+Unpublished media is author-only. Space owners and moderators do not gain
+access to another member's draft. Every binary request re-authorizes the parent
+post and scopes the requested media identifier through that post, preventing a
+valid item identifier from being reused across posts.
 
-Hiding a post immediately makes its image unavailable to ordinary members while
-retaining author and moderator access through the existing policy. Deleting a
-post, Space, or account removes the stored object as well as its database row.
+Files live on the configured private media disk and are not symlinked into the
+web root. Authorized controllers verify that the object still exists and serve
+only normalized WebP responses with private caching, `nosniff`, and a restrictive
+Cross-Origin-Resource-Policy header.
+
+Hiding a post immediately removes ordinary-member access to every item while
+retaining the existing author/moderator policy. Deleting a post, Space, account,
+or draft removes all owned objects and rows.
+
+## Draft mutation safety
+
+A draft update explicitly names retained media and its new alternative text.
+Those identifiers must belong to the locked draft. Removed rows are deleted in
+the same database transaction; their files are removed only after commit.
+Newly normalized objects are tracked and cleaned if the transaction fails.
+This ordering prevents a failed edit from destroying the last saved gallery.
 
 ## Accessibility and presentation
 
-Alternative text is member-authored; the core does not invent descriptions from
-filenames or AI. Width and height are persisted and included in server-produced
-view models so clients can reserve the correct aspect ratio and avoid layout
-shift. Feed, permalink, and profile surfaces reuse the same image contract.
+Alternative text is member-authored; core does not invent descriptions from
+filenames or AI. Width and height are persisted so clients can reserve stable
+layout space. Feed, permalink, and profile views use a native horizontal
+scroll-snap gallery with touch swiping, keyboard-operable controls, position
+feedback, and the same ordered source contract.
 
 ## Abuse and operational limits
 
-The existing per-member publishing limiter also bounds image-processing work.
-Input bytes, decoded pixels, output dimensions, and attachments per post are all
-limited independently. Deployments that enable media must provide PHP GD with
-WebP support plus the EXIF and Fileinfo extensions. PHP's
-`upload_max_filesize` must allow 8 MiB and `post_max_size` must also leave room
-for the surrounding multipart request; 10 MiB or more is a practical baseline
-for this one-image contract.
+Publishing rate limits also bound image-processing work. Input bytes, combined
+request bytes, decoded pixels, output dimensions, and items per post are
+limited independently. Deployments need PHP GD with WebP support plus EXIF and
+Fileinfo. PHP `upload_max_filesize` must allow 8 MiB per file and
+`post_max_size` must leave room for the 20 MiB gallery plus multipart overhead;
+24 MiB or more is a practical baseline.
 
-Operators may point `MEDIA_DISK` at another configured private Laravel disk, but
-the application remains the authorization boundary. Public buckets and URLs are
-not supported by this contract. Storage errors fail closed and do not publish a
-post without its requested image.
-
-Future media work should build on this boundary rather than relaxing it. Before
-adding galleries, video, direct uploads, or CDN delivery, define per-Space quotas,
-asynchronous processing states, malware handling, retention, object-store access,
-and cleanup of interrupted multipart uploads.
+Operators may point `MEDIA_DISK` at another configured private Laravel disk,
+but the application remains the authorization boundary. Public buckets and
+long-lived signed URLs are not part of this contract. Before adding video,
+direct uploads, or CDN delivery, define per-Space quotas, asynchronous
+processing states, malware handling, retention, object-store access, and
+cleanup for interrupted multipart uploads.

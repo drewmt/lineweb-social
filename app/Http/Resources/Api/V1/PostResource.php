@@ -17,6 +17,7 @@ class PostResource extends JsonResource
         /** @var Post $post */
         $post = $this->resource;
         $media = $post->media;
+        $mediaItems = $post->mediaItems;
         /** @var array{like?: int, celebrate?: int, insightful?: int} $reactionCounts */
         $reactionCounts = $post->getAttribute('reaction_counts') ?? [];
         $reactionCounts = [
@@ -46,6 +47,20 @@ class PostResource extends JsonResource
                 'height' => $media->height,
                 'mime_type' => $media->mime_type,
             ] : null,
+            'media_items' => $mediaItems
+                ->map(fn (PostMedia $item): array => [
+                    'id' => (string) $item->getKey(),
+                    'url' => route('api.v1.posts.media.show', [
+                        'post' => $post,
+                        'media' => $item->getKey(),
+                    ]),
+                    'alt' => $item->alt_text,
+                    'width' => $item->width,
+                    'height' => $item->height,
+                    'mime_type' => $item->mime_type,
+                ])
+                ->values()
+                ->all(),
             'comments_count' => (int) ($post->getAttribute('comments_count') ?? 0),
             'reactions' => [
                 'total' => array_sum($reactionCounts),

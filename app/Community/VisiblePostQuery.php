@@ -30,6 +30,7 @@ final class VisiblePostQuery
             ->with([
                 'author:id,name,handle,headline',
                 'media',
+                'mediaItems',
                 'highlight',
                 'topics:id,name',
                 'space' => fn ($spaces) => $spaces
@@ -63,7 +64,7 @@ final class VisiblePostQuery
     public function findVisible(User $viewer, int|string $postId): Post
     {
         return $this->base($viewer)
-            ->with('media')
+            ->with(['media', 'mediaItems'])
             ->whereKey($postId)
             ->firstOrFail();
     }

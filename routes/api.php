@@ -38,9 +38,13 @@ Route::prefix('v1')
         Route::get('feed', FeedController::class)
             ->middleware('abilities:feed:read')
             ->name('api.v1.feed');
-        Route::get('posts/{post}/media', PostMediaController::class)
+        Route::get('posts/{post}/media', [PostMediaController::class, 'primary'])
             ->middleware('abilities:feed:read')
             ->name('api.v1.posts.media');
+        Route::get('posts/{post}/media/{media}', [PostMediaController::class, 'show'])
+            ->whereNumber('media')
+            ->middleware('abilities:feed:read')
+            ->name('api.v1.posts.media.show');
         Route::get('posts/{post}', PostController::class)
             ->middleware('abilities:feed:read')
             ->name('api.v1.posts.show');
