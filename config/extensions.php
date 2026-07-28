@@ -56,6 +56,24 @@ return [
         'max_file_bytes' => 262144,
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Browser asset publication
+    |--------------------------------------------------------------------------
+    |
+    | Extensions may declare reviewed, pre-built CSS and ES modules. They are
+    | copied into immutable content-addressed public releases by an explicit
+    | deployment command; uploaded or remote browser assets are unsupported.
+    |
+    */
+    'assets' => [
+        'max_files' => 12,
+        'max_file_bytes' => 524288,
+        'max_total_bytes' => 2097152,
+        'public_root' => public_path('extensions'),
+        'registry_root' => storage_path('app/private/platform/extensions/assets'),
+    ],
+
     'permissions' => [
         'comments.read',
         'comments.write',

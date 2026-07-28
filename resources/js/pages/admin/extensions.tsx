@@ -7,9 +7,11 @@ import {
     Database,
     FileCode2,
     FileClock,
+    FileUp,
     HardDrive,
     LockKeyhole,
     Power,
+    PackageCheck,
     ShieldCheck,
     TerminalSquare,
 } from 'lucide-react';
@@ -37,6 +39,24 @@ type Extension = {
         migrations: string | null;
         uninstallData: string;
     };
+    assets: {
+        styles: string[];
+        scripts: string[];
+    };
+    assetPlan: {
+        status: 'none' | 'unpublished' | 'published' | 'blocked';
+        message: string;
+        declared: number;
+        published: number;
+        blocked: number;
+        release: string | null;
+        items: {
+            type: 'style' | 'script';
+            path: string;
+            bytes: number;
+            status: 'unpublished' | 'published' | 'blocked';
+        }[];
+    } | null;
     migrations: {
         status: 'none' | 'pending' | 'applied' | 'blocked';
         message: string;
@@ -67,6 +87,8 @@ type Props = {
         migrationPending: number;
         migrationBlocked: number;
         retainedData: number;
+        assetsPublished: number;
+        assetsAttention: number;
     };
     retainedExtensionIds: string[];
     extensions: Extension[];
@@ -100,8 +122,8 @@ export default function AdminExtensions({
                                 Know what can run.
                             </h1>
                             <p className="mt-3 max-w-2xl text-sm leading-6 text-background/68 sm:text-base">
-                                Review local manifests, compatibility, and
-                                explicit activation state. Only providers
+                                Review local manifests, schema readiness, and
+                                immutable browser assets. Only providers
                                 selected in deploy configuration can run.
                             </p>
                         </div>
@@ -126,7 +148,7 @@ export default function AdminExtensions({
 
                 <section
                     aria-label="Extension readiness"
-                    className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6"
+                    className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4"
                 >
                     <SummaryCard
                         label="Discovered"
@@ -166,6 +188,19 @@ export default function AdminExtensions({
                         detail="Source removed"
                         icon={HardDrive}
                     />
+                    <SummaryCard
+                        label="Assets published"
+                        value={summary.assetsPublished}
+                        detail="Immutable files"
+                        icon={PackageCheck}
+                    />
+                    <SummaryCard
+                        label="Asset attention"
+                        value={summary.assetsAttention}
+                        detail="Publish or repair"
+                        icon={FileUp}
+                        warning={summary.assetsAttention > 0}
+                    />
                 </section>
 
                 {summary.actionRequired > 0 && (
@@ -185,7 +220,10 @@ export default function AdminExtensions({
                 )}
 
                 <div className="mt-5 grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_23rem]">
-                    <section aria-labelledby="installed-extensions">
+                    <section
+                        className="min-w-0"
+                        aria-labelledby="installed-extensions"
+                    >
                         <div className="mb-3 px-1">
                             <h2
                                 id="installed-extensions"
@@ -217,7 +255,7 @@ export default function AdminExtensions({
                                 </p>
                             </div>
                         ) : (
-                            <div className="grid gap-3">
+                            <div className="grid min-w-0 gap-3">
                                 {extensions.map((extension) => (
                                     <ExtensionCard
                                         key={`${extension.key}-${extension.name}`}
@@ -252,7 +290,7 @@ export default function AdminExtensions({
                         )}
                     </section>
 
-                    <aside className="social-card rounded-[1.5rem] p-5 xl:sticky xl:top-24">
+                    <aside className="social-card min-w-0 rounded-[1.5rem] p-5 xl:sticky xl:top-24">
                         <div className="flex size-11 items-center justify-center rounded-2xl bg-primary/9 text-primary">
                             <LockKeyhole
                                 className="size-5"
@@ -272,21 +310,26 @@ export default function AdminExtensions({
                             <p className="text-[0.68rem] font-extrabold tracking-[0.13em] text-muted-foreground uppercase">
                                 Deployment workflow
                             </p>
-                            <code className="mt-3 flex items-center gap-2 overflow-x-auto rounded-xl bg-foreground px-3 py-3 text-xs font-bold whitespace-nowrap text-background">
+                            <code className="mt-3 flex items-start gap-2 rounded-xl bg-foreground px-3 py-3 text-xs leading-5 font-bold break-all whitespace-normal text-background">
                                 <TerminalSquare
                                     className="size-4 shrink-0 text-mint"
                                     aria-hidden="true"
                                 />
                                 php artisan platform:extensions
                             </code>
-                            <code className="mt-2 block overflow-x-auto rounded-xl border border-border/70 bg-secondary/55 px-3 py-3 font-mono text-[0.68rem] font-bold whitespace-nowrap">
+                            <code className="mt-2 block rounded-xl border border-border/70 bg-secondary/55 px-3 py-3 font-mono text-[0.68rem] leading-5 font-bold break-all whitespace-normal">
                                 platform:extensions:migrate trusted-extension
+                            </code>
+                            <code className="mt-2 block rounded-xl border border-border/70 bg-secondary/55 px-3 py-3 font-mono text-[0.68rem] leading-5 font-bold break-all whitespace-normal">
+                                platform:extensions:publish-assets
+                                trusted-extension
                             </code>
                             <p className="mt-3 text-xs leading-5 text-muted-foreground">
                                 Verify an external backup, migrate while the
-                                provider is disabled, then activate it in deploy
-                                configuration. Applied files stay checksum
-                                locked.
+                                provider is disabled, publish its immutable
+                                browser release, then activate it in deploy
+                                configuration. Source and public files stay
+                                checksum locked.
                             </p>
                         </div>
                     </aside>
@@ -352,7 +395,7 @@ function ExtensionCard({ extension }: { extension: Extension }) {
         : statusLabel[extension.status];
 
     return (
-        <article className="social-card overflow-hidden rounded-[1.5rem]">
+        <article className="social-card w-full min-w-0 overflow-hidden rounded-[1.5rem]">
             <div className="p-4 sm:p-5">
                 <div className="flex items-start gap-3">
                     <span
@@ -429,7 +472,7 @@ function ExtensionCard({ extension }: { extension: Extension }) {
             </div>
 
             {extension.provider && (
-                <div className="grid gap-4 border-t border-border/70 bg-secondary/35 px-4 py-4 sm:grid-cols-2 sm:px-5">
+                <div className="grid w-full min-w-0 grid-cols-1 gap-4 border-t border-border/70 bg-secondary/35 px-4 py-4 sm:grid-cols-2 sm:px-5">
                     <DetailList
                         icon={FileCode2}
                         label="Declared provider"
@@ -445,10 +488,91 @@ function ExtensionCard({ extension }: { extension: Extension }) {
                         ]}
                     />
                     <MigrationDetail extension={extension} />
+                    <AssetDetail extension={extension} />
                 </div>
             )}
         </article>
     );
+}
+
+function AssetDetail({ extension }: { extension: Extension }) {
+    const plan = extension.assetPlan;
+
+    if (!plan) {
+        return null;
+    }
+
+    const label = {
+        none: 'No browser assets',
+        unpublished: `${plan.declared} awaiting publish`,
+        published: `${plan.published} published`,
+        blocked: 'Blocked',
+    }[plan.status];
+
+    return (
+        <div className="w-full min-w-0 sm:col-span-2">
+            <div className="flex min-w-0 flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <p className="flex items-center gap-2 text-[0.65rem] font-extrabold tracking-[0.11em] text-muted-foreground uppercase">
+                    <PackageCheck className="size-3.5" aria-hidden="true" />
+                    Browser asset release
+                </p>
+                <span
+                    className={cn(
+                        'inline-flex min-h-7 max-w-full items-center rounded-full border px-2.5 text-[0.65rem] font-extrabold',
+                        plan.status === 'blocked'
+                            ? 'border-coral/45 bg-coral/10'
+                            : plan.status === 'unpublished'
+                              ? 'border-amber-300/70 bg-amber-100/55 text-amber-950'
+                              : 'border-border bg-background text-muted-foreground',
+                    )}
+                >
+                    {label}
+                </span>
+            </div>
+            <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                {plan.message}{' '}
+                {plan.release && (
+                    <span className="font-mono font-bold text-foreground">
+                        Release {plan.release.slice(0, 10)}
+                    </span>
+                )}
+            </p>
+            {plan.items.length > 0 && (
+                <div className="mt-3 grid min-w-0 gap-1.5">
+                    {plan.items.slice(0, 4).map((asset) => (
+                        <div
+                            key={`${asset.type}-${asset.path}`}
+                            className="flex min-h-9 w-full min-w-0 items-center justify-between gap-3 rounded-lg border border-border/70 bg-background px-2.5 py-1.5"
+                        >
+                            <span
+                                className="min-w-0 flex-1 truncate font-mono text-[0.65rem] font-bold"
+                                title={asset.path}
+                            >
+                                {asset.path}
+                            </span>
+                            <span className="shrink-0 text-[0.62rem] font-extrabold text-muted-foreground uppercase">
+                                {asset.type} · {formatBytes(asset.bytes)}
+                            </span>
+                        </div>
+                    ))}
+                    {plan.items.length > 4 && (
+                        <p className="px-1 text-[0.65rem] font-bold text-muted-foreground">
+                            +{plan.items.length - 4} more asset
+                            {plan.items.length - 4 === 1 ? '' : 's'}
+                        </p>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+}
+
+function formatBytes(bytes: number) {
+    if (bytes < 1024) {
+        return `${bytes} B`;
+    }
+
+    return `${(bytes / 1024).toFixed(bytes < 10240 ? 1 : 0)} KB`;
 }
 
 function MigrationDetail({ extension }: { extension: Extension }) {
@@ -466,15 +590,15 @@ function MigrationDetail({ extension }: { extension: Extension }) {
     }[plan.status];
 
     return (
-        <div className="min-w-0 sm:col-span-2">
-            <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="w-full min-w-0 sm:col-span-2">
+            <div className="flex min-w-0 flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <p className="flex items-center gap-2 text-[0.65rem] font-extrabold tracking-[0.11em] text-muted-foreground uppercase">
                     <Database className="size-3.5" aria-hidden="true" />
                     Database lifecycle
                 </p>
                 <span
                     className={cn(
-                        'inline-flex min-h-7 items-center rounded-full border px-2.5 text-[0.65rem] font-extrabold',
+                        'inline-flex min-h-7 max-w-full items-center rounded-full border px-2.5 text-[0.65rem] font-extrabold',
                         plan.status === 'blocked'
                             ? 'border-coral/45 bg-coral/10'
                             : plan.status === 'pending'
@@ -524,7 +648,7 @@ function MigrationDetail({ extension }: { extension: Extension }) {
 
 function Metadata({ label, value }: { label: string; value: string }) {
     return (
-        <div className="min-w-0">
+        <div className="w-full min-w-0">
             <dt className="text-[0.65rem] font-extrabold tracking-[0.11em] text-muted-foreground uppercase">
                 {label}
             </dt>
@@ -551,7 +675,7 @@ function DetailList({
                 {label}
             </p>
             {items.length > 0 ? (
-                <div className="mt-2 flex flex-wrap gap-1.5">
+                <div className="mt-2 flex w-full min-w-0 flex-wrap gap-1.5">
                     {items.map((item) => (
                         <span
                             key={item}

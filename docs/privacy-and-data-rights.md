@@ -99,6 +99,12 @@ not erase extension-owned tables. Operators must keep the source needed for
 export, correction, rollback, and lawful deletion until a separately reviewed
 destructive uninstall process exists.
 
+Enabled extension JavaScript runs as reviewed same-origin application code; it
+is not sandboxed from rendered member data. Deployers must review its data
+collection, destinations, retention, consent requirements, and processor terms
+before activation. Asset checksums prove which bytes were published, not that
+their behavior is privacy-safe.
+
 Laravel's scheduler must run for closed direct-message report evidence to be
 pruned and for daily notification digests to be queued. Digest delivery also
 requires a queue worker and a deliberately configured email provider. Deployers

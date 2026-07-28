@@ -101,7 +101,8 @@ privacy obligations remain owned by that extension.
 - no automatic backup, restore, or rollback claim;
 - no cross-extension dependency ordering;
 - no browser activation, ZIP upload, remote download, or marketplace updater;
-- no asset pipeline or JavaScript execution contract;
+- browser assets use the separate immutable publication contract in
+  [`extension-assets.md`](extension-assets.md);
 - no destructive uninstall or data purge.
 
 These limits keep the first executable lifecycle auditable and reversible at

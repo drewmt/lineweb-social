@@ -12,6 +12,7 @@ final class ExtensionActivator
         private readonly Application $app,
         private readonly ExtensionInspector $inspector,
         private readonly ExtensionMigrationPlanner $migrationPlanner,
+        private readonly ExtensionAssetPlanner $assetPlanner,
     ) {}
 
     /**
@@ -107,6 +108,14 @@ final class ExtensionActivator
             if (! $migrationPlan->isReadyForActivation()) {
                 throw new ExtensionActivationException(
                     "Enabled extension '{$id}' cannot start: {$migrationPlan->message}",
+                );
+            }
+
+            $assetPlan = $this->assetPlanner->plan($inspection);
+
+            if (! $assetPlan->isReadyForActivation()) {
+                throw new ExtensionActivationException(
+                    "Enabled extension '{$id}' cannot start: {$assetPlan->message}",
                 );
             }
 

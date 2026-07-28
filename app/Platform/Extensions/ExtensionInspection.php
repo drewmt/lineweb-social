@@ -38,6 +38,7 @@ final readonly class ExtensionInspection
      *     uiSlots: list<string>,
      *     provider: string|null,
      *     database: array{migrations: string|null, uninstallData: string},
+     *     assets: array{styles: list<string>, scripts: list<string>},
      *     status: string,
      *     message: string
      * }
@@ -60,6 +61,10 @@ final readonly class ExtensionInspection
             'database' => [
                 'migrations' => $manifest instanceof ExtensionManifest ? $manifest->migrationPath : null,
                 'uninstallData' => $manifest instanceof ExtensionManifest ? $manifest->uninstallDataPolicy : 'retain',
+            ],
+            'assets' => [
+                'styles' => $manifest instanceof ExtensionManifest ? $manifest->styleAssets : [],
+                'scripts' => $manifest instanceof ExtensionManifest ? $manifest->scriptAssets : [],
             ],
             'status' => $this->status,
             'message' => $this->message,

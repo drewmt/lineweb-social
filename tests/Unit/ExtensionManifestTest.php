@@ -29,6 +29,8 @@ class ExtensionManifestTest extends TestCase
         $this->assertSame(['posts.read'], $manifest->permissions);
         $this->assertSame('database/migrations', $manifest->migrationPath);
         $this->assertSame('retain', $manifest->uninstallDataPolicy);
+        $this->assertSame(['dist/polls.css'], $manifest->styleAssets);
+        $this->assertSame(['dist/polls.js'], $manifest->scriptAssets);
     }
 
     /** @param array<string, mixed> $changes */
@@ -65,6 +67,27 @@ class ExtensionManifestTest extends TestCase
             'migrations' => 'database/migrations',
             'uninstall_data' => 'delete',
         ]]];
+        yield 'remote style asset' => [['assets' => [
+            'styles' => ['https://cdn.example.test/polls.css'],
+            'scripts' => [],
+        ]]];
+        yield 'traversing script asset' => [['assets' => [
+            'styles' => [],
+            'scripts' => ['../polls.js'],
+        ]]];
+        yield 'wrong style extension' => [['assets' => [
+            'styles' => ['dist/polls.js'],
+            'scripts' => [],
+        ]]];
+        yield 'duplicate script asset' => [['assets' => [
+            'styles' => [],
+            'scripts' => ['dist/polls.js', 'dist/polls.js'],
+        ]]];
+        yield 'unknown asset field' => [['assets' => [
+            'styles' => [],
+            'scripts' => [],
+            'remote' => 'https://cdn.example.test',
+        ]]];
     }
 
     public function test_registry_discovers_the_reference_extension(): void
@@ -99,6 +122,10 @@ class ExtensionManifestTest extends TestCase
             'database' => [
                 'migrations' => 'database/migrations',
                 'uninstall_data' => 'retain',
+            ],
+            'assets' => [
+                'styles' => ['dist/polls.css'],
+                'scripts' => ['dist/polls.js'],
             ],
         ];
     }

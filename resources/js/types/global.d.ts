@@ -11,6 +11,19 @@ declare module '@inertiajs/core' {
     export interface InertiaConfig {
         sharedPageProps: {
             name: string;
+            extensionAssets: {
+                version: string;
+                styles: {
+                    extension: string;
+                    url: string;
+                    integrity: string;
+                }[];
+                scripts: {
+                    extension: string;
+                    url: string;
+                    integrity: string;
+                }[];
+            };
             auth: Auth;
             notificationSummary: {
                 unreadCount: number;
