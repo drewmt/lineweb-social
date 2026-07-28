@@ -11,6 +11,7 @@ final class ExtensionActivator
     public function __construct(
         private readonly Application $app,
         private readonly ExtensionInspector $inspector,
+        private readonly ExtensionMigrationPlanner $migrationPlanner,
     ) {}
 
     /**
@@ -98,6 +99,14 @@ final class ExtensionActivator
             if (! $inspection->isCompatible()) {
                 throw new ExtensionActivationException(
                     "Enabled extension '{$id}' cannot start: {$inspection->message}",
+                );
+            }
+
+            $migrationPlan = $this->migrationPlanner->plan($inspection);
+
+            if (! $migrationPlan->isReadyForActivation()) {
+                throw new ExtensionActivationException(
+                    "Enabled extension '{$id}' cannot start: {$migrationPlan->message}",
                 );
             }
 

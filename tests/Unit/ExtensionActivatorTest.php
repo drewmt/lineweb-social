@@ -5,6 +5,7 @@ namespace Tests\Unit;
 use App\Platform\Extensions\ExtensionActivationException;
 use App\Platform\Extensions\ExtensionActivator;
 use App\Platform\Extensions\ExtensionInspector;
+use App\Platform\Extensions\ExtensionMigrationPlanner;
 use Tests\TestCase;
 
 class ExtensionActivatorTest extends TestCase
@@ -84,6 +85,10 @@ class ExtensionActivatorTest extends TestCase
 
     private function activator(): ExtensionActivator
     {
-        return new ExtensionActivator($this->app, new ExtensionInspector);
+        return new ExtensionActivator(
+            $this->app,
+            new ExtensionInspector,
+            new ExtensionMigrationPlanner,
+        );
     }
 }

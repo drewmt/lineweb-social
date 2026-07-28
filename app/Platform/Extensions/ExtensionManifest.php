@@ -24,6 +24,8 @@ final readonly class ExtensionManifest
         public string $provider,
         public array $permissions,
         public array $uiSlots,
+        public ?string $migrationPath,
+        public string $uninstallDataPolicy,
     ) {}
 
     /**
@@ -98,6 +100,7 @@ final readonly class ExtensionManifest
         $authors = self::authors($data['authors'] ?? null);
         $permissions = self::allowedList($data['permissions'] ?? [], 'permission', $allowedPermissions);
         $uiSlots = self::allowedList($data['ui_slots'] ?? [], 'UI slot', $allowedUiSlots);
+        [$migrationPath, $uninstallDataPolicy] = self::database($data['database'] ?? null);
 
         return new self(
             $id,
@@ -109,6 +112,8 @@ final readonly class ExtensionManifest
             $provider,
             $permissions,
             $uiSlots,
+            $migrationPath,
+            $uninstallDataPolicy,
         );
     }
 
@@ -182,5 +187,43 @@ final readonly class ExtensionManifest
         }
 
         return array_values(array_unique($items));
+    }
+
+    /** @return array{string|null, string} */
+    private static function database(mixed $value): array
+    {
+        if ($value === null) {
+            return [null, 'retain'];
+        }
+
+        if (! is_array($value) || array_is_list($value)) {
+            throw new InvalidArgumentException('Manifest database settings must be an object.');
+        }
+
+        $path = $value['migrations'] ?? null;
+        $uninstallData = $value['uninstall_data'] ?? null;
+
+        if (! is_string($path) || trim($path) === '' || mb_strlen($path) > 180) {
+            throw new InvalidArgumentException('Manifest database migrations must be a relative directory path.');
+        }
+
+        $path = trim($path);
+        $segments = explode('/', $path);
+
+        if (str_starts_with($path, '/')
+            || str_contains($path, '\\')
+            || str_contains($path, "\0")
+            || preg_match('/^[A-Za-z0-9._\/-]+$/', $path) !== 1
+            || in_array('', $segments, true)
+            || in_array('.', $segments, true)
+            || in_array('..', $segments, true)) {
+            throw new InvalidArgumentException('Manifest database migrations must stay inside the extension directory.');
+        }
+
+        if ($uninstallData !== 'retain') {
+            throw new InvalidArgumentException("Manifest database uninstall_data must be 'retain'.");
+        }
+
+        return [$path, $uninstallData];
     }
 }

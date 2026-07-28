@@ -27,6 +27,8 @@ class ExtensionManifestTest extends TestCase
         $this->assertSame('example-polls', $manifest->id);
         $this->assertSame('0.1.0', $manifest->version);
         $this->assertSame(['posts.read'], $manifest->permissions);
+        $this->assertSame('database/migrations', $manifest->migrationPath);
+        $this->assertSame('retain', $manifest->uninstallDataPolicy);
     }
 
     /** @param array<string, mixed> $changes */
@@ -51,6 +53,18 @@ class ExtensionManifestTest extends TestCase
         yield 'unknown permission' => [['permissions' => ['database.admin']]];
         yield 'unknown slot' => [['ui_slots' => ['feed.anywhere']]];
         yield 'unqualified provider' => [['provider' => 'PollsProvider']];
+        yield 'absolute migration path' => [['database' => [
+            'migrations' => '/database/migrations',
+            'uninstall_data' => 'retain',
+        ]]];
+        yield 'traversing migration path' => [['database' => [
+            'migrations' => '../migrations',
+            'uninstall_data' => 'retain',
+        ]]];
+        yield 'destructive uninstall policy' => [['database' => [
+            'migrations' => 'database/migrations',
+            'uninstall_data' => 'delete',
+        ]]];
     }
 
     public function test_registry_discovers_the_reference_extension(): void
@@ -82,6 +96,10 @@ class ExtensionManifestTest extends TestCase
             'provider' => 'Extensions\\ExamplePolls\\PollsServiceProvider',
             'permissions' => ['posts.read'],
             'ui_slots' => ['feed.composer.after'],
+            'database' => [
+                'migrations' => 'database/migrations',
+                'uninstall_data' => 'retain',
+            ],
         ];
     }
 }

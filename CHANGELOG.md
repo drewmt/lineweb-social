@@ -6,6 +6,11 @@ All notable project changes will be documented here.
 
 ### Added
 
+- Explicit deploy-time extension provider activation plus an extension-scoped
+  migration ownership/checksum registry, bounded source inspection,
+  backup-gated migrate/latest-batch rollback commands, activation blocking for
+  pending or changed schema, retained-data visibility, and responsive
+  administrator lifecycle status without browser execution.
 - A read-only administrator Extension Center and CI-ready
   `platform:extensions` command that discover local manifests independently,
   validate Composer-compatible core constraints, identify duplicate IDs, and

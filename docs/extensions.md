@@ -36,11 +36,22 @@ php artisan platform:extensions --json
 
 An installation with no local extensions is valid. Missing configured paths are
 ignored so a clean core deployment does not need an empty directory.
+The bundled `extensions/` directory is the default. Deployers may set a
+platform-native `PATH_SEPARATOR`-delimited list in
+`LINEWEB_SOCIAL_EXTENSION_PATHS` when reviewed packages live elsewhere.
 
 ## Activate reviewed source
 
 Extension source and its Composer autoload mapping must be installed as part of
-the deployment. Then enable only reviewed manifest IDs:
+the deployment. Inspect it first. When the manifest declares migrations, verify
+an external database backup and apply them while the provider is still disabled:
+
+```bash
+php artisan platform:extensions
+php artisan platform:extensions:migrate example-polls --backup-confirmed
+```
+
+Then enable only reviewed manifest IDs:
 
 ```dotenv
 LINEWEB_SOCIAL_EXTENSIONS=example-polls,another-reviewed-extension
@@ -69,17 +80,18 @@ The reference manifest lives at
 
 Required fields:
 
-| Field | Contract |
-| --- | --- |
-| `id` | Unique lowercase kebab-case identifier, up to 80 characters. |
-| `name` | Human-readable name, up to 120 characters. |
-| `version` | Semantic extension version. |
-| `license` | Declared source license. |
-| `authors` | Non-empty author list; optional links must use HTTPS. |
-| `core` | Composer version constraint for compatible Lineweb Social releases. |
-| `provider` | Fully qualified PHP service-provider class declaration. |
-| `permissions` | Unique values from the core permission allowlist. |
-| `ui_slots` | Unique values from the core presentation-slot allowlist. |
+| Field         | Contract                                                                                          |
+| ------------- | ------------------------------------------------------------------------------------------------- |
+| `id`          | Unique lowercase kebab-case identifier, up to 80 characters.                                      |
+| `name`        | Human-readable name, up to 120 characters.                                                        |
+| `version`     | Semantic extension version.                                                                       |
+| `license`     | Declared source license.                                                                          |
+| `authors`     | Non-empty author list; optional links must use HTTPS.                                             |
+| `core`        | Composer version constraint for compatible Lineweb Social releases.                               |
+| `provider`    | Fully qualified PHP service-provider class declaration.                                           |
+| `permissions` | Unique values from the core permission allowlist.                                                 |
+| `ui_slots`    | Unique values from the core presentation-slot allowlist.                                          |
+| `database`    | Optional confined migration directory plus the required first-contract `retain` uninstall policy. |
 
 The current core version and allowlists live in `config/extensions.php`.
 Deployers may set `LINEWEB_SOCIAL_CORE_VERSION` for a deliberately versioned
@@ -96,13 +108,14 @@ listing:
 
 - web upload, remote package discovery, or one-click installation;
 - activation or deactivation from the web;
-- extension migration execution or rollback;
 - extension JavaScript or stylesheet loading;
 - persisted activation state, upgrade, or uninstall workflows;
 - marketplace signing, review, billing, or update delivery;
 - runtime isolation for arbitrary PHP code.
 
-Deploy-time provider registration is fail-fast, not runtime isolation. Database
-migrations, assets, data ownership, rollback, and uninstall still require
-separate contracts before the project can call the extension foundation a
-complete plugin system.
+Deploy-time provider registration is fail-fast, not runtime isolation. Reviewed
+database migrations now have an ownership/checksum registry plus explicit,
+backup-gated migrate and latest-batch rollback commands; the full limits are in
+[`extension-migrations.md`](extension-migrations.md). Assets and destructive
+uninstall still require separate contracts before the project can call the
+extension foundation a complete plugin system.

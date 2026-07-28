@@ -5,6 +5,9 @@ namespace App\Console\Commands;
 use App\Platform\Extensions\ExtensionActivator;
 use App\Platform\Extensions\ExtensionInspection;
 use App\Platform\Extensions\ExtensionInspector;
+use App\Platform\Extensions\ExtensionManifest;
+use App\Platform\Extensions\ExtensionMigrationPlan;
+use App\Platform\Extensions\ExtensionMigrationPlanner;
 use Illuminate\Console\Command;
 
 class InspectPlatformExtensions extends Command
@@ -16,23 +19,44 @@ class InspectPlatformExtensions extends Command
     public function handle(
         ExtensionInspector $inspector,
         ExtensionActivator $activator,
+        ExtensionMigrationPlanner $migrationPlanner,
     ): int {
         $coreVersion = (string) config('extensions.core_version');
         $inspections = $inspector->inspect();
         $enabledIds = $activator->enabledIds();
+        $retainedExtensionIds = $migrationPlanner->retainedExtensionIds($inspections);
         $results = array_map(
-            static fn (ExtensionInspection $inspection): array => [
-                ...$inspection->toArray(),
-                'active' => in_array($inspection->manifest?->id, $enabledIds, true),
-            ],
+            static function (ExtensionInspection $inspection) use ($enabledIds, $migrationPlanner): array {
+                $plan = $inspection->manifest instanceof ExtensionManifest
+                    ? $migrationPlanner->plan($inspection)
+                    : null;
+
+                return [
+                    ...$inspection->toArray(),
+                    'active' => in_array($inspection->manifest?->id, $enabledIds, true),
+                    'migrations' => $plan instanceof ExtensionMigrationPlan
+                        ? $plan->toArray()
+                        : null,
+                ];
+            },
             $inspections,
         );
+        $ready = collect($inspections)->every->isCompatible()
+            && collect($results)->every(
+                static fn (array $result): bool => ($result['migrations']['status'] ?? null) !== ExtensionMigrationPlan::STATUS_BLOCKED
+                    && (! $result['active'] || in_array(
+                        $result['migrations']['status'] ?? ExtensionMigrationPlan::STATUS_NONE,
+                        [ExtensionMigrationPlan::STATUS_APPLIED, ExtensionMigrationPlan::STATUS_NONE],
+                        true,
+                    )),
+            );
 
         if ($this->option('json')) {
             $this->line((string) json_encode([
                 'coreVersion' => $coreVersion,
-                'ready' => collect($inspections)->every->isCompatible(),
+                'ready' => $ready,
                 'enabled' => $enabledIds,
+                'retainedData' => $retainedExtensionIds,
                 'extensions' => $results,
             ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
         } else {
@@ -42,12 +66,13 @@ class InspectPlatformExtensions extends Command
                 $this->components->warn('No local extension manifests were found.');
             } else {
                 $this->table(
-                    ['Extension', 'Version', 'Core constraint', 'Status', 'Activation'],
+                    ['Extension', 'Version', 'Core constraint', 'Status', 'Database', 'Activation'],
                     array_map(static fn (array $result): array => [
                         $result['name'],
                         $result['version'] ?? '—',
                         $result['core'] ?? '—',
                         $result['status'],
+                        $result['migrations']['status'] ?? 'unavailable',
                         $result['active'] ? 'active' : 'inactive',
                     ], $results),
                 );
@@ -57,10 +82,22 @@ class InspectPlatformExtensions extends Command
                         $this->components->error("{$inspection->directory}: {$inspection->message}");
                     }
                 }
+
+                foreach ($results as $result) {
+                    if (($result['migrations']['status'] ?? null) === ExtensionMigrationPlan::STATUS_BLOCKED) {
+                        $this->components->error("{$result['name']}: {$result['migrations']['message']}");
+                    }
+                }
+            }
+
+            if ($retainedExtensionIds !== []) {
+                $this->components->warn(
+                    'Retained migration ownership records: '.implode(', ', $retainedExtensionIds),
+                );
             }
         }
 
-        return collect($inspections)->every->isCompatible()
+        return $ready
             ? self::SUCCESS
             : self::FAILURE;
     }

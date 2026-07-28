@@ -48,10 +48,14 @@ administrator Extension Center and `platform:extensions` command validate each
 manifest independently. Reviewed providers may be enabled only from deploy
 configuration; every selected provider is preflighted before registration, and
 an unsafe activation plan fails application startup. This is not a runtime
-sandbox or a supported marketplace API. No extension should be advertised as
-one-click installable until migrations, asset loading, rollback, data ownership,
-and uninstall behavior are implemented and tested. The current contract is
-documented in [`extensions.md`](extensions.md).
+sandbox or a supported marketplace API. Reviewed extension migrations now use
+an extension-scoped ownership/checksum registry and explicit backup-gated
+deploy/rollback commands; source drift or missing applied source blocks
+activation. Data is retained when source is removed. No extension should be
+advertised as one-click installable until asset loading and a separately
+reviewed uninstall contract are implemented and tested. The current contracts
+are documented in [`extensions.md`](extensions.md) and
+[`extension-migrations.md`](extension-migrations.md).
 
 ## Presentation boundary
 
@@ -150,9 +154,9 @@ in [`platform-administration.md`](platform-administration.md) and
    notification, and media policy boundaries.
 2. Define a separately opt-in push delivery contract without making the current
    web UI or database writes depend on an external transport.
-3. Implement and test explicit provider activation, migrations, assets, failure
-   isolation, and uninstall behavior before calling the manifest a plugin
-   system.
+3. Implement and test extension asset ownership/versioning plus a separately
+   reviewed destructive uninstall contract before calling the manifest a
+   complete plugin system.
 4. Define quotas and asynchronous processing before expanding post media to
    galleries, video, direct uploads, or CDN delivery.
 
