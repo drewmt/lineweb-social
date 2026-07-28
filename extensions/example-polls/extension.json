@@ -19,5 +19,13 @@
     "ui_slots": [
         "feed.composer.after",
         "post.actions"
-    ]
+    ],
+    "assets": {
+        "styles": [
+            "dist/example-polls.css"
+        ],
+        "scripts": [
+            "dist/example-polls.js"
+        ]
+    }
 }

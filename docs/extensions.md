@@ -6,20 +6,23 @@ screen never changes executable state.
 
 ## Current lifecycle boundary
 
-The initial executable lifecycle covers discovery, compatibility inspection,
-and explicit deploy-time provider activation:
+The executable lifecycle covers discovery, compatibility inspection, explicit
+provider activation, database migrations, and immutable browser assets:
 
 1. Deployers place reviewed extension directories under a configured local
    path.
 2. Each direct child declares an `extension.json` manifest.
 3. The inspector validates the manifest, allowlisted permissions and UI slots,
    duplicate identifiers, and the declared Composer-compatible core constraint.
-4. Deployers add reviewed extension IDs to `LINEWEB_SOCIAL_EXTENSIONS`.
-5. The application preflights every enabled manifest and provider before
+4. Deployers apply reviewed database migrations and publish reviewed browser
+   assets while the extension remains disabled.
+5. Deployers add reviewed extension IDs to `LINEWEB_SOCIAL_EXTENSIONS`.
+6. The application preflights every enabled manifest, schema, asset release, and
+   provider before
    registering any of them.
-6. Administrators can review compatibility and active state at
+7. Administrators can review compatibility and active state at
    `/admin/extensions`, but cannot change it there.
-7. CI or a release script can run `php artisan platform:extensions`; any
+8. CI or a release script can run `php artisan platform:extensions`; any
    invalid, duplicated, or incompatible manifest returns a failing exit code.
 
 Inspection never autoloads a disabled provider. A broken manifest is isolated
@@ -49,6 +52,7 @@ an external database backup and apply them while the provider is still disabled:
 ```bash
 php artisan platform:extensions
 php artisan platform:extensions:migrate example-polls --backup-confirmed
+php artisan platform:extensions:publish-assets example-polls
 ```
 
 Then enable only reviewed manifest IDs:
@@ -92,6 +96,7 @@ Required fields:
 | `permissions` | Unique values from the core permission allowlist.                                                 |
 | `ui_slots`    | Unique values from the core presentation-slot allowlist.                                          |
 | `database`    | Optional confined migration directory plus the required first-contract `retain` uninstall policy. |
+| `assets`      | Optional lists of confined, pre-built CSS and ES-module files for immutable deployment publication. |
 
 The current core version and allowlists live in `config/extensions.php`.
 Deployers may set `LINEWEB_SOCIAL_CORE_VERSION` for a deliberately versioned
@@ -108,7 +113,6 @@ listing:
 
 - web upload, remote package discovery, or one-click installation;
 - activation or deactivation from the web;
-- extension JavaScript or stylesheet loading;
 - persisted activation state, upgrade, or uninstall workflows;
 - marketplace signing, review, billing, or update delivery;
 - runtime isolation for arbitrary PHP code.
@@ -116,6 +120,8 @@ listing:
 Deploy-time provider registration is fail-fast, not runtime isolation. Reviewed
 database migrations now have an ownership/checksum registry plus explicit,
 backup-gated migrate and latest-batch rollback commands; the full limits are in
-[`extension-migrations.md`](extension-migrations.md). Assets and destructive
-uninstall still require separate contracts before the project can call the
-extension foundation a complete plugin system.
+[`extension-migrations.md`](extension-migrations.md). Reviewed browser assets
+use immutable checksummed releases and SRI as documented in
+[`extension-assets.md`](extension-assets.md). A stable JavaScript slot SDK and
+destructive uninstall still require separate contracts before the project can
+call the extension foundation a complete marketplace plugin system.

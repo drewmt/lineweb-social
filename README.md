@@ -153,22 +153,23 @@ the current member is allowed to see them.
 
 Operators can inspect every local extension manifest, its declared access,
 compatibility, activation state, pending schema, checksum integrity, and
-retained-data ownership before deployment. A broken package is reported
-independently, while provider activation and backup-gated migration commands
-stay in trusted deploy operations rather than the browser.
+retained-data ownership plus immutable browser releases before deployment. A
+broken package is reported independently, while provider activation,
+backup-gated migrations, and asset publication stay in trusted deploy
+operations rather than the browser.
 
 <table>
   <tr>
     <td width="68%">
-      <img src="docs/screenshots/extensions-desktop.jpg" alt="Lineweb Social extension lifecycle and migration readiness center on desktop" />
+      <img src="docs/screenshots/extensions-desktop.jpg" alt="Lineweb Social extension schema and browser asset lifecycle center on desktop" />
     </td>
     <td width="32%">
-      <img src="docs/screenshots/extensions-mobile.jpg" alt="Lineweb Social extension migration integrity details on mobile" />
+      <img src="docs/screenshots/extensions-mobile.jpg" alt="Lineweb Social immutable extension browser release details on mobile" />
     </td>
   </tr>
   <tr>
-    <td align="center"><sub>Compatibility, schema readiness, and retained ownership at a glance</sub></td>
-    <td align="center"><sub>Checksum-locked migrations without browser execution</sub></td>
+    <td align="center"><sub>Schema, immutable browser releases, and retained ownership at a glance</sub></td>
+    <td align="center"><sub>Content-addressed CSS and ES modules with SRI</sub></td>
   </tr>
 </table>
 
@@ -340,7 +341,7 @@ makes the final decision.
 | Notifications       | Database-backed replies, mentions, and moderation alerts with per-category preferences, destination access revalidation, and opt-in privacy-safe daily email digests.                                                                        |
 | Platform operations | Dedicated responsive control center, console-granted administrators, focused member, appeals, and private-safety queues, transactional suspension/reinstatement, session and API-token revocation, and searchable append-only audit history. |
 | Data rights         | Password-confirmed personal JSON export and self-service deletion with active-community ownership safeguards.                                                                                                                                |
-| Developer surface   | Contract-first bearer API, scoped expiring Sanctum tokens, domain events, OpenAPI draft, allowlisted extension providers, and extension-scoped checksum migration ownership with backup-gated deploy/rollback commands.                      |
+| Developer surface   | Contract-first bearer API, scoped expiring Sanctum tokens, domain events, OpenAPI draft, allowlisted extension providers, checksum-owned migrations, and immutable SRI-backed CSS/ES-module releases.                                    |
 
 ## Product principles
 
@@ -369,9 +370,11 @@ compatibility, and active state; deployers explicitly allowlist reviewed
 providers and enforce the same contract with `php artisan
 platform:extensions`. Reviewed schema changes run only from explicit,
 backup-gated CLI commands while providers are disabled; applied source is
-checksum locked and removed source retains its data. Remote downloads, arbitrary
-ZIP installation, browser execution, and destructive uninstall are
-intentionally unavailable.
+checksum locked and removed source retains its data. Pre-built browser assets
+use explicit content-addressed publication and SRI; their same-origin JavaScript
+is reviewed trusted code, not a sandbox. Remote downloads, arbitrary ZIP
+installation, browser actions, and destructive uninstall are intentionally
+unavailable.
 
 ## Alpha status
 
@@ -385,8 +388,8 @@ The following are deliberately still outside the supported core:
   receipts.
 - Galleries, video, and direct-to-object-storage uploads.
 - Web/mobile push delivery, instant email, and custom digest schedules.
-- Advanced indexed search plus extension asset/version delivery and destructive
-  uninstall lifecycles.
+- Advanced indexed search, a stable JavaScript UI-slot SDK, and destructive
+  extension uninstall lifecycles.
 - Complete audit archival/export and deployment-specific retention tooling.
 - A production support, upgrade, and compatibility policy.
 
@@ -448,6 +451,7 @@ only code structure.
 | Platform boundaries and extension direction      | [`docs/platform-architecture.md`](docs/platform-architecture.md)                     |
 | Extension manifests and compatibility inspection | [`docs/extensions.md`](docs/extensions.md)                                           |
 | Extension migration ownership and rollback       | [`docs/extension-migrations.md`](docs/extension-migrations.md)                       |
+| Extension browser assets and integrity            | [`docs/extension-assets.md`](docs/extension-assets.md)                               |
 | Authenticated API and machine-readable draft     | [`docs/api-v1.md`](docs/api-v1.md) · [`docs/openapi.json`](docs/openapi.json)        |
 | Direct Messages                                  | [`docs/direct-messages.md`](docs/direct-messages.md)                                 |
 | Private message reporting and evidence retention | [`docs/message-reporting.md`](docs/message-reporting.md)                             |

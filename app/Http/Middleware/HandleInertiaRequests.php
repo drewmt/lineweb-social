@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Community\PrivateMessaging;
 use App\Models\User;
+use App\Platform\Extensions\ExtensionAssetManager;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -25,7 +26,10 @@ class HandleInertiaRequests extends Middleware
      */
     public function version(Request $request): ?string
     {
-        return parent::version($request);
+        $coreVersion = parent::version($request) ?? '';
+        $extensionVersion = app(ExtensionAssetManager::class)->payload()['version'];
+
+        return hash('sha256', "{$coreVersion}|{$extensionVersion}");
     }
 
     /**
@@ -40,6 +44,7 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            'extensionAssets' => app(ExtensionAssetManager::class)->payload(),
             'auth' => [
                 'user' => $request->user(),
             ],

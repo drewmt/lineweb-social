@@ -6,6 +6,11 @@ All notable project changes will be documented here.
 
 ### Added
 
+- Bounded extension CSS/ES-module declarations, deterministic immutable asset
+  releases, atomic private publication receipts, explicit deploy-time
+  publication, source/public SHA-256 verification, SRI-backed runtime loading,
+  Inertia version integration, activation blocking, and responsive operator
+  visibility without browser uploads or build execution.
 - Explicit deploy-time extension provider activation plus an extension-scoped
   migration ownership/checksum registry, bounded source inspection,
   backup-gated migrate/latest-batch rollback commands, activation blocking for

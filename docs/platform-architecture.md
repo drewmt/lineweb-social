@@ -51,11 +51,14 @@ an unsafe activation plan fails application startup. This is not a runtime
 sandbox or a supported marketplace API. Reviewed extension migrations now use
 an extension-scoped ownership/checksum registry and explicit backup-gated
 deploy/rollback commands; source drift or missing applied source blocks
-activation. Data is retained when source is removed. No extension should be
-advertised as one-click installable until asset loading and a separately
-reviewed uninstall contract are implemented and tested. The current contracts
-are documented in [`extensions.md`](extensions.md) and
-[`extension-migrations.md`](extension-migrations.md).
+activation. Data is retained when source is removed. Pre-built CSS and ES
+modules use a separate bounded, immutable, SRI-backed publication lifecycle;
+they remain trusted same-origin code, not sandboxed marketplace packages. No
+extension should be advertised as one-click installable until a stable
+JavaScript slot SDK and separately reviewed uninstall contract are implemented
+and tested. The current contracts are documented in
+[`extensions.md`](extensions.md), [`extension-migrations.md`](extension-migrations.md),
+and [`extension-assets.md`](extension-assets.md).
 
 ## Presentation boundary
 
@@ -154,9 +157,9 @@ in [`platform-administration.md`](platform-administration.md) and
    notification, and media policy boundaries.
 2. Define a separately opt-in push delivery contract without making the current
    web UI or database writes depend on an external transport.
-3. Implement and test extension asset ownership/versioning plus a separately
-   reviewed destructive uninstall contract before calling the manifest a
-   complete plugin system.
+3. Design and test a stable JavaScript UI-slot SDK plus a separately reviewed
+   destructive uninstall contract before calling the manifest a complete
+   marketplace plugin system.
 4. Define quotas and asynchronous processing before expanding post media to
    galleries, video, direct uploads, or CDN delivery.
 

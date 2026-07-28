@@ -36,6 +36,24 @@
 
         @viteReactRefresh
         @vite(['resources/css/app.css', 'resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
+        @foreach (($page['props']['extensionAssets']['styles'] ?? []) as $asset)
+            <link
+                rel="stylesheet"
+                href="{{ $asset['url'] }}"
+                integrity="{{ $asset['integrity'] }}"
+                crossorigin="anonymous"
+                data-extension="{{ $asset['extension'] }}"
+            >
+        @endforeach
+        @foreach (($page['props']['extensionAssets']['scripts'] ?? []) as $asset)
+            <script
+                type="module"
+                src="{{ $asset['url'] }}"
+                integrity="{{ $asset['integrity'] }}"
+                crossorigin="anonymous"
+                data-extension="{{ $asset['extension'] }}"
+            ></script>
+        @endforeach
         <x-inertia::head>
             <title>{{ config('app.name', 'Lineweb Social') }}</title>
         </x-inertia::head>

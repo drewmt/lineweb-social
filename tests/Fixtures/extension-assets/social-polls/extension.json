@@ -1,0 +1,28 @@
+{
+    "id": "social-polls",
+    "name": "Social Polls",
+    "version": "1.3.0",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Lineweb",
+            "url": "https://www.lineweb.gr"
+        }
+    ],
+    "core": "^0.1.0-alpha.1",
+    "provider": "Tests\\Fixtures\\ExtensionProviders\\ReadyExtensionProvider",
+    "permissions": [
+        "posts.read"
+    ],
+    "ui_slots": [
+        "feed.composer.after"
+    ],
+    "assets": {
+        "styles": [
+            "dist/social-polls.css"
+        ],
+        "scripts": [
+            "dist/social-polls.js"
+        ]
+    }
+}

@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Platform\Extensions\ExtensionActivationException;
 use App\Platform\Extensions\ExtensionActivator;
+use App\Platform\Extensions\ExtensionAssetPlanner;
 use App\Platform\Extensions\ExtensionInspector;
 use App\Platform\Extensions\ExtensionMigrationPlan;
 use App\Platform\Extensions\ExtensionMigrationPlanner;
@@ -159,6 +160,7 @@ class ExtensionMigrationLifecycleTest extends TestCase
             $this->app,
             new ExtensionInspector,
             new ExtensionMigrationPlanner,
+            $this->app->make(ExtensionAssetPlanner::class),
         );
     }
 }

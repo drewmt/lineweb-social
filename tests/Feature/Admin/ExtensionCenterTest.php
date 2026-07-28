@@ -47,6 +47,8 @@ class ExtensionCenterTest extends TestCase
                 ->where('summary.migrationPending', 0)
                 ->where('summary.migrationBlocked', 0)
                 ->where('summary.retainedData', 0)
+                ->where('summary.assetsPublished', 0)
+                ->where('summary.assetsAttention', 1)
                 ->where('retainedExtensionIds', [])
                 ->has('extensions', 1)
                 ->where('extensions.0.id', 'example-polls')
@@ -55,6 +57,14 @@ class ExtensionCenterTest extends TestCase
                 ->where('extensions.0.database.migrations', null)
                 ->where('extensions.0.database.uninstallData', 'retain')
                 ->where('extensions.0.migrations.status', 'none')
+                ->where('extensions.0.assets.styles', [
+                    'dist/example-polls.css',
+                ])
+                ->where('extensions.0.assets.scripts', [
+                    'dist/example-polls.js',
+                ])
+                ->where('extensions.0.assetPlan.status', 'unpublished')
+                ->where('extensions.0.assetPlan.declared', 2)
                 ->where('extensions.0.permissions', [
                     'posts.read',
                     'posts.write',
@@ -88,6 +98,7 @@ class ExtensionCenterTest extends TestCase
         $this->assertSame('example-polls', $payload['extensions'][0]['id']);
         $this->assertFalse($payload['extensions'][0]['active']);
         $this->assertSame('none', $payload['extensions'][0]['migrations']['status']);
+        $this->assertSame('unpublished', $payload['extensions'][0]['assetPlan']['status']);
     }
 
     public function test_extension_audit_command_fails_for_unsafe_deployment_state(): void

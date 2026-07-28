@@ -3,6 +3,9 @@
 namespace App\Providers;
 
 use App\Platform\Extensions\ExtensionActivator;
+use App\Platform\Extensions\ExtensionAssetManager;
+use App\Platform\Extensions\ExtensionAssetPlanner;
+use App\Platform\Extensions\ExtensionAssetReceiptStore;
 use App\Platform\Extensions\ExtensionInspector;
 use App\Platform\Extensions\ExtensionMigrationPlanner;
 use Carbon\CarbonImmutable;
@@ -23,12 +26,17 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->app->singleton(ExtensionAssetReceiptStore::class);
+        $this->app->singleton(ExtensionAssetPlanner::class);
+        $this->app->singleton(ExtensionAssetManager::class);
+
         $this->app->singleton(
             ExtensionActivator::class,
             static fn (Application $app): ExtensionActivator => new ExtensionActivator(
                 $app,
                 $app->make(ExtensionInspector::class),
                 $app->make(ExtensionMigrationPlanner::class),
+                $app->make(ExtensionAssetPlanner::class),
             ),
         );
 

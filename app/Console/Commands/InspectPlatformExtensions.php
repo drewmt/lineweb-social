@@ -3,6 +3,8 @@
 namespace App\Console\Commands;
 
 use App\Platform\Extensions\ExtensionActivator;
+use App\Platform\Extensions\ExtensionAssetPlan;
+use App\Platform\Extensions\ExtensionAssetPlanner;
 use App\Platform\Extensions\ExtensionInspection;
 use App\Platform\Extensions\ExtensionInspector;
 use App\Platform\Extensions\ExtensionManifest;
@@ -20,15 +22,19 @@ class InspectPlatformExtensions extends Command
         ExtensionInspector $inspector,
         ExtensionActivator $activator,
         ExtensionMigrationPlanner $migrationPlanner,
+        ExtensionAssetPlanner $assetPlanner,
     ): int {
         $coreVersion = (string) config('extensions.core_version');
         $inspections = $inspector->inspect();
         $enabledIds = $activator->enabledIds();
         $retainedExtensionIds = $migrationPlanner->retainedExtensionIds($inspections);
         $results = array_map(
-            static function (ExtensionInspection $inspection) use ($enabledIds, $migrationPlanner): array {
+            static function (ExtensionInspection $inspection) use ($enabledIds, $migrationPlanner, $assetPlanner): array {
                 $plan = $inspection->manifest instanceof ExtensionManifest
                     ? $migrationPlanner->plan($inspection)
+                    : null;
+                $assetPlan = $inspection->manifest instanceof ExtensionManifest
+                    ? $assetPlanner->plan($inspection)
                     : null;
 
                 return [
@@ -37,6 +43,9 @@ class InspectPlatformExtensions extends Command
                     'migrations' => $plan instanceof ExtensionMigrationPlan
                         ? $plan->toArray()
                         : null,
+                    'assetPlan' => $assetPlan instanceof ExtensionAssetPlan
+                        ? $assetPlan->toArray()
+                        : null,
                 ];
             },
             $inspections,
@@ -44,9 +53,15 @@ class InspectPlatformExtensions extends Command
         $ready = collect($inspections)->every->isCompatible()
             && collect($results)->every(
                 static fn (array $result): bool => ($result['migrations']['status'] ?? null) !== ExtensionMigrationPlan::STATUS_BLOCKED
+                    && ($result['assetPlan']['status'] ?? null) !== ExtensionAssetPlan::STATUS_BLOCKED
                     && (! $result['active'] || in_array(
                         $result['migrations']['status'] ?? ExtensionMigrationPlan::STATUS_NONE,
                         [ExtensionMigrationPlan::STATUS_APPLIED, ExtensionMigrationPlan::STATUS_NONE],
+                        true,
+                    ))
+                    && (! $result['active'] || in_array(
+                        $result['assetPlan']['status'] ?? ExtensionAssetPlan::STATUS_NONE,
+                        [ExtensionAssetPlan::STATUS_PUBLISHED, ExtensionAssetPlan::STATUS_NONE],
                         true,
                     )),
             );
@@ -66,13 +81,14 @@ class InspectPlatformExtensions extends Command
                 $this->components->warn('No local extension manifests were found.');
             } else {
                 $this->table(
-                    ['Extension', 'Version', 'Core constraint', 'Status', 'Database', 'Activation'],
+                    ['Extension', 'Version', 'Core constraint', 'Status', 'Database', 'Assets', 'Activation'],
                     array_map(static fn (array $result): array => [
                         $result['name'],
                         $result['version'] ?? '—',
                         $result['core'] ?? '—',
                         $result['status'],
                         $result['migrations']['status'] ?? 'unavailable',
+                        $result['assetPlan']['status'] ?? 'unavailable',
                         $result['active'] ? 'active' : 'inactive',
                     ], $results),
                 );
@@ -86,6 +102,10 @@ class InspectPlatformExtensions extends Command
                 foreach ($results as $result) {
                     if (($result['migrations']['status'] ?? null) === ExtensionMigrationPlan::STATUS_BLOCKED) {
                         $this->components->error("{$result['name']}: {$result['migrations']['message']}");
+                    }
+
+                    if (($result['assetPlan']['status'] ?? null) === ExtensionAssetPlan::STATUS_BLOCKED) {
+                        $this->components->error("{$result['name']}: {$result['assetPlan']['message']}");
                     }
                 }
             }

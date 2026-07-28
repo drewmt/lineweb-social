@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use App\Platform\Extensions\ExtensionActivationException;
 use App\Platform\Extensions\ExtensionActivator;
+use App\Platform\Extensions\ExtensionAssetPlanner;
 use App\Platform\Extensions\ExtensionInspector;
 use App\Platform\Extensions\ExtensionMigrationPlanner;
 use Tests\TestCase;
@@ -89,6 +90,7 @@ class ExtensionActivatorTest extends TestCase
             $this->app,
             new ExtensionInspector,
             new ExtensionMigrationPlanner,
+            $this->app->make(ExtensionAssetPlanner::class),
         );
     }
 }

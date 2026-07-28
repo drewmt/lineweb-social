@@ -13,6 +13,8 @@ final readonly class ExtensionManifest
      * @param  list<array{name: string, url?: string}>  $authors
      * @param  list<string>  $permissions
      * @param  list<string>  $uiSlots
+     * @param  list<string>  $styleAssets
+     * @param  list<string>  $scriptAssets
      */
     private function __construct(
         public string $id,
@@ -26,6 +28,8 @@ final readonly class ExtensionManifest
         public array $uiSlots,
         public ?string $migrationPath,
         public string $uninstallDataPolicy,
+        public array $styleAssets,
+        public array $scriptAssets,
     ) {}
 
     /**
@@ -101,6 +105,7 @@ final readonly class ExtensionManifest
         $permissions = self::allowedList($data['permissions'] ?? [], 'permission', $allowedPermissions);
         $uiSlots = self::allowedList($data['ui_slots'] ?? [], 'UI slot', $allowedUiSlots);
         [$migrationPath, $uninstallDataPolicy] = self::database($data['database'] ?? null);
+        [$styleAssets, $scriptAssets] = self::assets($data['assets'] ?? null);
 
         return new self(
             $id,
@@ -114,6 +119,8 @@ final readonly class ExtensionManifest
             $uiSlots,
             $migrationPath,
             $uninstallDataPolicy,
+            $styleAssets,
+            $scriptAssets,
         );
     }
 
@@ -225,5 +232,89 @@ final readonly class ExtensionManifest
         }
 
         return [$path, $uninstallData];
+    }
+
+    /** @return array{list<string>, list<string>} */
+    private static function assets(mixed $value): array
+    {
+        if ($value === null) {
+            return [[], []];
+        }
+
+        if (! is_array($value) || array_is_list($value)) {
+            throw new InvalidArgumentException('Manifest assets must be an object.');
+        }
+
+        $unknown = array_diff(array_keys($value), ['styles', 'scripts']);
+
+        if ($unknown !== []) {
+            throw new InvalidArgumentException('Manifest assets contain an unknown field: '.(string) reset($unknown));
+        }
+
+        return [
+            self::assetList($value['styles'] ?? [], 'style', ['css']),
+            self::assetList($value['scripts'] ?? [], 'script', ['js', 'mjs']),
+        ];
+    }
+
+    /**
+     * @param  list<string>  $extensions
+     * @return list<string>
+     */
+    private static function assetList(mixed $value, string $label, array $extensions): array
+    {
+        if (! is_array($value) || ! array_is_list($value)) {
+            throw new InvalidArgumentException("Manifest {$label} assets must be a list.");
+        }
+
+        $paths = [];
+
+        foreach ($value as $path) {
+            if (! is_string($path)) {
+                throw new InvalidArgumentException("Manifest {$label} assets must use relative paths.");
+            }
+
+            $path = self::relativePath($path, "Manifest {$label} assets");
+            $extension = strtolower((string) pathinfo($path, PATHINFO_EXTENSION));
+
+            if (! in_array($extension, $extensions, true)) {
+                throw new InvalidArgumentException(
+                    "Manifest {$label} assets must use ".implode(' or ', array_map(
+                        static fn (string $item): string => ".{$item}",
+                        $extensions,
+                    )).' files.',
+                );
+            }
+
+            if (in_array($path, $paths, true)) {
+                throw new InvalidArgumentException("Manifest {$label} assets must not contain duplicate paths.");
+            }
+
+            $paths[] = $path;
+        }
+
+        return $paths;
+    }
+
+    private static function relativePath(string $path, string $label): string
+    {
+        if (trim($path) === '' || mb_strlen($path) > 180) {
+            throw new InvalidArgumentException("{$label} must be relative paths up to 180 characters.");
+        }
+
+        $path = trim($path);
+        $segments = explode('/', $path);
+
+        if (str_starts_with($path, '/')
+            || str_contains($path, '\\')
+            || str_contains($path, "\0")
+            || preg_match('/^[A-Za-z0-9._\/-]+$/', $path) !== 1
+            || in_array('', $segments, true)
+            || in_array('.', $segments, true)
+            || in_array('..', $segments, true)) {
+            throw new InvalidArgumentException("{$label} must stay inside the extension directory.");
+        }
+
+        return $path;
     }
 }
