@@ -30,7 +30,7 @@ final class PostConversation
      * Build the policy-filtered permalink projection for one post.
      *
      * @return array{
-     *     post: array{id: int, url: string, body: string, media: array{url: string, alt: string, width: int, height: int}|null, publishedAt: string|null, editedAt: string|null, isHighlighted: bool, highlightedAt: string|null, isDraft: bool, isHidden: bool, isSaved: bool, canComment: bool, canReport: bool, canEdit: bool, canDelete: bool, hasReported: bool, commentsCount: int, author: array{name: string, handle: string, profileVisible: bool}, space: array{name: string, slug: string, description: string|null, visibility: string, memberCount: int}},
+     *     post: array{id: int, url: string, body: string, media: array{url: string, alt: string, width: int, height: int}|null, mediaItems: list<array{id: int, url: string, alt: string, width: int, height: int}>, publishedAt: string|null, editedAt: string|null, isHighlighted: bool, highlightedAt: string|null, isDraft: bool, isHidden: bool, isSaved: bool, canComment: bool, canReport: bool, canEdit: bool, canDelete: bool, hasReported: bool, commentsCount: int, author: array{name: string, handle: string, profileVisible: bool}, space: array{name: string, slug: string, description: string|null, visibility: string, memberCount: int}},
      *     comments: array{data: list<array{id: int, body: string, publishedAt: string, editedAt: string|null, canReport: bool, canEdit: bool, canDelete: bool, hasReported: bool, author: array{name: string, handle: string, profileVisible: bool}}>, meta: array{currentPage: int, lastPage: int, perPage: int, total: int}, links: array{newer: string|null, older: string|null}}
      * }
      */
@@ -40,6 +40,7 @@ final class PostConversation
             'author:id,name,handle',
             'space:id,name,slug,description,visibility',
             'media',
+            'mediaItems',
             'highlight',
             'topics:id,name',
         ]);
@@ -127,6 +128,7 @@ final class PostConversation
                     ->values()
                     ->all(),
                 'media' => $this->media->for($post),
+                'mediaItems' => $this->media->galleryFor($post),
                 'publishedAt' => $post->published_at?->toIso8601String(),
                 'editedAt' => $post->edited_at?->toIso8601String(),
                 'isHighlighted' => $post->highlight instanceof SpacePostHighlight,

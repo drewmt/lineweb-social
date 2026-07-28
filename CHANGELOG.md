@@ -35,8 +35,8 @@ All notable project changes will be documented here.
   projections, and a swipeable app-first presentation that leaves the
   chronological timeline unchanged.
 - Author-only post drafts with a focused mobile-first composer, dedicated
-  private library, 50-draft bound, normalized image retention and replacement,
-  accessible alt text, Space reassignment, deletion, and stable-ID publication
+  private library, 50-draft bound, bounded gallery curation, accessible
+  per-image alt text, Space reassignment, deletion, and stable-ID publication
   that delays topics and notifications until commit.
 - Privacy-bounded direct-message reporting with incoming-message-only
   authorization, duplicate and rate-limit protection, exact-message evidence
@@ -87,9 +87,10 @@ All notable project changes will be documented here.
 - A `feed:read` API ability with `GET /api/v1/feed`, deterministic encrypted
   cursor pagination, optional visible-Space filtering, policy-safe post
   resources, and bearer-authorized normalized media delivery.
-- Optional single-image post attachments with required alternative text,
-  private policy-protected delivery, bounded processing, and static WebP
-  normalization that discards original metadata and filenames.
+- Ordered galleries of up to four images with required per-image alternative
+  text, private policy-protected item delivery, touch-first presentation,
+  backward-compatible primary-image projections, bounded processing, and
+  static WebP normalization that discards original metadata and filenames.
 - Media lifecycle cleanup when a parent post, Space, or account is deleted,
   plus a public contract for storage, authorization, and future extensions.
 - Permanent post links with a responsive full-conversation view, chronological

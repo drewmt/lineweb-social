@@ -3,17 +3,19 @@ import {
     ArrowLeft,
     ChevronDown,
     FileText,
-    ImagePlus,
     LockKeyhole,
     Send,
     ShieldCheck,
-    X,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import InputError from '@/components/input-error';
 import { AvatarMark } from '@/components/social/avatar-mark';
-import type { PostMedia } from '@/components/social/post-image';
+import { PostGalleryEditor } from '@/components/social/post-gallery-editor';
+import type {
+    ExistingGalleryImage,
+    PendingGalleryImage,
+} from '@/components/social/post-gallery-editor';
 import { Button } from '@/components/ui/button';
 import type { Auth } from '@/types';
 
@@ -29,7 +31,7 @@ type Draft = {
     updatedAt: string;
     editUrl: string;
     space: { name: string; slug: string };
-    media: PostMedia | null;
+    mediaItems: ExistingGalleryImage[];
 };
 
 type ComposeProps = {
@@ -42,8 +44,10 @@ type ComposeProps = {
 type ComposerData = {
     body: string;
     space: string;
-    image: File | null;
-    image_alt: string;
+    images: File[];
+    image_alts: string[];
+    retained_media: number[];
+    retained_media_alts: Record<string, string>;
     remove_image: boolean;
 };
 
@@ -64,57 +68,130 @@ export default function Compose({
         auth: Auth;
         draftSummary: { count: number };
     }>().props;
-    const fileInput = useRef<HTMLInputElement>(null);
-    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [existingMedia, setExistingMedia] = useState<ExistingGalleryImage[]>(
+        draft?.mediaItems ?? [],
+    );
+    const [pendingMedia, setPendingMedia] = useState<PendingGalleryImage[]>([]);
+    const previewUrls = useRef(new Set<string>());
     const form = useForm<ComposerData>({
         body: draft?.body ?? '',
         space: selectedSpace ?? spaces[0]?.slug ?? '',
-        image: null,
-        image_alt: draft?.media?.alt ?? '',
+        images: [],
+        image_alts: [],
+        retained_media: (draft?.mediaItems ?? []).map((item) => item.id),
+        retained_media_alts: Object.fromEntries(
+            (draft?.mediaItems ?? []).map((item) => [
+                String(item.id),
+                item.alt,
+            ]),
+        ),
         remove_image: false,
     });
-    const visibleImage = previewUrl
-        ? { url: previewUrl, alt: '' }
-        : !form.data.remove_image && draft?.media
-          ? draft.media
-          : null;
 
     useEffect(
         () => () => {
-            if (previewUrl) {
-                URL.revokeObjectURL(previewUrl);
-            }
+            previewUrls.current.forEach((url) => URL.revokeObjectURL(url));
+            previewUrls.current.clear();
         },
-        [previewUrl],
+        [],
     );
 
-    const selectImage = (file: File | null) => {
-        if (previewUrl) {
-            URL.revokeObjectURL(previewUrl);
-        }
+    const syncExistingMedia = (items: ExistingGalleryImage[]) => {
+        setExistingMedia(items);
+        form.setData(
+            'retained_media',
+            items.map((item) => item.id),
+        );
+        form.setData(
+            'retained_media_alts',
+            Object.fromEntries(
+                items.map((item) => [String(item.id), item.alt]),
+            ),
+        );
+        form.setData(
+            'remove_image',
+            Boolean(draft?.mediaItems.length) && items.length === 0,
+        );
+    };
 
-        form.setData('image', file);
-        form.setData('remove_image', false);
-        setPreviewUrl(file ? URL.createObjectURL(file) : null);
+    const syncPendingMedia = (items: PendingGalleryImage[]) => {
+        setPendingMedia(items);
+        form.setData(
+            'images',
+            items.map((item) => item.file),
+        );
+        form.setData(
+            'image_alts',
+            items.map((item) => item.alt),
+        );
+    };
 
-        if (!file && !draft?.media) {
-            form.setData('image_alt', '');
+    const addFiles = (files: File[]) => {
+        const available = Math.max(
+            0,
+            4 - existingMedia.length - pendingMedia.length,
+        );
+        const additions = files.slice(0, available).map((file, index) => {
+            const url = URL.createObjectURL(file);
+            previewUrls.current.add(url);
+
+            return {
+                key:
+                    typeof crypto.randomUUID === 'function'
+                        ? crypto.randomUUID()
+                        : `${file.name}-${file.lastModified}-${index}`,
+                file,
+                url,
+                alt: '',
+            };
+        });
+
+        if (additions.length > 0) {
+            syncPendingMedia([...pendingMedia, ...additions]);
         }
     };
 
-    const removeImage = () => {
-        if (previewUrl) {
-            URL.revokeObjectURL(previewUrl);
+    const updateExistingAlt = (id: number, alt: string) => {
+        syncExistingMedia(
+            existingMedia.map((item) =>
+                item.id === id ? { ...item, alt } : item,
+            ),
+        );
+    };
+
+    const updatePendingAlt = (key: string, alt: string) => {
+        syncPendingMedia(
+            pendingMedia.map((item) =>
+                item.key === key ? { ...item, alt } : item,
+            ),
+        );
+    };
+
+    const removeExisting = (id: number) => {
+        syncExistingMedia(existingMedia.filter((item) => item.id !== id));
+    };
+
+    const removePending = (key: string) => {
+        const removed = pendingMedia.find((item) => item.key === key);
+
+        if (removed) {
+            URL.revokeObjectURL(removed.url);
+            previewUrls.current.delete(removed.url);
         }
 
-        setPreviewUrl(null);
-        form.setData('image', null);
-        form.setData('image_alt', '');
-        form.setData('remove_image', draft?.media !== null);
+        syncPendingMedia(pendingMedia.filter((item) => item.key !== key));
+    };
 
-        if (fileInput.current) {
-            fileInput.current.value = '';
-        }
+    const clearGallery = () => {
+        pendingMedia.forEach((item) => URL.revokeObjectURL(item.url));
+        previewUrls.current.clear();
+        setExistingMedia([]);
+        setPendingMedia([]);
+        form.setData('images', []);
+        form.setData('image_alts', []);
+        form.setData('retained_media', []);
+        form.setData('retained_media_alts', {});
+        form.setData('remove_image', false);
     };
 
     const saveDraft = () => {
@@ -139,23 +216,28 @@ export default function Compose({
                 preserveScroll: true,
                 onSuccess: () => {
                     if (!draft) {
-                        removeImage();
-                        form.reset(
-                            'body',
-                            'image',
-                            'image_alt',
-                            'remove_image',
-                        );
+                        clearGallery();
+                        form.reset('body');
                     }
                 },
             },
         );
     };
 
+    const galleryErrors = form.errors as Record<string, string>;
+    const imageError = Object.entries(galleryErrors).find(
+        ([key]) => key === 'image' || key.startsWith('images'),
+    )?.[1];
+    const altError = Object.entries(galleryErrors).find(
+        ([key]) =>
+            key.startsWith('image_alts') ||
+            key.startsWith('retained_media_alts'),
+    )?.[1];
     const canSubmit =
         form.data.body.trim() !== '' &&
         form.data.space !== '' &&
-        (!visibleImage || form.data.image_alt.trim() !== '');
+        existingMedia.every((item) => item.alt.trim() !== '') &&
+        pendingMedia.every((item) => item.alt.trim() !== '');
 
     return (
         <>
@@ -323,95 +405,34 @@ export default function Compose({
                                 />
                             </div>
 
-                            {visibleImage && (
-                                <div className="mx-4 mb-5 overflow-hidden rounded-[1.35rem] border border-border/75 bg-background sm:mx-6">
-                                    <div className="relative aspect-[16/9] overflow-hidden bg-secondary">
-                                        <img
-                                            src={visibleImage.url}
-                                            alt=""
-                                            className="size-full object-cover"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={removeImage}
-                                            aria-label="Remove selected image"
-                                            className="social-focus absolute top-3 right-3 flex size-11 items-center justify-center rounded-full bg-foreground/82 text-background shadow-lg backdrop-blur transition-colors hover:bg-foreground"
-                                        >
-                                            <X
-                                                className="size-5"
-                                                aria-hidden="true"
-                                            />
-                                        </button>
-                                    </div>
-                                    <label className="block px-4 py-4 text-sm font-extrabold">
-                                        Alternative text
-                                        <span className="mt-0.5 block text-xs leading-5 font-medium text-muted-foreground">
-                                            Describe the image for members using
-                                            screen readers.
-                                        </span>
-                                        <input
-                                            type="text"
-                                            value={form.data.image_alt}
-                                            onChange={(event) =>
-                                                form.setData(
-                                                    'image_alt',
-                                                    event.target.value,
-                                                )
-                                            }
-                                            required
-                                            maxLength={300}
-                                            placeholder="A concise description of the image"
-                                            className="social-input-surface social-focus mt-3 h-12 w-full px-4 text-sm font-semibold"
-                                        />
-                                    </label>
-                                    <InputError
-                                        className="px-4 pb-4"
-                                        message={form.errors.image}
-                                    />
-                                    <InputError
-                                        className="px-4 pb-4"
-                                        message={form.errors.image_alt}
-                                    />
-                                </div>
-                            )}
+                            <PostGalleryEditor
+                                existing={existingMedia}
+                                pending={pendingMedia}
+                                onFiles={addFiles}
+                                onExistingAlt={updateExistingAlt}
+                                onPendingAlt={updatePendingAlt}
+                                onRemoveExisting={removeExisting}
+                                onRemovePending={removePending}
+                                imageError={imageError}
+                                altError={altError}
+                            />
 
                             <div className="sticky bottom-[5.75rem] z-20 flex items-center justify-between gap-3 border-t border-border/70 bg-card/94 px-4 py-3 backdrop-blur-xl sm:static sm:px-6 sm:py-4">
                                 <div className="flex min-w-0 items-center gap-2">
-                                    <input
-                                        ref={fileInput}
-                                        type="file"
-                                        name="image"
-                                        accept="image/jpeg,image/png,image/webp"
-                                        className="sr-only"
-                                        onChange={(event) =>
-                                            selectImage(
-                                                event.target.files?.[0] ?? null,
-                                            )
-                                        }
-                                    />
-                                    {!visibleImage && (
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            aria-label="Add image"
-                                            onClick={() =>
-                                                fileInput.current?.click()
-                                            }
-                                            className="size-11 rounded-xl p-0 sm:w-auto sm:px-3"
-                                        >
-                                            <ImagePlus
-                                                className="size-5"
-                                                aria-hidden="true"
-                                            />
-                                            <span className="hidden sm:inline">
-                                                Add image
-                                            </span>
-                                        </Button>
-                                    )}
-                                    <span className="hidden text-xs font-bold text-muted-foreground sm:inline">
+                                    <span className="text-xs font-bold text-muted-foreground">
                                         {form.data.body.length.toLocaleString()}{' '}
                                         / 2,000
                                     </span>
+                                    {existingMedia.length +
+                                        pendingMedia.length >
+                                        0 && (
+                                        <span className="hidden text-xs font-bold text-muted-foreground sm:inline">
+                                            ·{' '}
+                                            {existingMedia.length +
+                                                pendingMedia.length}{' '}
+                                            images
+                                        </span>
+                                    )}
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Button

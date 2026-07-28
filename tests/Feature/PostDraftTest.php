@@ -144,6 +144,151 @@ class PostDraftTest extends TestCase
         $this->assertDatabaseMissing('posts', ['id' => $draft->getKey()]);
     }
 
+    public function test_authors_can_curate_draft_galleries_without_reuploading_retained_images(): void
+    {
+        $author = User::factory()->create();
+        $space = Space::factory()->for($author, 'owner')->create();
+
+        $this->actingAs($author)
+            ->post(route('drafts.store'), [
+                'body' => 'A gallery draft.',
+                'space' => $space->slug,
+                'images' => [
+                    UploadedFile::fake()->image('first.jpg', 1200, 800),
+                    UploadedFile::fake()->image('second.jpg', 900, 900),
+                    UploadedFile::fake()->image('third.jpg', 800, 1200),
+                ],
+                'image_alts' => [
+                    'First draft image.',
+                    'Second draft image.',
+                    'Third draft image.',
+                ],
+            ])
+            ->assertSessionHasNoErrors();
+
+        $draft = Post::query()->with('mediaItems')->sole();
+        $original = $draft->mediaItems;
+        $removed = $original->get(0);
+        $retainedSecond = $original->get(1);
+        $retainedThird = $original->get(2);
+
+        $this->assertInstanceOf(PostMedia::class, $removed);
+        $this->assertInstanceOf(PostMedia::class, $retainedSecond);
+        $this->assertInstanceOf(PostMedia::class, $retainedThird);
+
+        $this->actingAs($author)
+            ->patch(route('drafts.update', $draft), [
+                'body' => 'A carefully curated gallery draft.',
+                'space' => $space->slug,
+                'retained_media' => [
+                    $retainedSecond->getKey(),
+                    $retainedThird->getKey(),
+                ],
+                'retained_media_alts' => [
+                    $retainedSecond->getKey() => 'Updated second image description.',
+                    $retainedThird->getKey() => 'Updated third image description.',
+                ],
+                'images' => [
+                    UploadedFile::fake()->image('new-final.jpg', 1400, 900),
+                ],
+                'image_alts' => ['A newly added final image.'],
+            ])
+            ->assertSessionHasNoErrors();
+
+        $draft->refresh()->load(['media', 'mediaItems']);
+
+        $this->assertCount(3, $draft->mediaItems);
+        $this->assertSame([0, 1, 2], $draft->mediaItems->pluck('position')->all());
+        $this->assertSame(
+            [
+                $retainedSecond->getKey(),
+                $retainedThird->getKey(),
+            ],
+            $draft->mediaItems->take(2)->modelKeys(),
+        );
+        $this->assertSame(
+            [
+                'Updated second image description.',
+                'Updated third image description.',
+                'A newly added final image.',
+            ],
+            $draft->mediaItems->pluck('alt_text')->all(),
+        );
+        $this->assertSame($retainedSecond->path, $draft->mediaItems->get(0)?->path);
+        $this->assertSame($retainedThird->path, $draft->mediaItems->get(1)?->path);
+        $this->assertSame($retainedSecond->getKey(), $draft->media?->getKey());
+        Storage::disk('media')->assertMissing($removed->path);
+        Storage::disk('media')->assertExists($retainedSecond->path);
+        Storage::disk('media')->assertExists($retainedThird->path);
+        Storage::disk('media')->assertExists($draft->mediaItems->last()?->path);
+
+        $this->actingAs($author)
+            ->get(route('drafts.edit', $draft))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('draft.mediaItems', 3)
+                ->where('draft.mediaItems.0.id', $retainedSecond->getKey())
+                ->where(
+                    'draft.mediaItems.2.alt',
+                    'A newly added final image.',
+                ));
+    }
+
+    public function test_draft_galleries_reject_media_owned_by_another_draft(): void
+    {
+        $author = User::factory()->create();
+        $space = Space::factory()->for($author, 'owner')->create();
+        $firstDraft = Post::factory()->for($space)->for($author, 'author')->create([
+            'published_at' => null,
+        ]);
+        $secondDraft = Post::factory()->for($space)->for($author, 'author')->create([
+            'published_at' => null,
+        ]);
+        $firstMedia = $firstDraft->mediaItems()->create([
+            'position' => 0,
+            'disk' => 'media',
+            'path' => 'posts/first-draft.webp',
+            'mime_type' => 'image/webp',
+            'width' => 640,
+            'height' => 360,
+            'size_bytes' => 12,
+            'checksum' => hash('sha256', 'first-draft'),
+            'alt_text' => 'First draft image.',
+        ]);
+        $foreignMedia = $secondDraft->mediaItems()->create([
+            'position' => 0,
+            'disk' => 'media',
+            'path' => 'posts/second-draft.webp',
+            'mime_type' => 'image/webp',
+            'width' => 640,
+            'height' => 360,
+            'size_bytes' => 13,
+            'checksum' => hash('sha256', 'second-draft'),
+            'alt_text' => 'Second draft image.',
+        ]);
+
+        $this->actingAs($author)
+            ->patch(route('drafts.update', $firstDraft), [
+                'body' => 'An invalid cross-draft gallery.',
+                'space' => $space->slug,
+                'retained_media' => [$foreignMedia->getKey()],
+                'retained_media_alts' => [
+                    $foreignMedia->getKey() => 'Should not be accepted.',
+                ],
+            ])
+            ->assertSessionHasErrors('retained_media');
+
+        $this->assertDatabaseHas('post_media', [
+            'id' => $firstMedia->getKey(),
+            'post_id' => $firstDraft->getKey(),
+            'alt_text' => 'First draft image.',
+        ]);
+        $this->assertDatabaseHas('post_media', [
+            'id' => $foreignMedia->getKey(),
+            'post_id' => $secondDraft->getKey(),
+        ]);
+    }
+
     public function test_publishing_a_draft_keeps_its_identity_and_dispatches_publication_once(): void
     {
         Event::fake([PostPublished::class]);

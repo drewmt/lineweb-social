@@ -14,7 +14,6 @@ use App\Models\Space;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -42,16 +41,12 @@ class PostController extends Controller
     ): RedirectResponse {
         /** @var User $user */
         $user = $request->user();
-        $upload = $request->file('image');
-
         $publisher->publish(
             $user,
             $space,
             $request->string('body')->toString(),
-            $upload instanceof UploadedFile ? $upload : null,
-            $request->filled('image_alt')
-                ? $request->string('image_alt')->toString()
-                : null,
+            $request->galleryUploads(),
+            $request->galleryAltTexts(),
         );
 
         return back()->with('status', 'Post published.');

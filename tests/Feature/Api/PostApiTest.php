@@ -48,6 +48,7 @@ class PostApiTest extends TestCase
         $mediaContents = 'api-safe-webp';
         Storage::disk('media')->put($mediaPath, $mediaContents);
         $media = $post->media()->create([
+            'position' => 0,
             'disk' => 'media',
             'path' => $mediaPath,
             'mime_type' => 'image/webp',
@@ -56,6 +57,20 @@ class PostApiTest extends TestCase
             'size_bytes' => strlen($mediaContents),
             'checksum' => hash('sha256', $mediaContents),
             'alt_text' => 'A clean API image.',
+        ]);
+        $secondMediaPath = 'posts/post-media-second.webp';
+        $secondMediaContents = 'api-safe-webp-second';
+        Storage::disk('media')->put($secondMediaPath, $secondMediaContents);
+        $secondMedia = $post->mediaItems()->create([
+            'position' => 1,
+            'disk' => 'media',
+            'path' => $secondMediaPath,
+            'mime_type' => 'image/webp',
+            'width' => 900,
+            'height' => 1200,
+            'size_bytes' => strlen($secondMediaContents),
+            'checksum' => hash('sha256', $secondMediaContents),
+            'alt_text' => 'A second API image.',
         ]);
 
         Comment::factory()->for($post)->for($viewer, 'author')->create(['body' => 'Visible comment']);
@@ -107,6 +122,19 @@ class PostApiTest extends TestCase
             ->assertJsonPath('data.viewer.has_reported', true)
             ->assertJsonPath('data.media.url', route('api.v1.posts.media', $post))
             ->assertJsonPath('data.media.alt', $media->alt_text)
+            ->assertJsonCount(2, 'data.media_items')
+            ->assertJsonPath('data.media_items.0.id', (string) $media->getKey())
+            ->assertJsonPath('data.media_items.0.url', route('api.v1.posts.media.show', [
+                'post' => $post,
+                'media' => $media,
+            ]))
+            ->assertJsonPath('data.media_items.0.alt', $media->alt_text)
+            ->assertJsonPath('data.media_items.1.id', (string) $secondMedia->getKey())
+            ->assertJsonPath('data.media_items.1.url', route('api.v1.posts.media.show', [
+                'post' => $post,
+                'media' => $secondMedia,
+            ]))
+            ->assertJsonPath('data.media_items.1.alt', $secondMedia->alt_text)
             ->assertJsonMissingPath('data.media.disk')
             ->assertJsonMissingPath('data.media.path')
             ->assertJsonMissingPath('data.media.checksum')
@@ -114,8 +142,17 @@ class PostApiTest extends TestCase
             ->assertJsonMissingPath('data.media.owner_id')
             ->assertJsonMissingPath('data.media.author_id');
 
+        $this->getWithToken($viewer)
+            ->get(route('api.v1.posts.media.show', [
+                'post' => $post,
+                'media' => $secondMedia,
+            ]))
+            ->assertOk()
+            ->assertHeader('Content-Type', 'image/webp')
+            ->assertContent($secondMediaContents);
+
         $this->assertSame(
-            ['id', 'body', 'mentions', 'topics', 'published_at', 'edited_at', 'highlighted_at', 'media', 'comments_count', 'reactions', 'author', 'space', 'viewer'],
+            ['id', 'body', 'mentions', 'topics', 'published_at', 'edited_at', 'highlighted_at', 'media', 'media_items', 'comments_count', 'reactions', 'author', 'space', 'viewer'],
             array_keys($response->json('data')),
         );
         $this->assertSame(

@@ -28,28 +28,35 @@ final class ManagePostDrafts
         private readonly SyncPostTopics $topics,
     ) {}
 
+    /**
+     * @param  list<UploadedFile>  $uploads
+     * @param  list<string>  $altTexts
+     */
     public function create(
         User $author,
         Space $space,
         string $body,
-        ?UploadedFile $upload,
-        ?string $altText,
+        array $uploads,
+        array $altTexts,
     ): Post {
         Gate::forUser($author)->authorize('createPost', $space);
 
-        $normalized = $upload instanceof UploadedFile
-            ? $this->images->normalize($upload)
-            : null;
-        $newPath = null;
+        /** @var list<NormalizedImage> $normalized */
+        $normalized = array_map(
+            fn (UploadedFile $upload): NormalizedImage => $this->images->normalize($upload),
+            $uploads,
+        );
+        /** @var list<string> $newPaths */
+        $newPaths = [];
 
         try {
             return DB::transaction(function () use (
                 $author,
                 $space,
                 $body,
-                $altText,
+                $altTexts,
                 $normalized,
-                &$newPath,
+                &$newPaths,
             ): Post {
                 User::query()
                     ->whereKey($author->getKey())
@@ -74,57 +81,69 @@ final class ManagePostDrafts
                     'published_at' => null,
                 ]);
 
-                if ($normalized instanceof NormalizedImage) {
-                    $newPath = $this->attachMedia($draft, $normalized, $altText);
-                }
+                $this->attachGallery($draft, $normalized, $altTexts, $newPaths);
 
-                return $draft->load(['space:id,name,slug,visibility', 'media']);
+                return $draft->load([
+                    'space:id,name,slug,visibility',
+                    'media',
+                    'mediaItems',
+                ]);
             });
         } catch (Throwable $exception) {
-            $this->deleteFile($this->mediaDisk(), $newPath);
+            $this->deleteFiles($this->mediaDisk(), $newPaths);
 
             throw $exception;
         }
     }
 
+    /**
+     * @param  list<UploadedFile>  $uploads
+     * @param  list<string>  $altTexts
+     * @param  array<int, string>  $retainedMediaAltTexts
+     */
     public function update(
         User $author,
         Post $draft,
         Space $space,
         string $body,
-        ?UploadedFile $upload,
-        ?string $altText,
-        bool $removeImage,
+        array $uploads,
+        array $altTexts,
+        array $retainedMediaAltTexts,
     ): Post {
         return $this->saveExisting(
             $author,
             $draft,
             $space,
             $body,
-            $upload,
-            $altText,
-            $removeImage,
+            $uploads,
+            $altTexts,
+            $retainedMediaAltTexts,
             publish: false,
         );
     }
 
+    /**
+     * @param  list<UploadedFile>  $uploads
+     * @param  list<string>  $altTexts
+     * @param  array<int, string>  $retainedMediaAltTexts
+     */
     public function publish(
         User $author,
         Post $draft,
         Space $space,
         string $body,
-        ?UploadedFile $upload,
-        ?string $altText,
-        bool $removeImage,
+        array $uploads,
+        array $altTexts,
+        array $retainedMediaAltTexts,
     ): Post {
         $post = $this->saveExisting(
             $author,
             $draft,
             $space,
             $body,
-            $upload,
-            $altText,
-            $removeImage,
+            $uploads,
+            $altTexts,
+            $retainedMediaAltTexts,
             publish: true,
         );
 
@@ -146,23 +165,32 @@ final class ManagePostDrafts
         });
     }
 
+    /**
+     * @param  list<UploadedFile>  $uploads
+     * @param  list<string>  $altTexts
+     * @param  array<int, string>  $retainedMediaAltTexts
+     */
     private function saveExisting(
         User $author,
         Post $draft,
         Space $space,
         string $body,
-        ?UploadedFile $upload,
-        ?string $altText,
-        bool $removeImage,
+        array $uploads,
+        array $altTexts,
+        array $retainedMediaAltTexts,
         bool $publish,
     ): Post {
         Gate::forUser($author)->authorize('createPost', $space);
 
-        $normalized = $upload instanceof UploadedFile
-            ? $this->images->normalize($upload)
-            : null;
-        $newPath = null;
-        $obsoleteFile = null;
+        /** @var list<NormalizedImage> $normalized */
+        $normalized = array_map(
+            fn (UploadedFile $upload): NormalizedImage => $this->images->normalize($upload),
+            $uploads,
+        );
+        /** @var list<string> $newPaths */
+        $newPaths = [];
+        /** @var list<array{disk: string, path: string}> $obsoleteFiles */
+        $obsoleteFiles = [];
 
         try {
             $saved = DB::transaction(function () use (
@@ -170,15 +198,15 @@ final class ManagePostDrafts
                 $draft,
                 $space,
                 $body,
-                $altText,
-                $removeImage,
+                $altTexts,
+                $retainedMediaAltTexts,
                 $publish,
                 $normalized,
-                &$newPath,
-                &$obsoleteFile,
+                &$newPaths,
+                &$obsoleteFiles,
             ): Post {
                 $lockedDraft = Post::query()
-                    ->with('media')
+                    ->with('mediaItems')
                     ->whereKey($draft->getKey())
                     ->lockForUpdate()
                     ->firstOrFail();
@@ -193,28 +221,32 @@ final class ManagePostDrafts
                     'edited_at' => null,
                 ]);
 
-                $this->syncMedia(
+                $this->syncGallery(
                     $lockedDraft,
                     $normalized,
-                    $altText,
-                    $removeImage,
-                    $newPath,
-                    $obsoleteFile,
+                    $altTexts,
+                    $retainedMediaAltTexts,
+                    $newPaths,
+                    $obsoleteFiles,
                 );
 
                 if ($publish) {
                     $this->topics->sync($lockedDraft);
                 }
 
-                return $lockedDraft->load(['space:id,name,slug,visibility', 'media']);
+                return $lockedDraft->load([
+                    'space:id,name,slug,visibility',
+                    'media',
+                    'mediaItems',
+                ]);
             });
         } catch (Throwable $exception) {
-            $this->deleteFile($this->mediaDisk(), $newPath);
+            $this->deleteFiles($this->mediaDisk(), $newPaths);
 
             throw $exception;
         }
 
-        if (is_array($obsoleteFile)) {
+        foreach ($obsoleteFiles as $obsoleteFile) {
             $this->deleteFile($obsoleteFile['disk'], $obsoleteFile['path']);
         }
 
@@ -222,54 +254,94 @@ final class ManagePostDrafts
     }
 
     /**
-     * @param  array{disk: string, path: string}|null  $obsoleteFile
+     * @param  list<NormalizedImage>  $normalized
+     * @param  list<string>  $altTexts
+     * @param  array<int, string>  $retainedMediaAltTexts
+     * @param  list<string>  $newPaths
+     * @param  list<array{disk: string, path: string}>  $obsoleteFiles
      */
-    private function syncMedia(
+    private function syncGallery(
         Post $draft,
-        ?NormalizedImage $normalized,
-        ?string $altText,
-        bool $removeImage,
-        ?string &$newPath,
-        ?array &$obsoleteFile,
+        array $normalized,
+        array $altTexts,
+        array $retainedMediaAltTexts,
+        array &$newPaths,
+        array &$obsoleteFiles,
     ): void {
-        $media = $draft->media;
+        $retainedIds = array_keys($retainedMediaAltTexts);
+        $retained = $draft->mediaItems
+            ->filter(fn (PostMedia $media): bool => in_array($media->getKey(), $retainedIds, true))
+            ->values();
+        $obsolete = $draft->mediaItems
+            ->reject(fn (PostMedia $media): bool => in_array($media->getKey(), $retainedIds, true))
+            ->values();
 
-        if ($normalized instanceof NormalizedImage) {
-            $newPath = $this->storeNormalizedFile($normalized);
-            $attributes = $this->mediaAttributes($normalized, $newPath, $altText);
-
-            if ($media instanceof PostMedia) {
-                $obsoleteFile = ['disk' => $media->disk, 'path' => $media->path];
-                $media->update($attributes);
-            } else {
-                $draft->media()->create($attributes);
-            }
-
-            return;
+        if ($retained->count() !== count($retainedIds)) {
+            throw ValidationException::withMessages([
+                'retained_media' => 'Retained gallery images must belong to this draft.',
+            ]);
         }
 
-        if ($removeImage && $media instanceof PostMedia) {
-            $obsoleteFile = ['disk' => $media->disk, 'path' => $media->path];
-            DB::table('post_media')->where('id', $media->getKey())->delete();
-            $draft->unsetRelation('media');
-
-            return;
+        if ($retained->count() + count($normalized) > (int) config('media.max_gallery_items')) {
+            throw ValidationException::withMessages([
+                'images' => 'A post can contain up to four images.',
+            ]);
         }
 
-        if ($media instanceof PostMedia) {
-            $media->update(['alt_text' => trim((string) $altText)]);
+        if ($obsolete->isNotEmpty()) {
+            $obsoleteFiles = array_values(
+                $obsolete->map(fn (PostMedia $media): array => [
+                    'disk' => $media->disk,
+                    'path' => $media->path,
+                ])
+                    ->all(),
+            );
+            DB::table('post_media')->whereIn('id', $obsolete->modelKeys())->delete();
         }
+
+        foreach ($retained as $position => $media) {
+            $media->update([
+                'position' => $position,
+                'alt_text' => trim($retainedMediaAltTexts[$media->getKey()]),
+            ]);
+        }
+
+        foreach ($normalized as $index => $image) {
+            $path = $this->storeNormalizedFile($image);
+            $newPaths[] = $path;
+            $draft->mediaItems()->create($this->mediaAttributes(
+                $image,
+                $path,
+                $altTexts[$index] ?? '',
+                $retained->count() + $index,
+            ));
+        }
+
+        $draft->unsetRelation('media');
+        $draft->unsetRelation('mediaItems');
     }
 
-    private function attachMedia(
+    /**
+     * @param  list<NormalizedImage>  $normalized
+     * @param  list<string>  $altTexts
+     * @param  list<string>  $newPaths
+     */
+    private function attachGallery(
         Post $draft,
-        NormalizedImage $normalized,
-        ?string $altText,
-    ): string {
-        $path = $this->storeNormalizedFile($normalized);
-        $draft->media()->create($this->mediaAttributes($normalized, $path, $altText));
-
-        return $path;
+        array $normalized,
+        array $altTexts,
+        array &$newPaths,
+    ): void {
+        foreach ($normalized as $position => $image) {
+            $path = $this->storeNormalizedFile($image);
+            $newPaths[] = $path;
+            $draft->mediaItems()->create($this->mediaAttributes(
+                $image,
+                $path,
+                $altTexts[$position] ?? '',
+                $position,
+            ));
+        }
     }
 
     private function storeNormalizedFile(NormalizedImage $normalized): string
@@ -288,8 +360,10 @@ final class ManagePostDrafts
         NormalizedImage $normalized,
         string $path,
         ?string $altText,
+        int $position,
     ): array {
         return [
+            'position' => $position,
             'disk' => $this->mediaDisk(),
             'path' => $path,
             'mime_type' => $normalized->mimeType,
@@ -322,6 +396,14 @@ final class ManagePostDrafts
             Storage::disk($disk)->delete($path);
         } catch (Throwable $exception) {
             report($exception);
+        }
+    }
+
+    /** @param  list<string>  $paths */
+    private function deleteFiles(string $disk, array $paths): void
+    {
+        foreach ($paths as $path) {
+            $this->deleteFile($disk, $path);
         }
     }
 }

@@ -80,18 +80,19 @@ relationship, and navigation paths.
 
 ### Publishing without pressure
 
-A focused composer keeps unfinished text and images private until the author
-chooses to publish. Members can return through a dedicated draft library, move a
-draft to another Space they can post in, and publish without changing its post
-identity.
+A focused composer supports accessible four-image galleries and keeps unfinished
+text and media private until the author chooses to publish. Members can return
+through a dedicated draft library, curate retained images without reuploading
+them, move a draft to another Space they can post in, and publish without
+changing its post identity.
 
 <table>
   <tr>
     <td width="58%">
-      <img src="docs/screenshots/composer-desktop.jpg" alt="Lineweb Social private post composer on desktop" />
+      <img src="docs/screenshots/gallery-composer-desktop.jpg" alt="Lineweb Social accessible four-image post composer on desktop" />
     </td>
     <td width="21%">
-      <img src="docs/screenshots/composer-mobile.jpg" alt="Lineweb Social app-like private post composer on mobile" />
+      <img src="docs/screenshots/gallery-composer-mobile.jpg" alt="Lineweb Social app-like four-image post composer on mobile" />
     </td>
     <td width="21%">
       <img src="docs/screenshots/drafts-mobile.jpg" alt="Lineweb Social private draft library on mobile" />
@@ -101,6 +102,27 @@ identity.
     <td align="center"><sub>Focused writing and explicit publication</sub></td>
     <td align="center"><sub>App-first mobile composer</sub></td>
     <td align="center"><sub>Private unfinished work</sub></td>
+  </tr>
+</table>
+
+### Accessible galleries in the timeline
+
+Published galleries stay private behind the same post policy as their Space,
+preserve an accessible description for every image, and use touch-friendly
+swipe navigation with visible position and keyboard-sized controls.
+
+<table>
+  <tr>
+    <td width="68%">
+      <img src="docs/screenshots/gallery-feed-desktop.jpg" alt="Lineweb Social four-image gallery in the desktop timeline" />
+    </td>
+    <td width="32%">
+      <img src="docs/screenshots/gallery-feed-mobile.jpg" alt="Lineweb Social swipeable four-image gallery in the mobile timeline" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Policy-protected gallery on desktop</sub></td>
+    <td align="center"><sub>Touch-first gallery on mobile</sub></td>
   </tr>
 </table>
 
@@ -333,7 +355,7 @@ makes the final decision.
 | Accounts            | Verified registration, stable handles, passkeys, two-factor authentication, strong password defaults, active-account enforcement, and one human-reviewed appeal per restriction.                                                             |
 | Profiles            | Editable member identity, headlines, real activity, public/shared/private visibility, and discovery opt-out.                                                                                                                                 |
 | Spaces              | Public/private/hidden communities, searchable directory, join/leave rules, restricted invitations, roles, ownership transfer, member removal, and bounded curated highlights.                                                                |
-| Publishing          | Focused composer, author-only drafts, private normalized WebP images with required alt text, chronological posts, comments, permanent conversations, and author controls.                                                                    |
+| Publishing          | Focused composer, author-only drafts, private four-image WebP galleries with per-image alt text and swipe navigation, chronological posts, comments, permanent conversations, and author controls.                                           |
 | Discovery           | Policy-filtered search across posts, Spaces, and People; Unicode hashtags; chronological topic trails; and privacy-aware Following.                                                                                                          |
 | Interactions        | Typed Like, Celebrate, and Insightful reactions, private Saved Posts, follows, mentions, comments, copy links, and conversation shortcuts.                                                                                                   |
 | Messaging           | Canonical one-to-one conversations, participant-only history, unread state, block-aware delivery, and responsive inbox/thread views.                                                                                                         |

@@ -97,7 +97,7 @@ class PeopleController extends Controller
         $postCount = (clone $visiblePosts)->count();
 
         $postModels = $visiblePosts
-            ->with(['space:id,name,slug', 'media', 'topics:id,name'])
+            ->with(['space:id,name,slug', 'media', 'mediaItems', 'topics:id,name'])
             ->latest('published_at')
             ->limit(12)
             ->get();
@@ -126,6 +126,7 @@ class PeopleController extends Controller
                     ->values()
                     ->all(),
                 'media' => $media->for($post),
+                'mediaItems' => $media->galleryFor($post),
                 'publishedAt' => $post->published_at?->toIso8601String(),
                 'editedAt' => $post->edited_at?->toIso8601String(),
                 'canEdit' => Gate::forUser($viewer)->allows('update', $post)

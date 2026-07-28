@@ -496,6 +496,66 @@
         }
       }
     },
+    "/posts/{post}/media/{media}": {
+      "get": {
+        "operationId": "getPostMediaItem",
+        "summary": "Return one authorized normalized gallery image",
+        "tags": [
+          "Posts"
+        ],
+        "x-lineweb-status": "available",
+        "x-required-ability": "feed:read",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PostId"
+          },
+          {
+            "$ref": "#/components/parameters/MediaId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Static normalized WebP image",
+            "headers": {
+              "Content-Type": {
+                "schema": {
+                  "type": "string",
+                  "const": "image/webp"
+                }
+              },
+              "Cross-Origin-Resource-Policy": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "same-site"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "image/webp": {
+                "schema": {
+                  "type": "string",
+                  "contentEncoding": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
     "/profiles/{handle}": {
       "get": {
         "operationId": "getProfile",
@@ -676,6 +736,16 @@
         "in": "path",
         "required": true,
         "description": "Opaque post identifier.",
+        "schema": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "MediaId": {
+        "name": "media",
+        "in": "path",
+        "required": true,
+        "description": "Opaque media item identifier scoped to the parent post.",
         "schema": {
           "type": "string",
           "minLength": 1
@@ -1119,6 +1189,44 @@
           }
         }
       },
+      "MediaItem": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "url",
+          "alt",
+          "width",
+          "height",
+          "mime_type"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri-reference"
+          },
+          "alt": {
+            "type": "string"
+          },
+          "width": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2048
+          },
+          "height": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2048
+          },
+          "mime_type": {
+            "type": "string",
+            "const": "image/webp"
+          }
+        }
+      },
       "ContentMention": {
         "type": "object",
         "additionalProperties": false,
@@ -1232,6 +1340,7 @@
           "edited_at",
           "highlighted_at",
           "media",
+          "media_items",
           "comments_count",
           "reactions",
           "author",
@@ -1287,6 +1396,13 @@
                 "type": "null"
               }
             ]
+          },
+          "media_items": {
+            "type": "array",
+            "maxItems": 4,
+            "items": {
+              "$ref": "#/components/schemas/MediaItem"
+            }
           },
           "comments_count": {
             "type": "integer",

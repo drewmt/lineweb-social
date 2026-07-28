@@ -36,6 +36,7 @@ class ApiContractDocumentationTest extends TestCase
             '/posts/{post}',
             '/posts/{post}/comments',
             '/posts/{post}/media',
+            '/posts/{post}/media/{media}',
             '/profiles/{handle}',
             '/spaces',
             '/spaces/{slug}',
@@ -48,6 +49,7 @@ class ApiContractDocumentationTest extends TestCase
             '/posts/{post}',
             '/posts/{post}/comments',
             '/posts/{post}/media',
+            '/posts/{post}/media/{media}',
             '/profiles/{handle}',
             '/spaces',
             '/spaces/{slug}',
@@ -143,6 +145,10 @@ class ApiContractDocumentationTest extends TestCase
             array_keys($schemas['Media']['properties']),
         );
         $this->assertSame(
+            ['id', 'url', 'alt', 'width', 'height', 'mime_type'],
+            array_keys($schemas['MediaItem']['properties']),
+        );
+        $this->assertSame(
             ['id', 'kind', 'title', 'description', 'created_at', 'read_at', 'available', 'target'],
             array_keys($schemas['Notification']['properties']),
         );
@@ -151,7 +157,7 @@ class ApiContractDocumentationTest extends TestCase
             array_keys($schemas['Space']['properties']),
         );
         $this->assertSame(
-            ['id', 'body', 'mentions', 'topics', 'published_at', 'edited_at', 'highlighted_at', 'media', 'comments_count', 'reactions', 'author', 'space', 'viewer'],
+            ['id', 'body', 'mentions', 'topics', 'published_at', 'edited_at', 'highlighted_at', 'media', 'media_items', 'comments_count', 'reactions', 'author', 'space', 'viewer'],
             array_keys($schemas['Post']['properties']),
         );
         $this->assertSame(
@@ -175,6 +181,7 @@ class ApiContractDocumentationTest extends TestCase
             $this->assertArrayNotHasKey($forbidden, $schemas['Profile']['properties']);
             $this->assertArrayNotHasKey($forbidden, $schemas['Space']['properties']);
             $this->assertArrayNotHasKey($forbidden, $schemas['Media']['properties']);
+            $this->assertArrayNotHasKey($forbidden, $schemas['MediaItem']['properties']);
             $this->assertArrayNotHasKey($forbidden, $schemas['Post']['properties']);
             $this->assertArrayNotHasKey($forbidden, $schemas['ProfileSummary']['properties']);
             $this->assertArrayNotHasKey($forbidden, $schemas['Notification']['properties']);

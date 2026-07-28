@@ -30,7 +30,7 @@ import type {
     ContentMention,
     ContentTopic,
 } from '@/components/social/mention-text';
-import { PostImage } from '@/components/social/post-image';
+import { PostGallery } from '@/components/social/post-image';
 import type { PostMedia } from '@/components/social/post-image';
 import { PostReactions } from '@/components/social/post-reactions';
 import type {
@@ -48,6 +48,7 @@ type ConversationPost = {
     mentions: ContentMention[];
     topics: ContentTopic[];
     media: PostMedia | null;
+    mediaItems: PostMedia[];
     publishedAt: string | null;
     editedAt: string | null;
     isHighlighted: boolean;
@@ -384,9 +385,9 @@ export default function ShowPost({
                                     />
                                 </p>
 
-                                {post.media && (
-                                    <PostImage
-                                        media={post.media}
+                                {post.mediaItems.length > 0 && (
+                                    <PostGallery
+                                        media={post.mediaItems}
                                         className="mt-5"
                                         eager
                                     />

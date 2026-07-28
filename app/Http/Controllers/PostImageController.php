@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
+use App\Models\PostMedia;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Gate;
@@ -10,11 +11,26 @@ use Illuminate\Support\Facades\Storage;
 
 class PostImageController extends Controller
 {
-    public function __invoke(Request $request, Post $post): Response
+    public function primary(Request $request, Post $post): Response
     {
         Gate::authorize('view', $post);
 
         $media = $post->media()->firstOrFail();
+
+        return $this->respond($request, $media);
+    }
+
+    public function show(Request $request, Post $post, string $media): Response
+    {
+        Gate::authorize('view', $post);
+
+        $mediaItem = $post->mediaItems()->whereKey($media)->firstOrFail();
+
+        return $this->respond($request, $mediaItem);
+    }
+
+    private function respond(Request $request, PostMedia $media): Response
+    {
         $storage = Storage::disk($media->disk);
 
         abort_unless($storage->exists($media->path), 404);

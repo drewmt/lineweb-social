@@ -14,7 +14,6 @@ import {
     Send,
     UserRoundCheck,
     UsersRound,
-    X,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
@@ -29,7 +28,9 @@ import type {
     ContentMention,
     ContentTopic,
 } from '@/components/social/mention-text';
-import { PostImage } from '@/components/social/post-image';
+import { PostGalleryEditor } from '@/components/social/post-gallery-editor';
+import type { PendingGalleryImage } from '@/components/social/post-gallery-editor';
+import { PostGallery } from '@/components/social/post-image';
 import type { PostMedia } from '@/components/social/post-image';
 import { PostReactions } from '@/components/social/post-reactions';
 import type {
@@ -59,6 +60,7 @@ type FeedPost = {
     mentions: ContentMention[];
     topics: ContentTopic[];
     media: PostMedia | null;
+    mediaItems: PostMedia[];
     publishedAt: string | null;
     editedAt: string | null;
     isHighlighted: boolean;
@@ -170,48 +172,80 @@ function SpacePulse({ spaces }: { spaces: Space[] }) {
 
 function Composer({ spaces }: { spaces: Space[] }) {
     const { auth } = usePage<{ auth: Auth }>().props;
-    const fileInput = useRef<HTMLInputElement>(null);
-    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [pendingMedia, setPendingMedia] = useState<PendingGalleryImage[]>([]);
+    const previewUrls = useRef(new Set<string>());
     const { data, setData, post, processing, errors, reset } = useForm<{
         body: string;
         space: string;
-        image: File | null;
-        image_alt: string;
+        images: File[];
+        image_alts: string[];
     }>({
         body: '',
         space: spaces[0]?.slug ?? '',
-        image: null,
-        image_alt: '',
+        images: [],
+        image_alts: [],
     });
 
     useEffect(
         () => () => {
-            if (previewUrl) {
-                URL.revokeObjectURL(previewUrl);
-            }
+            previewUrls.current.forEach((url) => URL.revokeObjectURL(url));
+            previewUrls.current.clear();
         },
-        [previewUrl],
+        [],
     );
 
-    const selectImage = (file: File | null) => {
-        if (previewUrl) {
-            URL.revokeObjectURL(previewUrl);
-        }
+    const syncPendingMedia = (items: PendingGalleryImage[]) => {
+        setPendingMedia(items);
+        setData(
+            'images',
+            items.map((item) => item.file),
+        );
+        setData(
+            'image_alts',
+            items.map((item) => item.alt),
+        );
+    };
 
-        setData('image', file);
-        setPreviewUrl(file ? URL.createObjectURL(file) : null);
+    const addFiles = (files: File[]) => {
+        const additions = files
+            .slice(0, Math.max(0, 4 - pendingMedia.length))
+            .map((file, index) => {
+                const url = URL.createObjectURL(file);
+                previewUrls.current.add(url);
 
-        if (!file) {
-            setData('image_alt', '');
+                return {
+                    key:
+                        typeof crypto.randomUUID === 'function'
+                            ? crypto.randomUUID()
+                            : `${file.name}-${file.lastModified}-${index}`,
+                    file,
+                    url,
+                    alt: '',
+                };
+            });
+
+        if (additions.length > 0) {
+            syncPendingMedia([...pendingMedia, ...additions]);
         }
     };
 
-    const clearImage = () => {
-        selectImage(null);
+    const updatePendingAlt = (key: string, alt: string) => {
+        syncPendingMedia(
+            pendingMedia.map((item) =>
+                item.key === key ? { ...item, alt } : item,
+            ),
+        );
+    };
 
-        if (fileInput.current) {
-            fileInput.current.value = '';
+    const removePending = (key: string) => {
+        const removed = pendingMedia.find((item) => item.key === key);
+
+        if (removed) {
+            URL.revokeObjectURL(removed.url);
+            previewUrls.current.delete(removed.url);
         }
+
+        syncPendingMedia(pendingMedia.filter((item) => item.key !== key));
     };
 
     const publish = (event: FormEvent<HTMLFormElement>) => {
@@ -225,11 +259,21 @@ function Composer({ spaces }: { spaces: Space[] }) {
             preserveScroll: true,
             forceFormData: true,
             onSuccess: () => {
-                clearImage();
-                reset('body', 'image', 'image_alt');
+                pendingMedia.forEach((item) => URL.revokeObjectURL(item.url));
+                previewUrls.current.clear();
+                setPendingMedia([]);
+                reset('body', 'images', 'image_alts');
             },
         });
     };
+
+    const galleryErrors = errors as Record<string, string>;
+    const imageError = Object.entries(galleryErrors).find(
+        ([key]) => key === 'image' || key.startsWith('images'),
+    )?.[1];
+    const altError = Object.entries(galleryErrors).find(([key]) =>
+        key.startsWith('image_alts'),
+    )?.[1];
 
     if (spaces.length === 0) {
         return null;
@@ -294,83 +338,35 @@ function Composer({ spaces }: { spaces: Space[] }) {
                 />
                 <InputError className="pb-3" message={errors.body} />
             </div>
-            {previewUrl && data.image && (
-                <div className="mx-4 mb-4 rounded-2xl border border-border/75 bg-background p-3 sm:mx-5 sm:p-4">
-                    <div className="flex items-start gap-3">
-                        <div className="relative size-20 shrink-0 overflow-hidden rounded-xl bg-secondary sm:size-24">
-                            <img
-                                src={previewUrl}
-                                alt=""
-                                className="size-full object-cover"
-                            />
-                            <button
-                                type="button"
-                                onClick={clearImage}
-                                aria-label="Remove selected image"
-                                className="social-focus absolute top-1.5 right-1.5 flex size-8 items-center justify-center rounded-full bg-foreground/82 text-background backdrop-blur transition-colors hover:bg-foreground"
-                            >
-                                <X className="size-4" aria-hidden="true" />
-                            </button>
-                        </div>
-                        <label className="min-w-0 flex-1 text-sm font-extrabold">
-                            Describe this image
-                            <span className="mt-0.5 block text-xs leading-5 font-medium text-muted-foreground">
-                                Required for members using screen readers.
-                            </span>
-                            <input
-                                type="text"
-                                value={data.image_alt}
-                                onChange={(event) =>
-                                    setData('image_alt', event.target.value)
-                                }
-                                required
-                                maxLength={300}
-                                placeholder="A concise description of the image"
-                                className="social-inset social-focus mt-2 h-11 w-full px-3 text-sm font-semibold"
-                            />
-                        </label>
-                    </div>
-                    <InputError className="mt-2" message={errors.image} />
-                    <InputError className="mt-2" message={errors.image_alt} />
-                </div>
-            )}
+            <PostGalleryEditor
+                existing={[]}
+                pending={pendingMedia}
+                onFiles={addFiles}
+                onExistingAlt={() => undefined}
+                onPendingAlt={updatePendingAlt}
+                onRemoveExisting={() => undefined}
+                onRemovePending={removePending}
+                imageError={imageError}
+                altError={altError}
+                compact
+            />
             <div className="flex items-center justify-between gap-3 border-t border-border/65 bg-secondary/28 px-4 py-3 sm:px-5">
                 <div className="flex min-w-0 items-center gap-2">
-                    <input
-                        ref={fileInput}
-                        type="file"
-                        name="image"
-                        accept="image/jpeg,image/png,image/webp"
-                        className="sr-only"
-                        onChange={(event) =>
-                            selectImage(event.target.files?.[0] ?? null)
-                        }
-                    />
-                    {!data.image && (
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            aria-label="Add image"
-                            onClick={() => fileInput.current?.click()}
-                            className="h-11 rounded-xl px-3"
-                        >
-                            <ImagePlus
-                                className="size-4.5"
-                                aria-hidden="true"
-                            />
-                            <span className="hidden sm:inline">Add image</span>
-                        </Button>
-                    )}
                     <span className="truncate text-xs font-semibold text-muted-foreground">
                         {data.body.length.toLocaleString()} / 2,000
                     </span>
+                    {pendingMedia.length > 0 && (
+                        <span className="hidden text-xs font-semibold text-muted-foreground sm:inline">
+                            · {pendingMedia.length} images
+                        </span>
+                    )}
                 </div>
                 <Button
                     type="submit"
                     disabled={
                         processing ||
                         data.body.trim() === '' ||
-                        (data.image !== null && data.image_alt.trim() === '')
+                        pendingMedia.some((item) => item.alt.trim() === '')
                     }
                     className="h-11 rounded-xl px-5"
                 >
@@ -814,7 +810,9 @@ function PostCard({
                     {expanded ? 'Show less' : 'Read more'}
                 </button>
             )}
-            {item.media && <PostImage media={item.media} className="mt-4" />}
+            {item.mediaItems.length > 0 && (
+                <PostGallery media={item.mediaItems} className="mt-4" />
+            )}
             <PostReactions
                 postId={item.id}
                 reactions={item.reactions}

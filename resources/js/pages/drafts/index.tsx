@@ -27,6 +27,7 @@ type Draft = {
     editUrl: string;
     space: { name: string; slug: string };
     media: PostMedia | null;
+    mediaItems: PostMedia[];
 };
 
 type DraftsProps = {
@@ -131,14 +132,15 @@ export default function Drafts({ drafts, limit, status }: DraftsProps) {
                                 key={draft.id}
                                 className="social-card social-card-interactive group flex min-w-0 flex-col overflow-hidden rounded-[1.5rem]"
                             >
-                                {draft.media ? (
+                                {draft.mediaItems.length > 0 &&
+                                draft.mediaItems[0] ? (
                                     <Link
                                         href={draft.editUrl}
                                         className="relative block aspect-[16/8] overflow-hidden bg-secondary"
                                     >
                                         <img
-                                            src={draft.media.url}
-                                            alt={draft.media.alt}
+                                            src={draft.mediaItems[0].url}
+                                            alt={draft.mediaItems[0].alt}
                                             className="size-full object-cover transition-transform duration-300 group-hover:scale-[1.015]"
                                         />
                                         <span className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-foreground/80 px-3 py-1.5 text-[0.68rem] font-extrabold text-background backdrop-blur">
@@ -146,7 +148,9 @@ export default function Drafts({ drafts, limit, status }: DraftsProps) {
                                                 className="size-3.5"
                                                 aria-hidden="true"
                                             />
-                                            Image draft
+                                            {draft.mediaItems.length === 1
+                                                ? 'Image draft'
+                                                : `${draft.mediaItems.length}-image gallery`}
                                         </span>
                                     </Link>
                                 ) : (
