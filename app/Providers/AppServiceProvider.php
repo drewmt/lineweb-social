@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Platform\Extensions\ExtensionActivator;
 use App\Platform\Extensions\ExtensionInspector;
+use App\Platform\Extensions\ExtensionMigrationPlanner;
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Contracts\Foundation\Application;
@@ -27,6 +28,7 @@ class AppServiceProvider extends ServiceProvider
             static fn (Application $app): ExtensionActivator => new ExtensionActivator(
                 $app,
                 $app->make(ExtensionInspector::class),
+                $app->make(ExtensionMigrationPlanner::class),
             ),
         );
 

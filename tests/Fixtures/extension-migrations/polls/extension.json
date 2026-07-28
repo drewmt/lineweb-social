@@ -1,0 +1,24 @@
+{
+    "id": "migration-polls",
+    "name": "Migration Polls",
+    "version": "1.2.0",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Lineweb",
+            "url": "https://www.lineweb.gr"
+        }
+    ],
+    "core": "^0.1.0-alpha.1",
+    "provider": "Tests\\Fixtures\\ExtensionProviders\\ReadyExtensionProvider",
+    "permissions": [
+        "posts.read"
+    ],
+    "ui_slots": [
+        "feed.item.after"
+    ],
+    "database": {
+        "migrations": "database/migrations",
+        "uninstall_data": "retain"
+    }
+}

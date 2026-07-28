@@ -4,7 +4,10 @@ import {
     Check,
     CircleAlert,
     CodeXml,
+    Database,
     FileCode2,
+    FileClock,
+    HardDrive,
     LockKeyhole,
     Power,
     ShieldCheck,
@@ -30,6 +33,25 @@ type Extension = {
     permissions: string[];
     uiSlots: string[];
     provider: string | null;
+    database: {
+        migrations: string | null;
+        uninstallData: string;
+    };
+    migrations: {
+        status: 'none' | 'pending' | 'applied' | 'blocked';
+        message: string;
+        declared: number;
+        applied: number;
+        pending: number;
+        blocked: number;
+        uninstallData: string;
+        items: {
+            name: string;
+            status: 'applied' | 'pending' | 'changed';
+            batch: number | null;
+            appliedAt: string | null;
+        }[];
+    } | null;
     status: Status;
     message: string;
     active: boolean;
@@ -42,7 +64,11 @@ type Props = {
         active: number;
         compatible: number;
         actionRequired: number;
+        migrationPending: number;
+        migrationBlocked: number;
+        retainedData: number;
     };
+    retainedExtensionIds: string[];
     extensions: Extension[];
 };
 
@@ -56,6 +82,7 @@ const statusLabel: Record<Status, string> = {
 export default function AdminExtensions({
     coreVersion,
     summary,
+    retainedExtensionIds,
     extensions,
 }: Props) {
     return (
@@ -99,7 +126,7 @@ export default function AdminExtensions({
 
                 <section
                     aria-label="Extension readiness"
-                    className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4"
+                    className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6"
                 >
                     <SummaryCard
                         label="Discovered"
@@ -120,13 +147,42 @@ export default function AdminExtensions({
                         icon={ShieldCheck}
                     />
                     <SummaryCard
-                        label="Action required"
-                        value={summary.actionRequired}
-                        detail="Fix before bootstrapping"
+                        label="Schema pending"
+                        value={summary.migrationPending}
+                        detail="Awaiting deploy"
+                        icon={FileClock}
+                        warning={summary.migrationPending > 0}
+                    />
+                    <SummaryCard
+                        label="Schema blocked"
+                        value={summary.migrationBlocked}
+                        detail="Integrity issue"
                         icon={CircleAlert}
-                        warning={summary.actionRequired > 0}
+                        warning={summary.migrationBlocked > 0}
+                    />
+                    <SummaryCard
+                        label="Retained data"
+                        value={summary.retainedData}
+                        detail="Source removed"
+                        icon={HardDrive}
                     />
                 </section>
+
+                {summary.actionRequired > 0 && (
+                    <div className="mt-4 flex items-start gap-3 rounded-2xl border border-coral/45 bg-coral/[0.055] px-4 py-3.5">
+                        <CircleAlert
+                            className="mt-0.5 size-4.5 shrink-0"
+                            aria-hidden="true"
+                        />
+                        <p className="text-sm leading-6">
+                            <strong>{summary.actionRequired}</strong> manifest
+                            {summary.actionRequired === 1
+                                ? ' needs'
+                                : 's need'}{' '}
+                            attention before deployment.
+                        </p>
+                    </div>
+                )}
 
                 <div className="mt-5 grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_23rem]">
                     <section aria-labelledby="installed-extensions">
@@ -170,6 +226,30 @@ export default function AdminExtensions({
                                 ))}
                             </div>
                         )}
+
+                        {retainedExtensionIds.length > 0 && (
+                            <div className="mt-4 rounded-[1.35rem] border border-border/80 bg-secondary/35 p-4 sm:p-5">
+                                <div className="flex items-start gap-3">
+                                    <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-background text-muted-foreground">
+                                        <HardDrive
+                                            className="size-4.5"
+                                            aria-hidden="true"
+                                        />
+                                    </span>
+                                    <div>
+                                        <h3 className="font-black">
+                                            Removed source, retained data
+                                        </h3>
+                                        <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                                            Ownership records remain for{' '}
+                                            {retainedExtensionIds.join(', ')}.
+                                            Data is never deleted when extension
+                                            source disappears.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </section>
 
                     <aside className="social-card rounded-[1.5rem] p-5 xl:sticky xl:top-24">
@@ -190,7 +270,7 @@ export default function AdminExtensions({
                         </p>
                         <div className="mt-5 border-t border-border/70 pt-5">
                             <p className="text-[0.68rem] font-extrabold tracking-[0.13em] text-muted-foreground uppercase">
-                                Deployment check
+                                Deployment workflow
                             </p>
                             <code className="mt-3 flex items-center gap-2 overflow-x-auto rounded-xl bg-foreground px-3 py-3 text-xs font-bold whitespace-nowrap text-background">
                                 <TerminalSquare
@@ -200,12 +280,13 @@ export default function AdminExtensions({
                                 php artisan platform:extensions
                             </code>
                             <code className="mt-2 block overflow-x-auto rounded-xl border border-border/70 bg-secondary/55 px-3 py-3 font-mono text-[0.68rem] font-bold whitespace-nowrap">
-                                LINEWEB_SOCIAL_EXTENSIONS=trusted-extension
+                                platform:extensions:migrate trusted-extension
                             </code>
                             <p className="mt-3 text-xs leading-5 text-muted-foreground">
-                                The application validates every enabled provider
-                                before registration and fails startup when the
-                                trusted activation plan is unsafe.
+                                Verify an external backup, migrate while the
+                                provider is disabled, then activate it in deploy
+                                configuration. Applied files stay checksum
+                                locked.
                             </p>
                         </div>
                     </aside>
@@ -348,7 +429,7 @@ function ExtensionCard({ extension }: { extension: Extension }) {
             </div>
 
             {extension.provider && (
-                <div className="grid gap-3 border-t border-border/70 bg-secondary/35 px-4 py-4 sm:grid-cols-2 sm:px-5">
+                <div className="grid gap-4 border-t border-border/70 bg-secondary/35 px-4 py-4 sm:grid-cols-2 sm:px-5">
                     <DetailList
                         icon={FileCode2}
                         label="Declared provider"
@@ -363,9 +444,81 @@ function ExtensionCard({ extension }: { extension: Extension }) {
                             ...extension.uiSlots.map((slot) => `UI: ${slot}`),
                         ]}
                     />
+                    <MigrationDetail extension={extension} />
                 </div>
             )}
         </article>
+    );
+}
+
+function MigrationDetail({ extension }: { extension: Extension }) {
+    const plan = extension.migrations;
+
+    if (!plan) {
+        return null;
+    }
+
+    const statusLabel = {
+        none: 'No schema changes',
+        pending: `${plan.pending} pending`,
+        applied: `${plan.applied} applied`,
+        blocked: 'Blocked',
+    }[plan.status];
+
+    return (
+        <div className="min-w-0 sm:col-span-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="flex items-center gap-2 text-[0.65rem] font-extrabold tracking-[0.11em] text-muted-foreground uppercase">
+                    <Database className="size-3.5" aria-hidden="true" />
+                    Database lifecycle
+                </p>
+                <span
+                    className={cn(
+                        'inline-flex min-h-7 items-center rounded-full border px-2.5 text-[0.65rem] font-extrabold',
+                        plan.status === 'blocked'
+                            ? 'border-coral/45 bg-coral/10'
+                            : plan.status === 'pending'
+                              ? 'border-amber-300/70 bg-amber-100/55 text-amber-950'
+                              : 'border-border bg-background text-muted-foreground',
+                    )}
+                >
+                    {statusLabel}
+                </span>
+            </div>
+            <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                {plan.message} Uninstall policy:{' '}
+                <strong className="text-foreground">
+                    retain operator data
+                </strong>
+                .
+            </p>
+            {plan.items.length > 0 && (
+                <div className="mt-3 grid min-w-0 gap-1.5">
+                    {plan.items.slice(0, 3).map((migration) => (
+                        <div
+                            key={migration.name}
+                            className="flex min-h-9 w-full min-w-0 items-center justify-between gap-3 rounded-lg border border-border/70 bg-background px-2.5 py-1.5"
+                        >
+                            <span
+                                className="min-w-0 flex-1 truncate font-mono text-[0.65rem] font-bold"
+                                title={migration.name}
+                            >
+                                {migration.name}
+                            </span>
+                            <span className="shrink-0 text-[0.62rem] font-extrabold text-muted-foreground uppercase">
+                                {migration.status}
+                            </span>
+                        </div>
+                    ))}
+                    {plan.items.length > 3 && (
+                        <p className="px-1 text-[0.65rem] font-bold text-muted-foreground">
+                            +{plan.items.length - 3} more migration
+                            {plan.items.length - 3 === 1 ? '' : 's'}
+                        </p>
+                    )}
+                </div>
+            )}
+        </div>
     );
 }
 

@@ -93,6 +93,12 @@ mail-provider records, analytics, or data copied to an extension or external
 processor. A deployed service needs documented retention and deletion
 procedures for every such system.
 
+Extension migration ownership is tracked by extension ID, but the first
+uninstall data policy is deliberately `retain`: removing provider source does
+not erase extension-owned tables. Operators must keep the source needed for
+export, correction, rollback, and lawful deletion until a separately reviewed
+destructive uninstall process exists.
+
 Laravel's scheduler must run for closed direct-message report evidence to be
 pruned and for daily notification digests to be queued. Digest delivery also
 requires a queue worker and a deliberately configured email provider. Deployers

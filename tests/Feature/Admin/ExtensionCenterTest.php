@@ -12,6 +12,14 @@ class ExtensionCenterTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        config()->set('extensions.paths', [base_path('extensions')]);
+        config()->set('extensions.enabled', []);
+    }
+
     public function test_regular_members_cannot_open_the_extension_center(): void
     {
         $member = User::factory()->create();
@@ -36,10 +44,17 @@ class ExtensionCenterTest extends TestCase
                 ->where('summary.active', 0)
                 ->where('summary.compatible', 1)
                 ->where('summary.actionRequired', 0)
+                ->where('summary.migrationPending', 0)
+                ->where('summary.migrationBlocked', 0)
+                ->where('summary.retainedData', 0)
+                ->where('retainedExtensionIds', [])
                 ->has('extensions', 1)
                 ->where('extensions.0.id', 'example-polls')
                 ->where('extensions.0.status', 'compatible')
                 ->where('extensions.0.active', false)
+                ->where('extensions.0.database.migrations', null)
+                ->where('extensions.0.database.uninstallData', 'retain')
+                ->where('extensions.0.migrations.status', 'none')
                 ->where('extensions.0.permissions', [
                     'posts.read',
                     'posts.write',
@@ -69,8 +84,10 @@ class ExtensionCenterTest extends TestCase
 
         $this->assertTrue($payload['ready']);
         $this->assertSame([], $payload['enabled']);
+        $this->assertSame([], $payload['retainedData']);
         $this->assertSame('example-polls', $payload['extensions'][0]['id']);
         $this->assertFalse($payload['extensions'][0]['active']);
+        $this->assertSame('none', $payload['extensions'][0]['migrations']['status']);
     }
 
     public function test_extension_audit_command_fails_for_unsafe_deployment_state(): void

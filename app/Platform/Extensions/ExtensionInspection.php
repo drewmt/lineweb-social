@@ -14,6 +14,7 @@ final readonly class ExtensionInspection
 
     public function __construct(
         public string $directory,
+        public ?string $rootPath,
         public ?ExtensionManifest $manifest,
         public string $status,
         public string $message,
@@ -36,6 +37,7 @@ final readonly class ExtensionInspection
      *     permissions: list<string>,
      *     uiSlots: list<string>,
      *     provider: string|null,
+     *     database: array{migrations: string|null, uninstallData: string},
      *     status: string,
      *     message: string
      * }
@@ -55,6 +57,10 @@ final readonly class ExtensionInspection
             'permissions' => $manifest instanceof ExtensionManifest ? $manifest->permissions : [],
             'uiSlots' => $manifest instanceof ExtensionManifest ? $manifest->uiSlots : [],
             'provider' => $manifest instanceof ExtensionManifest ? $manifest->provider : null,
+            'database' => [
+                'migrations' => $manifest instanceof ExtensionManifest ? $manifest->migrationPath : null,
+                'uninstallData' => $manifest instanceof ExtensionManifest ? $manifest->uninstallDataPolicy : 'retain',
+            ],
             'status' => $this->status,
             'message' => $this->message,
         ];

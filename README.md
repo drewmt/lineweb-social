@@ -152,22 +152,23 @@ the current member is allowed to see them.
 ### A guarded foundation for extensions
 
 Operators can inspect every local extension manifest, its declared access,
-compatibility, and explicit activation state before deployment. A broken
-package is reported independently, while executable activation stays in trusted
-deploy configuration rather than the browser.
+compatibility, activation state, pending schema, checksum integrity, and
+retained-data ownership before deployment. A broken package is reported
+independently, while provider activation and backup-gated migration commands
+stay in trusted deploy operations rather than the browser.
 
 <table>
   <tr>
     <td width="68%">
-      <img src="docs/screenshots/extensions-desktop.jpg" alt="Lineweb Social extension compatibility center on desktop" />
+      <img src="docs/screenshots/extensions-desktop.jpg" alt="Lineweb Social extension lifecycle and migration readiness center on desktop" />
     </td>
     <td width="32%">
-      <img src="docs/screenshots/extensions-mobile.jpg" alt="Lineweb Social extension manifest details on mobile" />
+      <img src="docs/screenshots/extensions-mobile.jpg" alt="Lineweb Social extension migration integrity details on mobile" />
     </td>
   </tr>
   <tr>
-    <td align="center"><sub>Compatibility and explicit activation at a glance</sub></td>
-    <td align="center"><sub>Provider declarations without browser activation</sub></td>
+    <td align="center"><sub>Compatibility, schema readiness, and retained ownership at a glance</sub></td>
+    <td align="center"><sub>Checksum-locked migrations without browser execution</sub></td>
   </tr>
 </table>
 
@@ -326,20 +327,20 @@ makes the final decision.
 
 ## Feature map
 
-| Area                | Included today                                                                                                                                                              |
-| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Accounts            | Verified registration, stable handles, passkeys, two-factor authentication, strong password defaults, active-account enforcement, and one human-reviewed appeal per restriction. |
-| Profiles            | Editable member identity, headlines, real activity, public/shared/private visibility, and discovery opt-out.                                                                |
-| Spaces              | Public/private/hidden communities, searchable directory, join/leave rules, restricted invitations, roles, ownership transfer, member removal, and bounded curated highlights. |
-| Publishing          | Focused composer, author-only drafts, private normalized WebP images with required alt text, chronological posts, comments, permanent conversations, and author controls.     |
-| Discovery           | Policy-filtered search across posts, Spaces, and People; Unicode hashtags; chronological topic trails; and privacy-aware Following.                                         |
-| Interactions        | Typed Like, Celebrate, and Insightful reactions, private Saved Posts, follows, mentions, comments, copy links, and conversation shortcuts.                                  |
-| Messaging           | Canonical one-to-one conversations, participant-only history, unread state, block-aware delivery, and responsive inbox/thread views.                                        |
-| Trust and safety    | Mute, mutual block, Safety recovery, post/comment reporting, Space moderation queues, Direct Message reporting, and audited decisions.                                      |
-| Notifications       | Database-backed replies, mentions, and moderation alerts with per-category preferences, destination access revalidation, and opt-in privacy-safe daily email digests.       |
+| Area                | Included today                                                                                                                                                                                                                               |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Accounts            | Verified registration, stable handles, passkeys, two-factor authentication, strong password defaults, active-account enforcement, and one human-reviewed appeal per restriction.                                                             |
+| Profiles            | Editable member identity, headlines, real activity, public/shared/private visibility, and discovery opt-out.                                                                                                                                 |
+| Spaces              | Public/private/hidden communities, searchable directory, join/leave rules, restricted invitations, roles, ownership transfer, member removal, and bounded curated highlights.                                                                |
+| Publishing          | Focused composer, author-only drafts, private normalized WebP images with required alt text, chronological posts, comments, permanent conversations, and author controls.                                                                    |
+| Discovery           | Policy-filtered search across posts, Spaces, and People; Unicode hashtags; chronological topic trails; and privacy-aware Following.                                                                                                          |
+| Interactions        | Typed Like, Celebrate, and Insightful reactions, private Saved Posts, follows, mentions, comments, copy links, and conversation shortcuts.                                                                                                   |
+| Messaging           | Canonical one-to-one conversations, participant-only history, unread state, block-aware delivery, and responsive inbox/thread views.                                                                                                         |
+| Trust and safety    | Mute, mutual block, Safety recovery, post/comment reporting, Space moderation queues, Direct Message reporting, and audited decisions.                                                                                                       |
+| Notifications       | Database-backed replies, mentions, and moderation alerts with per-category preferences, destination access revalidation, and opt-in privacy-safe daily email digests.                                                                        |
 | Platform operations | Dedicated responsive control center, console-granted administrators, focused member, appeals, and private-safety queues, transactional suspension/reinstatement, session and API-token revocation, and searchable append-only audit history. |
-| Data rights         | Password-confirmed personal JSON export and self-service deletion with active-community ownership safeguards.                                                               |
-| Developer surface   | Contract-first bearer API, scoped expiring Sanctum tokens, domain events, OpenAPI draft, allowlisted local extension manifests, and a read-only compatibility center with a CI-ready audit command. |
+| Data rights         | Password-confirmed personal JSON export and self-service deletion with active-community ownership safeguards.                                                                                                                                |
+| Developer surface   | Contract-first bearer API, scoped expiring Sanctum tokens, domain events, OpenAPI draft, allowlisted extension providers, and extension-scoped checksum migration ownership with backup-gated deploy/rollback commands.                      |
 
 ## Product principles
 
@@ -366,8 +367,11 @@ The current extension foundation accepts configured local manifests with known
 permissions and UI slots. Administrators can review each manifest,
 compatibility, and active state; deployers explicitly allowlist reviewed
 providers and enforce the same contract with `php artisan
-platform:extensions`. Remote downloads, arbitrary ZIP installation, and browser
-execution of unreviewed code are intentionally unavailable.
+platform:extensions`. Reviewed schema changes run only from explicit,
+backup-gated CLI commands while providers are disabled; applied source is
+checksum locked and removed source retains its data. Remote downloads, arbitrary
+ZIP installation, browser execution, and destructive uninstall are
+intentionally unavailable.
 
 ## Alpha status
 
@@ -381,8 +385,8 @@ The following are deliberately still outside the supported core:
   receipts.
 - Galleries, video, and direct-to-object-storage uploads.
 - Web/mobile push delivery, instant email, and custom digest schedules.
-- Advanced indexed search and extension migration, asset, rollback, data
-  ownership, and uninstall lifecycles.
+- Advanced indexed search plus extension asset/version delivery and destructive
+  uninstall lifecycles.
 - Complete audit archival/export and deployment-specific retention tooling.
 - A production support, upgrade, and compatibility policy.
 
@@ -443,6 +447,7 @@ only code structure.
 | ------------------------------------------------ | ------------------------------------------------------------------------------------ |
 | Platform boundaries and extension direction      | [`docs/platform-architecture.md`](docs/platform-architecture.md)                     |
 | Extension manifests and compatibility inspection | [`docs/extensions.md`](docs/extensions.md)                                           |
+| Extension migration ownership and rollback       | [`docs/extension-migrations.md`](docs/extension-migrations.md)                       |
 | Authenticated API and machine-readable draft     | [`docs/api-v1.md`](docs/api-v1.md) · [`docs/openapi.json`](docs/openapi.json)        |
 | Direct Messages                                  | [`docs/direct-messages.md`](docs/direct-messages.md)                                 |
 | Private message reporting and evidence retention | [`docs/message-reporting.md`](docs/message-reporting.md)                             |
@@ -452,7 +457,7 @@ only code structure.
 | Post media validation and lifecycle              | [`docs/media.md`](docs/media.md)                                                     |
 | Unicode topics and visibility                    | [`docs/topics.md`](docs/topics.md)                                                   |
 | Platform administration                          | [`docs/platform-administration.md`](docs/platform-administration.md)                 |
-| Account status and human-reviewed appeals         | [`docs/account-appeals.md`](docs/account-appeals.md)                                 |
+| Account status and human-reviewed appeals        | [`docs/account-appeals.md`](docs/account-appeals.md)                                 |
 | Personal export and account deletion             | [`docs/privacy-and-data-rights.md`](docs/privacy-and-data-rights.md)                 |
 | Example extension manifest                       | [`extensions/example-polls/extension.json`](extensions/example-polls/extension.json) |
 

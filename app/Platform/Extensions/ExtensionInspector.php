@@ -58,6 +58,7 @@ final class ExtensionInspector
                 $compatible = Semver::satisfies($coreVersion, $manifest->core);
                 $inspections[] = new ExtensionInspection(
                     directory: $directory,
+                    rootPath: dirname($manifestPath),
                     manifest: $manifest,
                     status: $compatible
                         ? ExtensionInspection::STATUS_COMPATIBLE
@@ -69,6 +70,7 @@ final class ExtensionInspector
             } catch (Throwable $exception) {
                 $inspections[] = new ExtensionInspection(
                     directory: $directory,
+                    rootPath: dirname($manifestPath),
                     manifest: null,
                     status: ExtensionInspection::STATUS_INVALID,
                     message: $exception->getMessage(),
@@ -141,6 +143,7 @@ final class ExtensionInspector
 
                 return new ExtensionInspection(
                     directory: $inspection->directory,
+                    rootPath: $inspection->rootPath,
                     manifest: $inspection->manifest,
                     status: ExtensionInspection::STATUS_DUPLICATE,
                     message: "Extension id '{$id}' is declared by more than one local manifest.",

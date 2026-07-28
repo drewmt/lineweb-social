@@ -1,5 +1,10 @@
 <?php
 
+$configuredPaths = array_values(array_filter(array_map(
+    static fn (string $path): string => trim($path),
+    explode(PATH_SEPARATOR, (string) env('LINEWEB_SOCIAL_EXTENSION_PATHS', '')),
+)));
+
 return [
     /*
     |--------------------------------------------------------------------------
@@ -21,9 +26,7 @@ return [
     | never downloads or executes remote packages at runtime.
     |
     */
-    'paths' => [
-        base_path('extensions'),
-    ],
+    'paths' => $configuredPaths !== [] ? $configuredPaths : [base_path('extensions')],
 
     /*
     |--------------------------------------------------------------------------
@@ -38,6 +41,20 @@ return [
         static fn (string $id): string => trim($id),
         explode(',', (string) env('LINEWEB_SOCIAL_EXTENSIONS', '')),
     ))),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Migration inspection limits
+    |--------------------------------------------------------------------------
+    |
+    | Extension migration source is reviewed deploy-time PHP. These limits keep
+    | read-only inspection bounded before an operator explicitly executes it.
+    |
+    */
+    'migrations' => [
+        'max_files' => 100,
+        'max_file_bytes' => 262144,
+    ],
 
     'permissions' => [
         'comments.read',
