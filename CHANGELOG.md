@@ -11,6 +11,11 @@ All notable project changes will be documented here.
   parent-author notifications, mention deduplication, moderation isolation,
   parent-deletion survival, responsive reply composition, and additive API
   documentation.
+- Privacy-safe quote posts and reposts that stay in the original Space, keep a
+  single member-owned share state per original, prevent recursive sharing, and
+  re-evaluate source visibility on every web/API read. Hidden, blocked, and
+  deleted originals never leak through a share; quotes retain only the sharing
+  member's own note while empty reposts disappear.
 - Bounded extension CSS/ES-module declarations, deterministic immutable asset
   releases, atomic private publication receipts, explicit deploy-time
   publication, source/public SHA-256 verification, SRI-backed runtime loading,

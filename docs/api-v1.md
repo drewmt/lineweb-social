@@ -217,6 +217,11 @@ The first resources expose only allowlisted fields:
   URLs, while topic discovery and counts always reapply current post visibility;
   post reactions expose bounded counts and only the current viewer's selected
   type, never reactor identities;
+- a nullable post `share` source is emitted only while the current viewer may
+  still open that original post; hidden, blocked, deleted, and otherwise
+  inaccessible sources resolve to `null` without retaining their body, author,
+  media, or URL, while `viewer.can_share` is true only for a shareable original
+  post;
 - `media` preserves the primary-image contract for existing clients, while the
   additive ordered `media_items` array contains up to four opaque item
   identifiers, authorized API URLs, alt text, normalized dimensions, and MIME

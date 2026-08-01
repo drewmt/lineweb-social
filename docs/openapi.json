@@ -1385,6 +1385,7 @@
           "published_at",
           "edited_at",
           "highlighted_at",
+          "share",
           "media",
           "media_items",
           "comments_count",
@@ -1432,6 +1433,16 @@
               "null"
             ],
             "format": "date-time"
+          },
+          "share": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PostShare"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "media": {
             "anyOf": [
@@ -1505,7 +1516,8 @@
               "can_report",
               "has_reported",
               "can_react",
-              "reaction_type"
+              "reaction_type",
+              "can_share"
             ],
             "properties": {
               "can_comment": {
@@ -1520,6 +1532,9 @@
               "can_react": {
                 "type": "boolean"
               },
+              "can_share": {
+                "type": "boolean"
+              },
               "reaction_type": {
                 "type": [
                   "string",
@@ -1531,6 +1546,91 @@
                   "insightful",
                   null
                 ]
+              }
+            }
+          }
+        }
+      },
+      "PostShare": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source"
+        ],
+        "properties": {
+          "source": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "url",
+              "body",
+              "published_at",
+              "author",
+              "space",
+              "media_items"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string",
+                "format": "uri-reference"
+              },
+              "body": {
+                "type": "string",
+                "maxLength": 2000
+              },
+              "published_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
+              },
+              "author": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "handle",
+                  "name",
+                  "profile_visible"
+                ],
+                "properties": {
+                  "handle": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "profile_visible": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "space": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "slug",
+                  "name"
+                ],
+                "properties": {
+                  "slug": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                }
+              },
+              "media_items": {
+                "type": "array",
+                "maxItems": 4,
+                "items": {
+                  "$ref": "#/components/schemas/MediaItem"
+                }
               }
             }
           }

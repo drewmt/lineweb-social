@@ -9,6 +9,10 @@ class PostPolicy
 {
     public function view(User $user, Post $post): bool
     {
+        if ($post->body === '' && $post->shared_post_id === null) {
+            return false;
+        }
+
         if ($post->published_at === null) {
             return $post->user_id === $user->getKey()
                 && $post->hidden_at === null;
@@ -51,6 +55,15 @@ class PostPolicy
         return $post->published_at !== null
             && $post->hidden_at === null
             && $this->view($user, $post);
+    }
+
+    public function share(User $user, Post $post): bool
+    {
+        return $post->shared_post_id === null
+            && $post->published_at !== null
+            && $post->hidden_at === null
+            && $this->view($user, $post)
+            && $user->can('createPost', $post->space);
     }
 
     public function update(User $user, Post $post): bool

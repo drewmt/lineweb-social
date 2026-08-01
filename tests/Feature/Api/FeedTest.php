@@ -113,6 +113,7 @@ class FeedTest extends TestCase
             ->assertJsonPath('data.0.topics.0.name', 'laravel')
             ->assertJsonPath('data.0.topics.0.url', route('topics.show', $topic))
             ->assertJsonPath('data.0.viewer.can_comment', true)
+            ->assertJsonPath('data.0.viewer.can_share', true)
             ->assertJsonPath('data.0.author.profile_visible', true)
             ->assertJsonPath('data.0.space.slug', $private->slug)
             ->assertJsonPath('data.0.space.viewer.is_member', true)
@@ -137,7 +138,7 @@ class FeedTest extends TestCase
             ->assertHeader('X-RateLimit-Limit', '120');
 
         $this->assertSame(
-            ['id', 'body', 'mentions', 'topics', 'published_at', 'edited_at', 'highlighted_at', 'media', 'media_items', 'comments_count', 'reactions', 'author', 'space', 'viewer'],
+            ['id', 'body', 'mentions', 'topics', 'published_at', 'edited_at', 'highlighted_at', 'share', 'media', 'media_items', 'comments_count', 'reactions', 'author', 'space', 'viewer'],
             array_keys($response->json('data.0')),
         );
         $this->assertSame(
@@ -145,7 +146,7 @@ class FeedTest extends TestCase
             array_keys($response->json('data.0.author')),
         );
         $this->assertSame(
-            ['can_comment', 'can_report', 'has_reported', 'can_react', 'reaction_type'],
+            ['can_comment', 'can_report', 'has_reported', 'can_react', 'reaction_type', 'can_share'],
             array_keys($response->json('data.0.viewer')),
         );
     }

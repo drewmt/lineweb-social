@@ -17,6 +17,7 @@ use Illuminate\Support\Carbon;
  * @property int $space_id
  * @property int $user_id
  * @property string $body
+ * @property int|null $shared_post_id
  * @property Carbon|null $published_at
  * @property Carbon|null $edited_at
  * @property Carbon|null $hidden_at
@@ -24,6 +25,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $moderation_note
  * @property-read Space $space
  * @property-read User $author
+ * @property-read Post|null $sharedPost
  * @property-read PostMedia|null $media
  * @property-read Collection<int, PostMedia> $mediaItems
  * @property-read SpacePostHighlight|null $highlight
@@ -49,6 +51,7 @@ class Post extends Model
         'space_id',
         'user_id',
         'body',
+        'shared_post_id',
         'published_at',
         'edited_at',
         'hidden_at',
@@ -76,6 +79,12 @@ class Post extends Model
     public function author(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /** @return BelongsTo<Post, $this> */
+    public function sharedPost(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'shared_post_id');
     }
 
     /** @return BelongsTo<User, $this> */

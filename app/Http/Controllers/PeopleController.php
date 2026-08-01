@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Community\Mentions\MentionProjection;
 use App\Community\PostMediaView;
+use App\Community\PostShareProjection;
+use App\Community\VisiblePostQuery;
 use App\Enums\ReportStatus;
 use App\Models\Post;
 use App\Models\PostReport;
@@ -57,6 +59,8 @@ class PeopleController extends Controller
         User $profile,
         PostMediaView $media,
         MentionProjection $mentions,
+        PostShareProjection $shares,
+        VisiblePostQuery $visiblePostQuery,
     ): Response {
         Gate::authorize('view', $profile);
 
@@ -88,10 +92,9 @@ class PeopleController extends Controller
             ->values()
             ->all();
 
-        $visiblePosts = Post::query()
+        $visiblePosts = $visiblePostQuery
+            ->forFeed($viewer)
             ->whereBelongsTo($profile, 'author')
-            ->whereNotNull('published_at')
-            ->whereNull('hidden_at')
             ->whereIn('space_id', clone $visibleSpaceIds);
 
         $postCount = (clone $visiblePosts)->count();
@@ -111,6 +114,7 @@ class PeopleController extends Controller
             ->pluck('post_id')
             ->all();
         $resolvedMentions = $mentions->resolve($viewer, $postModels->pluck('body'));
+        $shareProjection = $shares->forPosts($postModels, $viewer);
 
         $posts = $postModels
             ->map(fn (Post $post): array => [
@@ -127,12 +131,17 @@ class PeopleController extends Controller
                     ->all(),
                 'media' => $media->for($post),
                 'mediaItems' => $media->galleryFor($post),
+                'share' => $shareProjection[$post->getKey()] ?? null,
                 'publishedAt' => $post->published_at?->toIso8601String(),
                 'editedAt' => $post->edited_at?->toIso8601String(),
                 'canEdit' => Gate::forUser($viewer)->allows('update', $post)
                     && ! in_array($post->getKey(), $lockedPostIds, true),
                 'canDelete' => Gate::forUser($viewer)->allows('delete', $post)
                     && ! in_array($post->getKey(), $lockedPostIds, true),
+                'canShare' => Gate::forUser($viewer)->allows('share', $post),
+                'author' => [
+                    'name' => $post->author->name,
+                ],
                 'space' => [
                     'name' => $post->space->name,
                     'slug' => $post->space->slug,
