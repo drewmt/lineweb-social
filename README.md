@@ -405,7 +405,7 @@ makes the final decision.
 | Accounts            | Verified registration, stable handles, passkeys, two-factor authentication, strong password defaults, active-account enforcement, and one human-reviewed appeal per restriction.                                                             |
 | Profiles            | Editable member identity, headlines, real activity, public/shared/private visibility, and discovery opt-out.                                                                                                                                 |
 | Spaces              | Public/private/hidden communities, searchable directory, join/leave rules, restricted invitations, roles, ownership transfer, member removal, and bounded curated highlights.                                                                |
-| Publishing          | Focused composer, author-only drafts, private four-image WebP galleries with per-image alt text and swipe navigation, chronological posts, privacy-safe quote posts and reposts, comments, permanent conversations, and author controls.        |
+| Publishing          | Focused composer, author-only drafts, private four-image WebP galleries with per-image alt text and swipe navigation, bounded private-first polls, chronological posts, privacy-safe quote posts and reposts, comments, permanent conversations, and author controls. |
 | Discovery           | Policy-filtered search across posts, Spaces, and People; Unicode hashtags; chronological topic trails; and privacy-aware Following.                                                                                                          |
 | Interactions        | Typed Like, Celebrate, and Insightful reactions, private Saved Posts, follows, mentions, one-level direct replies, same-Space quote/repost actions, comments, copy links, and conversation shortcuts.                              |
 | Messaging           | Canonical one-to-one conversations, participant-only history, unread state, block-aware delivery, and responsive inbox/thread views.                                                                                                         |
@@ -531,6 +531,7 @@ only code structure.
 | Post/comment moderation and domain events        | [`docs/moderation.md`](docs/moderation.md)                                           |
 | Notification privacy and delivery categories     | [`docs/notifications.md`](docs/notifications.md)                                     |
 | Private post drafts and publication boundary     | [`docs/post-drafts.md`](docs/post-drafts.md)                                         |
+| Post polls and aggregate-result boundary         | [`docs/post-polls.md`](docs/post-polls.md)                                           |
 | Post media validation and lifecycle              | [`docs/media.md`](docs/media.md)                                                     |
 | Unicode topics and visibility                    | [`docs/topics.md`](docs/topics.md)                                                   |
 | Platform administration                          | [`docs/platform-administration.md`](docs/platform-administration.md)                 |

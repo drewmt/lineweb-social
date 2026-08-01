@@ -222,6 +222,10 @@ The first resources expose only allowlisted fields:
   inaccessible sources resolve to `null` without retaining their body, author,
   media, or URL, while `viewer.can_share` is true only for a shareable original
   post;
+- a nullable post `poll` exposes a two-to-four-option aggregate only: member
+  vote totals and percentages remain `null` until the current viewer votes, the
+  poll closes, or the viewer authored the post. It never exposes voter
+  identities, vote timestamps, or option-level member lists;
 - `media` preserves the primary-image contract for existing clients, while the
   additive ordered `media_items` array contains up to four opaque item
   identifiers, authorized API URLs, alt text, normalized dimensions, and MIME

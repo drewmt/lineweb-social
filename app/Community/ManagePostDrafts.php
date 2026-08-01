@@ -2,6 +2,8 @@
 
 namespace App\Community;
 
+use App\Community\Polls\PostPollDefinition;
+use App\Community\Polls\SyncPostPoll;
 use App\Community\Topics\SyncPostTopics;
 use App\Events\PostPublished;
 use App\Media\ImageNormalizer;
@@ -26,6 +28,7 @@ final class ManagePostDrafts
     public function __construct(
         private readonly ImageNormalizer $images,
         private readonly SyncPostTopics $topics,
+        private readonly SyncPostPoll $polls,
     ) {}
 
     /**
@@ -38,6 +41,7 @@ final class ManagePostDrafts
         string $body,
         array $uploads,
         array $altTexts,
+        ?PostPollDefinition $poll = null,
     ): Post {
         Gate::forUser($author)->authorize('createPost', $space);
 
@@ -56,6 +60,7 @@ final class ManagePostDrafts
                 $body,
                 $altTexts,
                 $normalized,
+                $poll,
                 &$newPaths,
             ): Post {
                 User::query()
@@ -82,11 +87,13 @@ final class ManagePostDrafts
                 ]);
 
                 $this->attachGallery($draft, $normalized, $altTexts, $newPaths);
+                $this->polls->replace($draft, $poll);
 
                 return $draft->load([
                     'space:id,name,slug,visibility',
                     'media',
                     'mediaItems',
+                    'poll.options',
                 ]);
             });
         } catch (Throwable $exception) {
@@ -109,6 +116,7 @@ final class ManagePostDrafts
         array $uploads,
         array $altTexts,
         array $retainedMediaAltTexts,
+        ?PostPollDefinition $poll = null,
     ): Post {
         return $this->saveExisting(
             $author,
@@ -118,6 +126,7 @@ final class ManagePostDrafts
             $uploads,
             $altTexts,
             $retainedMediaAltTexts,
+            $poll,
             publish: false,
         );
     }
@@ -135,6 +144,7 @@ final class ManagePostDrafts
         array $uploads,
         array $altTexts,
         array $retainedMediaAltTexts,
+        ?PostPollDefinition $poll = null,
     ): Post {
         $post = $this->saveExisting(
             $author,
@@ -144,6 +154,7 @@ final class ManagePostDrafts
             $uploads,
             $altTexts,
             $retainedMediaAltTexts,
+            $poll,
             publish: true,
         );
 
@@ -178,6 +189,7 @@ final class ManagePostDrafts
         array $uploads,
         array $altTexts,
         array $retainedMediaAltTexts,
+        ?PostPollDefinition $poll,
         bool $publish,
     ): Post {
         Gate::forUser($author)->authorize('createPost', $space);
@@ -202,6 +214,7 @@ final class ManagePostDrafts
                 $retainedMediaAltTexts,
                 $publish,
                 $normalized,
+                $poll,
                 &$newPaths,
                 &$obsoleteFiles,
             ): Post {
@@ -229,6 +242,7 @@ final class ManagePostDrafts
                     $newPaths,
                     $obsoleteFiles,
                 );
+                $this->polls->replace($lockedDraft, $poll);
 
                 if ($publish) {
                     $this->topics->sync($lockedDraft);
@@ -238,6 +252,7 @@ final class ManagePostDrafts
                     'space:id,name,slug,visibility',
                     'media',
                     'mediaItems',
+                    'poll.options',
                 ]);
             });
         } catch (Throwable $exception) {

@@ -27,6 +27,11 @@ class PostResource extends JsonResource
         ];
         /** @var array{source: array{id: int, url: string, body: string, mediaItems: list<array{id: int, url: string, alt: string, width: int, height: int}>, publishedAt: string|null, author: array{name: string, handle: string, profileVisible: bool}, space: array{name: string, slug: string}}}|null $share */
         $share = $post->getAttribute('share');
+        $poll = $post->getAttribute('poll_summary');
+        $poll = is_array($poll) ? $poll : null;
+        $pollOptions = is_array($poll['options'] ?? null)
+            ? $poll['options']
+            : [];
 
         return [
             'id' => (string) $post->getKey(),
@@ -82,6 +87,36 @@ class PostResource extends JsonResource
             'reactions' => [
                 'total' => array_sum($reactionCounts),
                 'counts' => $reactionCounts,
+            ],
+            'poll' => $poll === null ? null : [
+                'question' => (string) ($poll['question'] ?? ''),
+                'options' => array_values(array_map(
+                    static function (mixed $option): array {
+                        $option = is_array($option) ? $option : [];
+
+                        return [
+                            'id' => (string) ($option['id'] ?? ''),
+                            'label' => (string) ($option['label'] ?? ''),
+                            'votes' => ($option['votes'] ?? null) === null
+                                ? null
+                                : (int) $option['votes'],
+                            'percentage' => ($option['percentage'] ?? null) === null
+                                ? null
+                                : (int) $option['percentage'],
+                        ];
+                    },
+                    $pollOptions,
+                )),
+                'total_votes' => ($poll['totalVotes'] ?? null) === null
+                    ? null
+                    : (int) $poll['totalVotes'],
+                'viewer_option_id' => ($poll['viewerOptionId'] ?? null) === null
+                    ? null
+                    : (string) $poll['viewerOptionId'],
+                'can_vote' => (bool) ($poll['canVote'] ?? false),
+                'is_closed' => (bool) ($poll['isClosed'] ?? false),
+                'closes_at' => $poll['closesAt'] ?? null,
+                'show_results' => (bool) ($poll['showResults'] ?? false),
             ],
             'author' => [
                 'handle' => $post->author->handle,

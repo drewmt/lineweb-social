@@ -2,6 +2,8 @@
 
 namespace App\Community;
 
+use App\Community\Polls\PostPollDefinition;
+use App\Community\Polls\SyncPostPoll;
 use App\Community\Topics\SyncPostTopics;
 use App\Events\PostPublished;
 use App\Media\ImageNormalizer;
@@ -21,6 +23,7 @@ final class PublishPost
     public function __construct(
         private readonly ImageNormalizer $images,
         private readonly SyncPostTopics $topics,
+        private readonly SyncPostPoll $polls,
     ) {}
 
     /**
@@ -33,6 +36,7 @@ final class PublishPost
         string $body,
         array $uploads,
         array $altTexts,
+        ?PostPollDefinition $poll = null,
     ): Post {
         /** @var list<NormalizedImage> $normalized */
         $normalized = array_map(
@@ -50,6 +54,7 @@ final class PublishPost
                 $body,
                 $altTexts,
                 $normalized,
+                $poll,
                 $disk,
                 &$paths,
             ): Post {
@@ -82,6 +87,7 @@ final class PublishPost
                 }
 
                 $post->load(['media', 'mediaItems']);
+                $this->polls->replace($post, $poll);
                 $this->topics->sync($post);
 
                 return $post;

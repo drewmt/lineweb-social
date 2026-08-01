@@ -47,6 +47,7 @@ class PostController extends Controller
             $request->string('body')->toString(),
             $request->galleryUploads(),
             $request->galleryAltTexts(),
+            $request->pollDefinition(),
         );
 
         return back()->with('status', 'Post published.');

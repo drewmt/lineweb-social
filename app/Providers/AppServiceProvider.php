@@ -78,6 +78,9 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('post-drafts', fn (Request $request): Limit => Limit::perMinute(30)
             ->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
 
+        RateLimiter::for('post-poll-voting', fn (Request $request): Limit => Limit::perMinute(30)
+            ->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
+
         RateLimiter::for('post-reporting', fn (Request $request): Limit => Limit::perHour(10)
             ->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
 

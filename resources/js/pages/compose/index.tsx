@@ -16,6 +16,8 @@ import type {
     ExistingGalleryImage,
     PendingGalleryImage,
 } from '@/components/social/post-gallery-editor';
+import { PostPollEditor } from '@/components/social/post-poll';
+import type { PostPollDraft } from '@/components/social/post-poll';
 import { Button } from '@/components/ui/button';
 import type { Auth } from '@/types';
 
@@ -32,6 +34,11 @@ type Draft = {
     editUrl: string;
     space: { name: string; slug: string };
     mediaItems: ExistingGalleryImage[];
+    poll: {
+        question: string;
+        options: string[];
+        duration: number | null;
+    } | null;
 };
 
 type ComposeProps = {
@@ -49,6 +56,9 @@ type ComposerData = {
     retained_media: number[];
     retained_media_alts: Record<string, string>;
     remove_image: boolean;
+    poll_question: string;
+    poll_options: string[];
+    poll_duration: string;
 };
 
 const visibilityLabel = (value: PostingSpace['visibility']) =>
@@ -86,6 +96,9 @@ export default function Compose({
             ]),
         ),
         remove_image: false,
+        poll_question: draft?.poll?.question ?? '',
+        poll_options: draft?.poll?.options ?? [],
+        poll_duration: draft?.poll?.duration?.toString() ?? '',
     });
 
     useEffect(
@@ -217,7 +230,12 @@ export default function Compose({
                 onSuccess: () => {
                     if (!draft) {
                         clearGallery();
-                        form.reset('body');
+                        form.reset(
+                            'body',
+                            'poll_question',
+                            'poll_options',
+                            'poll_duration',
+                        );
                     }
                 },
             },
@@ -233,8 +251,23 @@ export default function Compose({
             key.startsWith('image_alts') ||
             key.startsWith('retained_media_alts'),
     )?.[1];
+    const poll =
+        form.data.poll_question !== '' ||
+        form.data.poll_options.length > 0 ||
+        form.data.poll_duration !== ''
+            ? {
+                  question: form.data.poll_question,
+                  options: form.data.poll_options,
+                  duration: form.data.poll_duration,
+              }
+            : null;
+    const updatePoll = (value: PostPollDraft | null) => {
+        form.setData('poll_question', value?.question ?? '');
+        form.setData('poll_options', value?.options ?? []);
+        form.setData('poll_duration', value?.duration ?? '');
+    };
     const canSubmit =
-        form.data.body.trim() !== '' &&
+        (form.data.body.trim() !== '' || poll !== null) &&
         form.data.space !== '' &&
         existingMedia.every((item) => item.alt.trim() !== '') &&
         pendingMedia.every((item) => item.alt.trim() !== '');
@@ -395,7 +428,6 @@ export default function Compose({
                                     }
                                     maxLength={2000}
                                     rows={5}
-                                    required
                                     placeholder="What is worth sharing with this community?"
                                     className="min-h-52 w-full resize-none bg-transparent py-6 text-[1.12rem] leading-8 font-medium tracking-[-0.01em] outline-none placeholder:text-muted-foreground/55 sm:min-h-56 sm:resize-y sm:text-xl sm:leading-9"
                                 />
@@ -415,6 +447,11 @@ export default function Compose({
                                 onRemovePending={removePending}
                                 imageError={imageError}
                                 altError={altError}
+                            />
+                            <PostPollEditor
+                                value={poll}
+                                onChange={updatePoll}
+                                errors={galleryErrors}
                             />
 
                             <div className="sticky bottom-[5.75rem] z-20 flex items-center justify-between gap-3 border-t border-border/70 bg-card/94 px-4 py-3 backdrop-blur-xl sm:static sm:px-6 sm:py-4">

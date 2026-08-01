@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Http\Requests\Concerns\HandlesPostGalleryUploads;
+use App\Http\Requests\Concerns\HandlesPostPoll;
 use App\Models\Post;
 use App\Models\PostMedia;
 use App\Models\Space;
@@ -13,6 +14,7 @@ use Illuminate\Validation\Validator;
 class SavePostDraftRequest extends FormRequest
 {
     use HandlesPostGalleryUploads;
+    use HandlesPostPoll;
 
     public function authorize(): bool
     {
@@ -36,7 +38,7 @@ class SavePostDraftRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'body' => ['required', 'string', 'max:2000'],
+            'body' => ['nullable', 'string', 'max:2000'],
             'space' => ['required', 'string', 'max:255', Rule::exists('spaces', 'slug')],
             ...$this->galleryUploadRules(),
             'retained_media' => ['sometimes', 'array', 'max:'.(int) config('media.max_gallery_items')],
@@ -44,6 +46,7 @@ class SavePostDraftRequest extends FormRequest
             'retained_media_alts' => ['sometimes', 'array'],
             'retained_media_alts.*' => ['nullable', 'string', 'max:300'],
             'remove_image' => ['sometimes', 'boolean'],
+            ...$this->postPollRules(),
         ];
     }
 
@@ -51,7 +54,6 @@ class SavePostDraftRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'body.required' => 'Write something before saving this draft.',
             'body.max' => 'Posts can be up to 2,000 characters.',
             'space.required' => 'Choose a Space for this post.',
             'space.exists' => 'Choose a Space you can currently post in.',
@@ -93,6 +95,10 @@ class SavePostDraftRequest extends FormRequest
                 }
 
                 $this->validateGalleryUploads($validator, count($retained));
+                $this->validatePostPoll(
+                    $validator,
+                    'Write something or add a poll before saving this draft.',
+                );
             },
         ];
     }
@@ -100,6 +106,7 @@ class SavePostDraftRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->prepareGalleryForValidation();
+        $this->preparePostPollForValidation();
         $retainedAlts = $this->input('retained_media_alts');
 
         $prepared = [

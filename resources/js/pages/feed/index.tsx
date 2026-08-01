@@ -32,6 +32,11 @@ import { PostGalleryEditor } from '@/components/social/post-gallery-editor';
 import type { PendingGalleryImage } from '@/components/social/post-gallery-editor';
 import { PostGallery } from '@/components/social/post-image';
 import type { PostMedia } from '@/components/social/post-image';
+import { PostPoll, PostPollEditor } from '@/components/social/post-poll';
+import type {
+    PostPollDraft,
+    PostPollSummary,
+} from '@/components/social/post-poll';
 import { PostReactions } from '@/components/social/post-reactions';
 import type {
     ReactionSummary,
@@ -79,6 +84,7 @@ type FeedPost = {
     isSaved: boolean;
     reactions: ReactionSummary;
     share: SharedPost | null;
+    poll: PostPollSummary | null;
     commentsCount: number;
     comments: SocialComment[];
     author: { name: string; handle: string; profileVisible: boolean };
@@ -186,11 +192,17 @@ function Composer({ spaces }: { spaces: Space[] }) {
         space: string;
         images: File[];
         image_alts: string[];
+        poll_question: string;
+        poll_options: string[];
+        poll_duration: string;
     }>({
         body: '',
         space: spaces[0]?.slug ?? '',
         images: [],
         image_alts: [],
+        poll_question: '',
+        poll_options: [],
+        poll_duration: '',
     });
 
     useEffect(
@@ -269,7 +281,14 @@ function Composer({ spaces }: { spaces: Space[] }) {
                 pendingMedia.forEach((item) => URL.revokeObjectURL(item.url));
                 previewUrls.current.clear();
                 setPendingMedia([]);
-                reset('body', 'images', 'image_alts');
+                reset(
+                    'body',
+                    'images',
+                    'image_alts',
+                    'poll_question',
+                    'poll_options',
+                    'poll_duration',
+                );
             },
         });
     };
@@ -281,6 +300,21 @@ function Composer({ spaces }: { spaces: Space[] }) {
     const altError = Object.entries(galleryErrors).find(([key]) =>
         key.startsWith('image_alts'),
     )?.[1];
+    const poll =
+        data.poll_question !== '' ||
+        data.poll_options.length > 0 ||
+        data.poll_duration !== ''
+            ? {
+                  question: data.poll_question,
+                  options: data.poll_options,
+                  duration: data.poll_duration,
+              }
+            : null;
+    const updatePoll = (value: PostPollDraft | null) => {
+        setData('poll_question', value?.question ?? '');
+        setData('poll_options', value?.options ?? []);
+        setData('poll_duration', value?.duration ?? '');
+    };
 
     if (spaces.length === 0) {
         return null;
@@ -339,7 +373,6 @@ function Composer({ spaces }: { spaces: Space[] }) {
                     onChange={(event) => setData('body', event.target.value)}
                     maxLength={2000}
                     rows={4}
-                    required
                     placeholder="What is worth sharing today?"
                     className="min-h-28 w-full resize-y bg-transparent px-0 py-4 text-[1.02rem] leading-7 outline-none placeholder:text-muted-foreground/70"
                 />
@@ -357,6 +390,12 @@ function Composer({ spaces }: { spaces: Space[] }) {
                 altError={altError}
                 compact
             />
+            <PostPollEditor
+                value={poll}
+                onChange={updatePoll}
+                errors={galleryErrors}
+                compact
+            />
             <div className="flex items-center justify-between gap-3 border-t border-border/65 bg-secondary/28 px-4 py-3 sm:px-5">
                 <div className="flex min-w-0 items-center gap-2">
                     <span className="truncate text-xs font-semibold text-muted-foreground">
@@ -372,7 +411,7 @@ function Composer({ spaces }: { spaces: Space[] }) {
                     type="submit"
                     disabled={
                         processing ||
-                        data.body.trim() === '' ||
+                        (data.body.trim() === '' && poll === null) ||
                         pendingMedia.some((item) => item.alt.trim() === '')
                     }
                     className="h-11 rounded-xl px-5"
@@ -824,6 +863,7 @@ function PostCard({
                 <PostGallery media={item.mediaItems} className="mt-4" />
             )}
             <SharedPostPreview share={item.share} className="mt-4" />
+            <PostPoll postId={item.id} poll={item.poll} />
             <PostReactions
                 postId={item.id}
                 reactions={item.reactions}

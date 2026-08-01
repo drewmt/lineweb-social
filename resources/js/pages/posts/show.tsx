@@ -32,6 +32,8 @@ import type {
 } from '@/components/social/mention-text';
 import { PostGallery } from '@/components/social/post-image';
 import type { PostMedia } from '@/components/social/post-image';
+import { PostPoll } from '@/components/social/post-poll';
+import type { PostPollSummary } from '@/components/social/post-poll';
 import { PostReactions } from '@/components/social/post-reactions';
 import type {
     ReactionSummary,
@@ -62,6 +64,7 @@ type ConversationPost = {
     isHidden: boolean;
     isSaved: boolean;
     reactions: ReactionSummary;
+    poll: PostPollSummary | null;
     canComment: boolean;
     canShare: boolean;
     canReport: boolean;
@@ -404,6 +407,11 @@ export default function ShowPost({
                                 )}
                                 <SharedPostPreview
                                     share={post.share}
+                                    className="mt-5"
+                                />
+                                <PostPoll
+                                    postId={post.id}
+                                    poll={post.poll}
                                     className="mt-5"
                                 />
                                 <PostReactions

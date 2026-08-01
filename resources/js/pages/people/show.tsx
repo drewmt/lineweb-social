@@ -18,6 +18,8 @@ import type {
 } from '@/components/social/mention-text';
 import { PostGallery } from '@/components/social/post-image';
 import type { PostMedia } from '@/components/social/post-image';
+import { PostPoll } from '@/components/social/post-poll';
+import type { PostPollSummary } from '@/components/social/post-poll';
 import {
     PostShareAction,
     SharedPostPreview,
@@ -65,6 +67,7 @@ type ProfilePost = {
     topics: ContentTopic[];
     media: PostMedia | null;
     mediaItems: PostMedia[];
+    poll: PostPollSummary | null;
     publishedAt: string | null;
     editedAt: string | null;
     share: SharedPost | null;
@@ -539,6 +542,10 @@ export default function ShowProfile({
                                         <SharedPostPreview
                                             share={post.share}
                                             className="mt-4"
+                                        />
+                                        <PostPoll
+                                            postId={post.id}
+                                            poll={post.poll}
                                         />
                                     </article>
                                 ))}

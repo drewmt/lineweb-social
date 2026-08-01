@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Community\Mentions\MentionProjection;
+use App\Community\Polls\PostPollProjection;
 use App\Community\PostMediaView;
 use App\Community\PostShareProjection;
 use App\Community\VisiblePostQuery;
@@ -61,6 +62,7 @@ class PeopleController extends Controller
         MentionProjection $mentions,
         PostShareProjection $shares,
         VisiblePostQuery $visiblePostQuery,
+        PostPollProjection $polls,
     ): Response {
         Gate::authorize('view', $profile);
 
@@ -115,6 +117,7 @@ class PeopleController extends Controller
             ->all();
         $resolvedMentions = $mentions->resolve($viewer, $postModels->pluck('body'));
         $shareProjection = $shares->forPosts($postModels, $viewer);
+        $pollProjection = $polls->forPosts($postModels, $viewer);
 
         $posts = $postModels
             ->map(fn (Post $post): array => [
@@ -132,13 +135,16 @@ class PeopleController extends Controller
                 'media' => $media->for($post),
                 'mediaItems' => $media->galleryFor($post),
                 'share' => $shareProjection[$post->getKey()] ?? null,
+                'poll' => $pollProjection[$post->getKey()] ?? null,
                 'publishedAt' => $post->published_at?->toIso8601String(),
                 'editedAt' => $post->edited_at?->toIso8601String(),
                 'canEdit' => Gate::forUser($viewer)->allows('update', $post)
+                    && ! isset($pollProjection[$post->getKey()])
                     && ! in_array($post->getKey(), $lockedPostIds, true),
                 'canDelete' => Gate::forUser($viewer)->allows('delete', $post)
                     && ! in_array($post->getKey(), $lockedPostIds, true),
-                'canShare' => Gate::forUser($viewer)->allows('share', $post),
+                'canShare' => ! isset($pollProjection[$post->getKey()])
+                    && Gate::forUser($viewer)->allows('share', $post),
                 'author' => [
                     'name' => $post->author->name,
                 ],

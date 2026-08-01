@@ -113,6 +113,7 @@ final class VisiblePostQuery
             ->where(function (Builder $posts) use ($viewer): void {
                 $posts
                     ->where('posts.body', '!=', '')
+                    ->orWhereHas('poll')
                     ->orWhereHas('sharedPost', function (Builder $source) use ($viewer): void {
                         $source
                             ->whereNotNull('published_at')
