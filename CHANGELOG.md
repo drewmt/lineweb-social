@@ -124,6 +124,8 @@ All notable project changes will be documented here.
 
 ### Changed
 
+- Updated Guzzle, its promise library, PostCSS, and brace expansion lockfile
+  resolutions to releases without the advisories current at validation time.
 - Mobile publishing now opens a full-screen app-like workspace with persistent
   draft and publish actions, while desktop keeps a focused writing surface and
   clear privacy context.
