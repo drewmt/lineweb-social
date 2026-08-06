@@ -170,7 +170,7 @@ final class NotificationCenter
         }
 
         $comment = Comment::query()
-            ->with(['author', 'post.author', 'post.space'])
+            ->with(['author', 'parent.author', 'post.author', 'post.space'])
             ->whereKey($contentId)
             ->where('post_id', $postId)
             ->where('user_id', $actorId)
@@ -247,12 +247,13 @@ final class NotificationCenter
             ->visibleTo($viewer)
             ->whereKey($comment->user_id)
             ->exists();
+        $isDirectReply = $this->integer($notification, 'reply_to_comment_id') !== null;
 
         return [
             'kind' => NotificationType::CommentReply->value,
             'title' => $actorVisible
-                ? $comment->author->name.' replied to your post'
-                : 'A member replied to your post',
+                ? $comment->author->name.' replied to your '.($isDirectReply ? 'comment' : 'post')
+                : 'A member replied to your '.($isDirectReply ? 'comment' : 'post'),
             'description' => 'Open the conversation in '.$comment->post->space->name.'.',
             'destination' => $destination,
         ];

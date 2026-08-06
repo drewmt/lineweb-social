@@ -161,9 +161,20 @@ class ApiContractDocumentationTest extends TestCase
             array_keys($schemas['Post']['properties']),
         );
         $this->assertSame(
-            ['id', 'body', 'mentions', 'published_at', 'edited_at', 'author', 'viewer'],
+            ['id', 'body', 'mentions', 'published_at', 'edited_at', 'is_reply', 'reply_to', 'author', 'viewer'],
             array_keys($schemas['Comment']['properties']),
         );
+        $this->assertNotContains('is_reply', $schemas['Comment']['required']);
+        $this->assertNotContains('reply_to', $schemas['Comment']['required']);
+        $this->assertSame(
+            ['id', 'author'],
+            array_keys($schemas['CommentReplyContext']['properties']),
+        );
+        $this->assertSame(
+            ['handle', 'name', 'profile_visible'],
+            array_keys($schemas['CommentReplyContext']['properties']['author']['properties']),
+        );
+        $this->assertArrayNotHasKey('body', $schemas['CommentReplyContext']['properties']);
         $this->assertSame(
             ['handle', 'name', 'url'],
             array_keys($schemas['ContentMention']['properties']),

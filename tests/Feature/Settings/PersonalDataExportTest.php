@@ -41,9 +41,15 @@ class PersonalDataExportTest extends TestCase
             'user_id' => $user->getKey(),
             'body' => 'My exported post',
         ]);
+        $parent = Comment::factory()->create([
+            'post_id' => $post->getKey(),
+            'user_id' => $other->getKey(),
+            'body' => 'Another member private parent body',
+        ]);
         Comment::factory()->create([
             'post_id' => $post->getKey(),
             'user_id' => $user->getKey(),
+            'parent_id' => $parent->getKey(),
             'body' => 'My exported comment',
         ]);
 
@@ -141,6 +147,7 @@ class PersonalDataExportTest extends TestCase
         $this->assertSame('makers-circle', $export['space_memberships'][0]['space_slug']);
         $this->assertSame('My exported post', $export['posts'][0]['body']);
         $this->assertSame('My exported comment', $export['comments'][0]['body']);
+        $this->assertSame($parent->getKey(), $export['comments'][0]['parent_id']);
         $this->assertSame('community-member', $export['following'][0]['handle']);
         $this->assertSame('My exported message', $export['direct_messages'][0]['body']);
         $this->assertSame(
@@ -172,6 +179,7 @@ class PersonalDataExportTest extends TestCase
             'Private administrator decision context',
             $content,
         );
+        $this->assertStringNotContainsString('Another member private parent body', $content);
         $this->assertStringNotContainsString('Private Appeal Reviewer', $content);
         $this->assertStringNotContainsString('private-reviewer@example.com', $content);
         $this->assertStringNotContainsString('private-recipient@example.com', $content);

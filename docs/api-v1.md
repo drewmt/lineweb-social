@@ -114,6 +114,13 @@ equivalent creation timestamp. Conversation comments use
 `(published_at ASC, id ASC)`. The identifier is always the deterministic
 tie-breaker.
 
+Comment pages remain one flat chronological stream. `is_reply` identifies a
+bounded direct reply, while `reply_to` contains only the visible parent ID and
+public author identity. It is `null` for top-level comments and whenever the
+parent is no longer visible to the current viewer. Parent comment bodies are
+never nested into reply resources, and clients must not infer that a referenced
+parent will remain available.
+
 `GET /api/v1/feed` accepts `source=community` (the default) or
 `source=following`. Following results contain only currently visible posts from
 profiles the member follows and remain chronological. A cursor is bound to its

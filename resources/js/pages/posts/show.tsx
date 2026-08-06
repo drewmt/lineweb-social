@@ -18,7 +18,7 @@ import { AuthoredContentMenu } from '@/components/social/authored-content-menu';
 import { AvatarMark } from '@/components/social/avatar-mark';
 import {
     CommentComposer,
-    CommentRow,
+    CommentList,
 } from '@/components/social/comment-thread';
 import type {
     ReportReason,
@@ -534,13 +534,12 @@ export default function ShowPost({
                                 </div>
                             ) : (
                                 <div className="mt-4 space-y-3">
-                                    {comments.data.map((comment) => (
-                                        <CommentRow
-                                            key={comment.id}
-                                            comment={comment}
-                                            reportReasons={reportReasons}
-                                        />
-                                    ))}
+                                    <CommentList
+                                        postId={post.id}
+                                        comments={comments.data}
+                                        canComment={post.canComment}
+                                        reportReasons={reportReasons}
+                                    />
                                 </div>
                             )}
 

@@ -183,6 +183,7 @@ class PersonalDataExport
             ->select([
                 'comments.id',
                 'comments.post_id',
+                'comments.parent_id',
                 'spaces.slug as space_slug',
                 'comments.body',
                 'comments.published_at',

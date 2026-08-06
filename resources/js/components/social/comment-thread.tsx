@@ -1,6 +1,13 @@
 import { Link, useForm } from '@inertiajs/react';
-import { ArrowRight, Flag, MessageCircle, Send } from 'lucide-react';
-import { useState } from 'react';
+import {
+    ArrowRight,
+    CornerDownRight,
+    Flag,
+    MessageCircle,
+    Send,
+    X,
+} from 'lucide-react';
+import { useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import InputError from '@/components/input-error';
 import { AuthoredContentMenu } from '@/components/social/authored-content-menu';
@@ -15,6 +22,15 @@ export type SocialComment = {
     mentions: ContentMention[];
     publishedAt: string;
     editedAt: string | null;
+    isReply: boolean;
+    replyTo: {
+        id: number;
+        author: {
+            name: string;
+            handle: string;
+            profileVisible: boolean;
+        };
+    } | null;
     canReport: boolean;
     canEdit: boolean;
     canDelete: boolean;
@@ -136,26 +152,59 @@ function CommentReport({
 export function CommentRow({
     comment,
     reportReasons,
+    canReply,
+    isReplying,
+    onReply,
+    onCancelReply,
+    postId,
 }: {
     comment: SocialComment;
     reportReasons: ReportReason[];
+    canReply: boolean;
+    isReplying: boolean;
+    onReply: () => void;
+    onCancelReply: () => void;
+    postId: number;
 }) {
     const [reporting, setReporting] = useState(false);
+    const replyButtonRef = useRef<HTMLButtonElement>(null);
     const hasLongBody = comment.body.length > COMMENT_PREVIEW_LENGTH;
     const [expanded, setExpanded] = useState(false);
     const previewBody =
         hasLongBody && !expanded
             ? `${comment.body.slice(0, COMMENT_PREVIEW_LENGTH)}…`
             : comment.body;
+    const closeReply = () => {
+        onCancelReply();
+        window.requestAnimationFrame(() => replyButtonRef.current?.focus());
+    };
 
     return (
         <article
             id={`comment-${comment.id}`}
-            className="group/comment flex scroll-mt-24 items-start gap-2.5"
+            className={`group/comment flex scroll-mt-24 items-start gap-2.5 ${
+                comment.replyTo
+                    ? 'ml-4 border-l border-primary/18 pl-3 sm:ml-8'
+                    : ''
+            }`}
+            aria-label={
+                comment.replyTo
+                    ? `Reply to ${comment.replyTo.author.name}`
+                    : undefined
+            }
         >
             <AvatarMark name={comment.author.name} className="mt-0.5 size-8" />
             <div className="min-w-0 flex-1">
                 <div className="rounded-2xl rounded-tl-md bg-secondary/58 px-3.5 py-2.5">
+                    {comment.replyTo && (
+                        <p className="mb-1.5 flex items-center gap-1.5 text-[0.68rem] font-extrabold text-primary/85">
+                            <CornerDownRight
+                                className="size-3.5 shrink-0"
+                                aria-hidden="true"
+                            />
+                            Replying to {comment.replyTo.author.name}
+                        </p>
+                    )}
                     <div className="flex items-start justify-between gap-2">
                         <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
                             {comment.author.profileVisible ? (
@@ -210,9 +259,23 @@ export function CommentRow({
                         </button>
                     )}
                 </div>
-                <div className="mt-1 flex min-h-7 items-center pl-2">
+                <div className="mt-0.5 flex min-h-11 flex-wrap items-center gap-0.5 pl-1">
+                    {canReply && !comment.isReply && (
+                        <button
+                            ref={replyButtonRef}
+                            type="button"
+                            onClick={() => {
+                                setReporting(false);
+                                onReply();
+                            }}
+                            aria-expanded={isReplying}
+                            className="social-focus inline-flex min-h-11 items-center rounded-lg px-2 text-[0.72rem] font-extrabold text-primary transition-colors hover:bg-primary/8"
+                        >
+                            Reply
+                        </button>
+                    )}
                     {comment.hasReported ? (
-                        <span className="inline-flex items-center gap-1 text-[0.68rem] font-bold text-muted-foreground">
+                        <span className="inline-flex min-h-11 items-center gap-1 px-2 text-[0.68rem] font-bold text-muted-foreground">
                             <Flag className="size-3" aria-hidden="true" />
                             Reported
                         </span>
@@ -222,7 +285,7 @@ export function CommentRow({
                                 type="button"
                                 onClick={() => setReporting((open) => !open)}
                                 aria-expanded={reporting}
-                                className="social-focus rounded-md px-1.5 py-1 text-[0.68rem] font-bold text-muted-foreground transition-colors hover:text-foreground"
+                                className="social-focus inline-flex min-h-11 items-center rounded-lg px-2 text-[0.68rem] font-bold text-muted-foreground transition-colors hover:bg-secondary/65 hover:text-foreground"
                             >
                                 Report
                             </button>
@@ -236,55 +299,155 @@ export function CommentRow({
                         onClose={() => setReporting(false)}
                     />
                 )}
+                {isReplying && (
+                    <CommentComposer
+                        postId={postId}
+                        parent={{
+                            id: comment.id,
+                            name: comment.author.name,
+                        }}
+                        onPublished={closeReply}
+                        onCancel={closeReply}
+                    />
+                )}
             </div>
         </article>
     );
 }
 
-export function CommentComposer({ postId }: { postId: number }) {
+export function CommentComposer({
+    postId,
+    parent,
+    onPublished,
+    onCancel,
+}: {
+    postId: number;
+    parent?: { id: number; name: string };
+    onPublished?: () => void;
+    onCancel?: () => void;
+}) {
     const { data, setData, post, processing, errors, reset } = useForm({
         body: '',
+        parent_id: parent?.id ?? null,
     });
 
     const submit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         post(`/posts/${postId}/comments`, {
             preserveScroll: true,
-            onSuccess: () => reset(),
+            onSuccess: () => {
+                reset();
+                onPublished?.();
+            },
         });
     };
 
     return (
-        <form onSubmit={submit} className="mt-3 flex items-start gap-2.5">
-            <AvatarMark name="You" className="mt-1 size-8" />
-            <div className="min-w-0 flex-1">
-                <div className="social-input-surface flex items-end gap-2 rounded-2xl p-1.5 pl-3.5">
-                    <textarea
-                        value={data.body}
-                        onChange={(event) =>
-                            setData('body', event.target.value)
-                        }
-                        maxLength={1000}
-                        rows={1}
-                        required
-                        placeholder="Add to the conversation"
-                        aria-label="Add a comment"
-                        className="social-focus min-h-9 flex-1 resize-none border-0 bg-transparent py-2 text-sm leading-5 outline-none placeholder:text-muted-foreground/75 focus-visible:ring-0"
-                    />
-                    <Button
-                        type="submit"
-                        size="icon"
-                        disabled={processing || data.body.trim() === ''}
-                        aria-label="Publish comment"
-                        className="size-10 shrink-0 rounded-xl"
+        <form
+            onSubmit={submit}
+            className={
+                parent ? 'mt-1.5 rounded-2xl bg-primary/6 p-2.5' : 'mt-3'
+            }
+            aria-label={parent ? `Reply to ${parent.name}` : 'Add a comment'}
+        >
+            {parent && (
+                <div className="mb-2 flex min-h-9 items-center justify-between gap-3 px-1">
+                    <p className="flex min-w-0 items-center gap-1.5 text-xs font-bold text-muted-foreground">
+                        <CornerDownRight
+                            className="size-3.5 shrink-0 text-primary"
+                            aria-hidden="true"
+                        />
+                        <span className="truncate">
+                            Replying to{' '}
+                            <strong className="text-foreground">
+                                {parent.name}
+                            </strong>
+                        </span>
+                    </p>
+                    <button
+                        type="button"
+                        onClick={onCancel}
+                        aria-label={`Cancel reply to ${parent.name}`}
+                        className="social-focus inline-flex size-11 shrink-0 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
                     >
-                        <Send className="size-4" aria-hidden="true" />
-                    </Button>
+                        <X className="size-4" aria-hidden="true" />
+                    </button>
                 </div>
-                <InputError className="mt-1.5" message={errors.body} />
+            )}
+            <div className="flex items-start gap-2.5">
+                <AvatarMark name="You" className="mt-1 size-8" />
+                <div className="min-w-0 flex-1">
+                    <div className="social-input-surface flex items-end gap-2 rounded-2xl p-1.5 pl-3.5">
+                        <textarea
+                            value={data.body}
+                            onChange={(event) =>
+                                setData('body', event.target.value)
+                            }
+                            maxLength={1000}
+                            rows={1}
+                            required
+                            autoFocus={parent !== undefined}
+                            placeholder={
+                                parent
+                                    ? `Reply to ${parent.name}`
+                                    : 'Add to the conversation'
+                            }
+                            aria-label={
+                                parent
+                                    ? `Write a reply to ${parent.name}`
+                                    : 'Add a comment'
+                            }
+                            className="social-focus min-h-9 flex-1 resize-none border-0 bg-transparent py-2 text-sm leading-5 outline-none placeholder:text-muted-foreground/75 focus-visible:ring-0"
+                        />
+                        <Button
+                            type="submit"
+                            size="icon"
+                            disabled={processing || data.body.trim() === ''}
+                            aria-label={
+                                parent ? 'Publish reply' : 'Publish comment'
+                            }
+                            className="size-11 shrink-0 rounded-xl"
+                        >
+                            <Send className="size-4" aria-hidden="true" />
+                        </Button>
+                    </div>
+                    <InputError className="mt-1.5" message={errors.body} />
+                    <InputError className="mt-1.5" message={errors.parent_id} />
+                </div>
             </div>
         </form>
     );
+}
+
+export function CommentList({
+    postId,
+    comments,
+    canComment,
+    reportReasons,
+}: {
+    postId: number;
+    comments: SocialComment[];
+    canComment: boolean;
+    reportReasons: ReportReason[];
+}) {
+    const [replyingTo, setReplyingTo] = useState<number | null>(null);
+
+    return comments.map((comment) => (
+        <CommentRow
+            key={comment.id}
+            postId={postId}
+            comment={comment}
+            reportReasons={reportReasons}
+            canReply={canComment}
+            isReplying={replyingTo === comment.id}
+            onReply={() =>
+                setReplyingTo((current) =>
+                    current === comment.id ? null : comment.id,
+                )
+            }
+            onCancelReply={() => setReplyingTo(null)}
+        />
+    ));
 }
 
 export function CommentThread({
@@ -325,13 +488,12 @@ export function CommentThread({
 
             {expanded && (
                 <div className="mt-3 space-y-2.5">
-                    {visibleComments.map((comment) => (
-                        <CommentRow
-                            key={comment.id}
-                            comment={comment}
-                            reportReasons={reportReasons}
-                        />
-                    ))}
+                    <CommentList
+                        postId={postId}
+                        comments={visibleComments}
+                        canComment={canComment}
+                        reportReasons={reportReasons}
+                    />
                     {canComment ? (
                         <CommentComposer postId={postId} />
                     ) : (

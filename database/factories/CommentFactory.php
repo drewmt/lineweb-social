@@ -22,4 +22,12 @@ class CommentFactory extends Factory
             'published_at' => now(),
         ];
     }
+
+    public function replyingTo(Comment $parent): static
+    {
+        return $this->state(fn (): array => [
+            'post_id' => $parent->post_id,
+            'parent_id' => $parent->getKey(),
+        ]);
+    }
 }

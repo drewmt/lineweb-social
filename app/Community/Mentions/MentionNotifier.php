@@ -32,7 +32,7 @@ final class MentionNotifier
     /** @param list<string> $previousHandles */
     public function forComment(Comment $comment, array $previousHandles = []): void
     {
-        $comment->loadMissing(['author', 'post.author', 'post.space']);
+        $comment->loadMissing(['author', 'parent.author', 'post.author', 'post.space']);
         $handles = $this->newHandles($comment->body, $previousHandles);
         $recipients = $this->recipients($comment->author, $handles)
             ->filter(function (User $recipient) use ($comment): bool {
@@ -40,7 +40,11 @@ final class MentionNotifier
                     return false;
                 }
 
-                if (! $recipient->is($comment->post->author)) {
+                $receivesReplyNotification = $comment->parent !== null
+                    ? $recipient->is($comment->parent->author)
+                    : $recipient->is($comment->post->author);
+
+                if (! $receivesReplyNotification) {
                     return true;
                 }
 

@@ -23,6 +23,7 @@ final class CommunityFeed
         private readonly PostMediaView $media,
         private readonly PostReactionProjection $reactions,
         private readonly MentionProjection $mentions,
+        private readonly CommentReplyProjection $replyContexts,
     ) {}
 
     /**
@@ -61,7 +62,7 @@ final class CommunityFeed
     }
 
     /**
-     * @return list<array{id: int, url: string, body: string, media: array{url: string, alt: string, width: int, height: int}|null, mediaItems: list<array{id: int, url: string, alt: string, width: int, height: int}>, publishedAt: string|null, editedAt: string|null, isHighlighted: bool, highlightedAt: string|null, isSaved: bool, canComment: bool, canReport: bool, canEdit: bool, canDelete: bool, hasReported: bool, commentsCount: int, comments: list<array{id: int, body: string, publishedAt: string, editedAt: string|null, canReport: bool, canEdit: bool, canDelete: bool, hasReported: bool, author: array{name: string, handle: string, profileVisible: bool}}>, author: array{name: string, handle: string, profileVisible: bool}, space: array{name: string, slug: string}}>
+     * @return list<array{id: int, url: string, body: string, media: array{url: string, alt: string, width: int, height: int}|null, mediaItems: list<array{id: int, url: string, alt: string, width: int, height: int}>, publishedAt: string|null, editedAt: string|null, isHighlighted: bool, highlightedAt: string|null, isSaved: bool, canComment: bool, canReport: bool, canEdit: bool, canDelete: bool, hasReported: bool, commentsCount: int, comments: list<array{id: int, body: string, publishedAt: string, editedAt: string|null, isReply: bool, replyTo: array{id: int, author: array{name: string, handle: string, profileVisible: bool}}|null, canReport: bool, canEdit: bool, canDelete: bool, hasReported: bool, author: array{name: string, handle: string, profileVisible: bool}}>, author: array{name: string, handle: string, profileVisible: bool}, space: array{name: string, slug: string}}>
      */
     public function posts(
         User $user,
@@ -171,6 +172,7 @@ final class CommunityFeed
         $reactionProjection = $this->reactions->forPosts($posts, $user);
 
         $comments = $posts->flatMap(fn (Post $post) => $post->comments);
+        $replyContexts = $this->replyContexts->for($user, $comments);
         $resolvedMentions = $this->mentions->resolve(
             $user,
             $posts->pluck('body')->merge($comments->pluck('body')),
@@ -250,6 +252,10 @@ final class CommunityFeed
                         'mentions' => $this->mentions->forBody($comment->body, $resolvedMentions),
                         'publishedAt' => $comment->published_at->toIso8601String(),
                         'editedAt' => $comment->edited_at?->toIso8601String(),
+                        'isReply' => $comment->parent_id !== null,
+                        'replyTo' => $comment->parent_id !== null
+                            ? ($replyContexts[$comment->getKey()] ?? null)
+                            : null,
                         'canReport' => $comment->user_id !== $user->getKey(),
                         'canEdit' => $comment->user_id === $user->getKey()
                             && ! in_array($comment->getKey(), $lockedCommentIds, true),

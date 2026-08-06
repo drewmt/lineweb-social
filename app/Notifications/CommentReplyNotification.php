@@ -21,14 +21,20 @@ class CommentReplyNotification extends Notification
         return NotificationType::CommentReply->value;
     }
 
-    /** @return array{comment_id: int, post_id: int, actor_id: int, space_id: int} */
+    /** @return array{comment_id: int, post_id: int, actor_id: int, space_id: int, reply_to_comment_id?: int} */
     public function toDatabase(object $notifiable): array
     {
-        return [
+        $payload = [
             'comment_id' => $this->comment->id,
             'post_id' => $this->comment->post_id,
             'actor_id' => $this->comment->user_id,
             'space_id' => $this->comment->post->space_id,
         ];
+
+        if ($this->comment->parent_id !== null) {
+            $payload['reply_to_comment_id'] = $this->comment->parent_id;
+        }
+
+        return $payload;
     }
 }

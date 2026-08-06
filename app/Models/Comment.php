@@ -13,6 +13,7 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property int $post_id
  * @property int $user_id
+ * @property int|null $parent_id
  * @property string $body
  * @property Carbon $published_at
  * @property Carbon|null $edited_at
@@ -21,6 +22,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $moderation_note
  * @property-read Post $post
  * @property-read User $author
+ * @property-read Comment|null $parent
  */
 class Comment extends Model
 {
@@ -30,6 +32,7 @@ class Comment extends Model
     protected $fillable = [
         'post_id',
         'user_id',
+        'parent_id',
         'body',
         'published_at',
         'edited_at',
@@ -58,6 +61,18 @@ class Comment extends Model
     public function author(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /** @return BelongsTo<Comment, $this> */
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'parent_id');
+    }
+
+    /** @return HasMany<Comment, $this> */
+    public function replies(): HasMany
+    {
+        return $this->hasMany(self::class, 'parent_id');
     }
 
     /** @return BelongsTo<User, $this> */

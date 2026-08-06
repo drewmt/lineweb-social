@@ -330,6 +330,52 @@ class PostApiTest extends TestCase
         }
     }
 
+    public function test_comment_api_exposes_bounded_reply_context_without_parent_body_content(): void
+    {
+        $viewer = User::factory()->create();
+        $rootAuthor = User::factory()->create([
+            'name' => 'Root Author',
+            'handle' => 'root-author',
+            'profile_visibility' => ProfileVisibility::Public,
+        ]);
+        $replyAuthor = User::factory()->create();
+        $space = Space::factory()->create();
+        $space->addMember($viewer);
+        $post = Post::factory()->for($space)->create();
+        $root = Comment::factory()->for($post)->for($rootAuthor, 'author')->create([
+            'body' => 'Sensitive parent body.',
+            'published_at' => now()->subMinute(),
+        ]);
+        $reply = Comment::factory()->for($post)->for($replyAuthor, 'author')->create([
+            'body' => 'Public reply body.',
+            'parent_id' => $root->getKey(),
+            'published_at' => now(),
+        ]);
+
+        $response = $this->getWithToken($viewer)
+            ->getJson(route('api.v1.posts.comments', $post));
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('data.1.id', (string) $reply->getKey())
+            ->assertJsonPath('data.1.is_reply', true)
+            ->assertJsonPath('data.1.reply_to.id', (string) $root->getKey())
+            ->assertJsonPath('data.1.reply_to.author.name', 'Root Author')
+            ->assertJsonPath('data.1.reply_to.author.profile_visible', true)
+            ->assertJsonMissingPath('data.1.reply_to.body');
+
+        $root->update(['hidden_at' => now()]);
+
+        $this->getWithToken($viewer)
+            ->getJson(route('api.v1.posts.comments', $post))
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', (string) $reply->getKey())
+            ->assertJsonPath('data.0.is_reply', true)
+            ->assertJsonPath('data.0.reply_to', null)
+            ->assertJsonMissing(['body' => 'Sensitive parent body.']);
+    }
+
     /** @param list<string> $abilities */
     private function getWithToken(User $user, array $abilities = ['feed:read']): self
     {
