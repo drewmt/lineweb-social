@@ -24,6 +24,7 @@ final class PostConversation
         private readonly MentionProjection $mentions,
         private readonly VisibleCommentQuery $visibleComments,
         private readonly CommentReplyProjection $replyContexts,
+        private readonly PostShareProjection $shares,
     ) {}
 
     /**
@@ -43,6 +44,11 @@ final class PostConversation
             'mediaItems',
             'highlight',
             'topics:id,name',
+            'sharedPost' => fn ($shared) => $shared->with([
+                'author:id,name,handle',
+                'space:id,name,slug',
+                'mediaItems',
+            ]),
         ]);
         $post->space->loadCount('members');
         $post->loadExists([
@@ -50,6 +56,10 @@ final class PostConversation
                 ->where('user_id', $viewer->getKey()),
         ]);
         $reactionProjection = $this->reactions->forPosts(
+            new Collection([$post]),
+            $viewer,
+        );
+        $shareProjection = $this->shares->forPosts(
             new Collection([$post]),
             $viewer,
         );
@@ -142,7 +152,9 @@ final class PostConversation
                 'isHidden' => $post->hidden_at !== null,
                 'isSaved' => (bool) $post->is_saved,
                 'reactions' => $reactionProjection[$post->getKey()],
+                'share' => $shareProjection[$post->getKey()] ?? null,
                 'canComment' => $viewer->can('comment', $post),
+                'canShare' => $viewer->can('share', $post),
                 'canReport' => $viewer->can('report', $post),
                 'canEdit' => $viewer->can('update', $post) && ! $postIsLocked,
                 'canDelete' => $viewer->can('delete', $post) && ! $postIsLocked,

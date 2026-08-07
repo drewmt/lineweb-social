@@ -105,6 +105,29 @@ context without recursive thread depth.
   </tr>
 </table>
 
+### Share with context, not leakage
+
+Members can add a perspective to a post or send a clean repost without creating
+a second, detached copy. Shares remain in the original Space, preserve its
+visibility rules, and quietly drop source context if the original later becomes
+unavailable. A quote still belongs to its author; an empty repost does not
+survive without its source.
+
+<table>
+  <tr>
+    <td width="68%">
+      <img src="docs/screenshots/quote-share-desktop.jpg" alt="Lineweb Social quote post dialog on desktop" />
+    </td>
+    <td width="32%">
+      <img src="docs/screenshots/quote-share-mobile.jpg" alt="Lineweb Social quote post dialog in the mobile app layout" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Optional context with the original post kept visible</sub></td>
+    <td align="center"><sub>Focused, touch-friendly mobile share flow</sub></td>
+  </tr>
+</table>
+
 ### Publishing without pressure
 
 A focused composer supports accessible four-image galleries and keeps unfinished
@@ -382,9 +405,9 @@ makes the final decision.
 | Accounts            | Verified registration, stable handles, passkeys, two-factor authentication, strong password defaults, active-account enforcement, and one human-reviewed appeal per restriction.                                                             |
 | Profiles            | Editable member identity, headlines, real activity, public/shared/private visibility, and discovery opt-out.                                                                                                                                 |
 | Spaces              | Public/private/hidden communities, searchable directory, join/leave rules, restricted invitations, roles, ownership transfer, member removal, and bounded curated highlights.                                                                |
-| Publishing          | Focused composer, author-only drafts, private four-image WebP galleries with per-image alt text and swipe navigation, chronological posts, comments, permanent conversations, and author controls.                                           |
+| Publishing          | Focused composer, author-only drafts, private four-image WebP galleries with per-image alt text and swipe navigation, chronological posts, privacy-safe quote posts and reposts, comments, permanent conversations, and author controls.        |
 | Discovery           | Policy-filtered search across posts, Spaces, and People; Unicode hashtags; chronological topic trails; and privacy-aware Following.                                                                                                          |
-| Interactions        | Typed Like, Celebrate, and Insightful reactions, private Saved Posts, follows, mentions, one-level direct replies, comments, copy links, and conversation shortcuts.                                                                          |
+| Interactions        | Typed Like, Celebrate, and Insightful reactions, private Saved Posts, follows, mentions, one-level direct replies, same-Space quote/repost actions, comments, copy links, and conversation shortcuts.                              |
 | Messaging           | Canonical one-to-one conversations, participant-only history, unread state, block-aware delivery, and responsive inbox/thread views.                                                                                                         |
 | Trust and safety    | Mute, mutual block, Safety recovery, post/comment reporting, Space moderation queues, Direct Message reporting, and audited decisions.                                                                                                       |
 | Notifications       | Database-backed replies, mentions, and moderation alerts with per-category preferences, destination access revalidation, and opt-in privacy-safe daily email digests.                                                                        |

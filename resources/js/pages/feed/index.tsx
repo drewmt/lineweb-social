@@ -37,6 +37,11 @@ import type {
     ReactionSummary,
     ReactionType,
 } from '@/components/social/post-reactions';
+import {
+    PostShareAction,
+    SharedPostPreview,
+} from '@/components/social/post-share';
+import type { SharedPost } from '@/components/social/post-share';
 import { SpaceCover } from '@/components/social/space-cover';
 import { Button } from '@/components/ui/button';
 import { useClipboard } from '@/hooks/use-clipboard';
@@ -66,12 +71,14 @@ type FeedPost = {
     isHighlighted: boolean;
     highlightedAt: string | null;
     canComment: boolean;
+    canShare: boolean;
     canReport: boolean;
     canEdit: boolean;
     canDelete: boolean;
     hasReported: boolean;
     isSaved: boolean;
     reactions: ReactionSummary;
+    share: SharedPost | null;
     commentsCount: number;
     comments: SocialComment[];
     author: { name: string; handle: string; profileVisible: boolean };
@@ -761,6 +768,7 @@ function PostCard({
                         <Share2 className="size-3.5" aria-hidden="true" />
                         {copyFeedback ? 'Copied' : 'Copy link'}
                     </button>
+                    <PostShareAction post={item} />
                     <Link
                         href={`${item.url}#conversation`}
                         className="social-focus inline-flex min-h-9 items-center gap-1.5 rounded-xl px-3 text-xs font-bold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
@@ -793,13 +801,15 @@ function PostCard({
                     )}
                 </div>
             </header>
-            <p className="mt-4 text-[1.01rem] leading-7 whitespace-pre-wrap text-foreground/92 sm:text-[1.04rem] sm:leading-8">
-                <MentionText
-                    body={previewBody}
-                    mentions={item.mentions}
-                    topics={item.topics}
-                />
-            </p>
+            {item.body !== '' && (
+                <p className="mt-4 text-[1.01rem] leading-7 whitespace-pre-wrap text-foreground/92 sm:text-[1.04rem] sm:leading-8">
+                    <MentionText
+                        body={previewBody}
+                        mentions={item.mentions}
+                        topics={item.topics}
+                    />
+                </p>
+            )}
             {hasLongBody && (
                 <button
                     type="button"
@@ -813,6 +823,7 @@ function PostCard({
             {item.mediaItems.length > 0 && (
                 <PostGallery media={item.mediaItems} className="mt-4" />
             )}
+            <SharedPostPreview share={item.share} className="mt-4" />
             <PostReactions
                 postId={item.id}
                 reactions={item.reactions}

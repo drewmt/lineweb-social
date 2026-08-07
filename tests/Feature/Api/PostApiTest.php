@@ -118,6 +118,7 @@ class PostApiTest extends TestCase
             ->assertJsonPath('data.author.profile_visible', true)
             ->assertJsonPath('data.space.slug', $space->slug)
             ->assertJsonPath('data.viewer.can_comment', true)
+            ->assertJsonPath('data.viewer.can_share', true)
             ->assertJsonPath('data.viewer.can_report', true)
             ->assertJsonPath('data.viewer.has_reported', true)
             ->assertJsonPath('data.media.url', route('api.v1.posts.media', $post))
@@ -152,7 +153,7 @@ class PostApiTest extends TestCase
             ->assertContent($secondMediaContents);
 
         $this->assertSame(
-            ['id', 'body', 'mentions', 'topics', 'published_at', 'edited_at', 'highlighted_at', 'media', 'media_items', 'comments_count', 'reactions', 'author', 'space', 'viewer'],
+            ['id', 'body', 'mentions', 'topics', 'published_at', 'edited_at', 'highlighted_at', 'share', 'media', 'media_items', 'comments_count', 'reactions', 'author', 'space', 'viewer'],
             array_keys($response->json('data')),
         );
         $this->assertSame(

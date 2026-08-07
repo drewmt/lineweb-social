@@ -25,6 +25,7 @@ use App\Http\Controllers\PostImageController;
 use App\Http\Controllers\PostReactionController;
 use App\Http\Controllers\PostReportController;
 use App\Http\Controllers\PostReportModerationController;
+use App\Http\Controllers\PostShareController;
 use App\Http\Controllers\SavedPostController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SpaceController;
@@ -191,6 +192,9 @@ Route::middleware(['auth', 'account.active', 'verified'])->group(function () {
     Route::delete('posts/{post}', [PostController::class, 'destroy'])
         ->middleware('throttle:content-management')
         ->name('posts.destroy');
+    Route::post('posts/{post}/shares', [PostShareController::class, 'store'])
+        ->middleware('throttle:post-publishing')
+        ->name('posts.shares.store');
     Route::get('posts/{post}/image', [PostImageController::class, 'primary'])
         ->name('posts.image');
     Route::get('posts/{post}/media/{media}', [PostImageController::class, 'show'])

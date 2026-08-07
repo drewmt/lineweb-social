@@ -33,6 +33,11 @@ final class VisiblePostQuery
                 'mediaItems',
                 'highlight',
                 'topics:id,name',
+                'sharedPost' => fn ($shared) => $shared->with([
+                    'author:id,name,handle',
+                    'space:id,name,slug',
+                    'mediaItems',
+                ]),
                 'space' => fn ($spaces) => $spaces
                     ->addSelect([
                         'current_role' => DB::table('space_members')
@@ -64,7 +69,15 @@ final class VisiblePostQuery
     public function findVisible(User $viewer, int|string $postId): Post
     {
         return $this->base($viewer)
-            ->with(['media', 'mediaItems'])
+            ->with([
+                'media',
+                'mediaItems',
+                'sharedPost' => fn ($shared) => $shared->with([
+                    'author:id,name,handle',
+                    'space:id,name,slug',
+                    'mediaItems',
+                ]),
+            ])
             ->whereKey($postId)
             ->firstOrFail();
     }
@@ -93,17 +106,32 @@ final class VisiblePostQuery
     private function base(User $viewer, ?Space $space = null): Builder
     {
         $query = Post::query()
-            ->whereNotNull('published_at')
-            ->whereNull('hidden_at')
-            ->whereNotIn('user_id', $this->hiddenActorIds($viewer))
-            ->whereNotIn('user_id', $this->blockingActorIds($viewer));
+            ->whereNotNull('posts.published_at')
+            ->whereNull('posts.hidden_at')
+            ->whereNotIn('posts.user_id', $this->hiddenActorIds($viewer))
+            ->whereNotIn('posts.user_id', $this->blockingActorIds($viewer))
+            ->where(function (Builder $posts) use ($viewer): void {
+                $posts
+                    ->where('posts.body', '!=', '')
+                    ->orWhereHas('sharedPost', function (Builder $source) use ($viewer): void {
+                        $source
+                            ->whereNotNull('published_at')
+                            ->whereNull('hidden_at')
+                            ->whereNotIn('user_id', $this->hiddenActorIds($viewer))
+                            ->whereNotIn('user_id', $this->blockingActorIds($viewer))
+                            ->whereIn(
+                                'space_id',
+                                Space::query()->discoverableBy($viewer)->select('id'),
+                            );
+                    });
+            });
 
         if ($space instanceof Space) {
             return $query->whereBelongsTo($space);
         }
 
         return $query->whereIn(
-            'space_id',
+            'posts.space_id',
             Space::query()->discoverableBy($viewer)->select('id'),
         );
     }

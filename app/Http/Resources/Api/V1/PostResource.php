@@ -25,6 +25,8 @@ class PostResource extends JsonResource
             'celebrate' => (int) ($reactionCounts['celebrate'] ?? 0),
             'insightful' => (int) ($reactionCounts['insightful'] ?? 0),
         ];
+        /** @var array{source: array{id: int, url: string, body: string, mediaItems: list<array{id: int, url: string, alt: string, width: int, height: int}>, publishedAt: string|null, author: array{name: string, handle: string, profileVisible: bool}, space: array{name: string, slug: string}}}|null $share */
+        $share = $post->getAttribute('share');
 
         return [
             'id' => (string) $post->getKey(),
@@ -40,6 +42,21 @@ class PostResource extends JsonResource
             'published_at' => $post->published_at?->toIso8601String(),
             'edited_at' => $post->edited_at?->toIso8601String(),
             'highlighted_at' => $post->highlight?->created_at->toIso8601String(),
+            'share' => $share === null ? null : [
+                'source' => [
+                    'id' => (string) $share['source']['id'],
+                    'url' => $share['source']['url'],
+                    'body' => $share['source']['body'],
+                    'published_at' => $share['source']['publishedAt'],
+                    'author' => [
+                        'handle' => $share['source']['author']['handle'],
+                        'name' => $share['source']['author']['name'],
+                        'profile_visible' => $share['source']['author']['profileVisible'],
+                    ],
+                    'space' => $share['source']['space'],
+                    'media_items' => $share['source']['mediaItems'],
+                ],
+            ],
             'media' => $media instanceof PostMedia ? [
                 'url' => route('api.v1.posts.media', $post),
                 'alt' => $media->alt_text,
@@ -79,6 +96,7 @@ class PostResource extends JsonResource
                 'has_reported' => (bool) $post->getAttribute('viewer_has_reported'),
                 'can_react' => (bool) $post->getAttribute('viewer_can_react'),
                 'reaction_type' => $post->getAttribute('viewer_reaction_type'),
+                'can_share' => (bool) $post->getAttribute('viewer_can_share'),
             ],
         ];
     }

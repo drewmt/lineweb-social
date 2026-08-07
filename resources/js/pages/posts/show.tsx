@@ -37,6 +37,11 @@ import type {
     ReactionSummary,
     ReactionType,
 } from '@/components/social/post-reactions';
+import {
+    PostShareAction,
+    SharedPostPreview,
+} from '@/components/social/post-share';
+import type { SharedPost } from '@/components/social/post-share';
 import { SpaceCover } from '@/components/social/space-cover';
 import { Button } from '@/components/ui/button';
 import { useClipboard } from '@/hooks/use-clipboard';
@@ -58,10 +63,12 @@ type ConversationPost = {
     isSaved: boolean;
     reactions: ReactionSummary;
     canComment: boolean;
+    canShare: boolean;
     canReport: boolean;
     canEdit: boolean;
     canDelete: boolean;
     hasReported: boolean;
+    share: SharedPost | null;
     commentsCount: number;
     author: { name: string; handle: string; profileVisible: boolean };
     space: {
@@ -346,6 +353,7 @@ export default function ShowPost({
                                                 ? 'Copied'
                                                 : 'Copy link'}
                                         </button>
+                                        <PostShareAction post={post} />
                                         {post.hasReported ? (
                                             <span className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-xl bg-secondary px-3 text-xs font-bold text-muted-foreground">
                                                 <Flag
@@ -377,13 +385,15 @@ export default function ShowPost({
                                     </div>
                                 </header>
 
-                                <p className="mt-5 text-[1.04rem] leading-8 whitespace-pre-wrap text-foreground/92">
-                                    <MentionText
-                                        body={post.body}
-                                        mentions={post.mentions}
-                                        topics={post.topics}
-                                    />
-                                </p>
+                                {post.body !== '' && (
+                                    <p className="mt-5 text-[1.04rem] leading-8 whitespace-pre-wrap text-foreground/92">
+                                        <MentionText
+                                            body={post.body}
+                                            mentions={post.mentions}
+                                            topics={post.topics}
+                                        />
+                                    </p>
+                                )}
 
                                 {post.mediaItems.length > 0 && (
                                     <PostGallery
@@ -392,6 +402,10 @@ export default function ShowPost({
                                         eager
                                     />
                                 )}
+                                <SharedPostPreview
+                                    share={post.share}
+                                    className="mt-5"
+                                />
                                 <PostReactions
                                     postId={post.id}
                                     reactions={post.reactions}

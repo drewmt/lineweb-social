@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Api\V1\FeedCursor;
 use App\Community\Mentions\MentionProjection;
 use App\Community\PostReactionProjection;
+use App\Community\PostShareProjection;
 use App\Community\VisiblePostQuery;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\V1\PostResource;
@@ -28,6 +29,7 @@ class FeedController extends Controller
         FeedCursor $cursors,
         PostReactionProjection $reactions,
         MentionProjection $mentions,
+        PostShareProjection $shares,
     ): JsonResponse {
         /** @var User $viewer */
         $viewer = $request->user();
@@ -87,7 +89,7 @@ class FeedController extends Controller
         $hasMore = $posts->count() > $limit;
         $posts = $posts->take($limit)->values();
 
-        $this->addViewerState($posts, $viewer, $reactions);
+        $this->addViewerState($posts, $viewer, $reactions, $shares);
         $this->addMentionState($posts, $viewer, $mentions);
 
         $lastPost = $posts->last();
@@ -138,6 +140,7 @@ class FeedController extends Controller
         Collection $posts,
         User $viewer,
         PostReactionProjection $reactions,
+        PostShareProjection $shares,
     ): void {
         $postIds = $posts->modelKeys();
         $authorIds = $posts->pluck('user_id')->unique()->values();
@@ -158,6 +161,7 @@ class FeedController extends Controller
             ->pluck('space_id')
             ->all();
         $reactionProjection = $reactions->forPosts($posts, $viewer);
+        $shareProjection = $shares->forPosts($posts, $viewer);
 
         $posts->each(function (Post $post) use (
             $viewer,
@@ -165,6 +169,7 @@ class FeedController extends Controller
             $reportedPostIds,
             $memberSpaceIds,
             $reactionProjection,
+            $shareProjection,
         ): void {
             $post->setAttribute(
                 'author_profile_visible',
@@ -191,6 +196,8 @@ class FeedController extends Controller
                 'viewer_can_react',
                 $reactionProjection[$post->getKey()]['canReact'],
             );
+            $post->setAttribute('share', $shareProjection[$post->getKey()] ?? null);
+            $post->setAttribute('viewer_can_share', $viewer->can('share', $post));
         });
     }
 }

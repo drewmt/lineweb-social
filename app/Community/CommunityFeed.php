@@ -24,6 +24,8 @@ final class CommunityFeed
         private readonly PostReactionProjection $reactions,
         private readonly MentionProjection $mentions,
         private readonly CommentReplyProjection $replyContexts,
+        private readonly PostShareProjection $shares,
+        private readonly VisiblePostQuery $visiblePosts,
     ) {}
 
     /**
@@ -72,35 +74,26 @@ final class CommunityFeed
         ?Topic $topic = null,
         bool $highlightedOnly = false,
     ): array {
-        $hiddenActorIds = DB::table('user_relationships')
+        $hiddenCommentActorIds = DB::table('user_relationships')
             ->select('target_id')
             ->where('actor_id', $user->getKey())
             ->whereIn('type', [
                 UserRelationshipType::Mute->value,
                 UserRelationshipType::Block->value,
             ]);
-        $blockingActorIds = DB::table('user_relationships')
+        $blockingCommentActorIds = DB::table('user_relationships')
             ->select('actor_id')
             ->where('target_id', $user->getKey())
-            ->where('type', UserRelationshipType::Block);
+            ->where('type', UserRelationshipType::Block->value);
         $visibleComments = fn ($comments) => $comments
             ->whereNotNull('published_at')
             ->whereNull('hidden_at')
-            ->whereNotIn('user_id', clone $hiddenActorIds)
-            ->whereNotIn('user_id', clone $blockingActorIds);
+            ->whereNotIn('user_id', clone $hiddenCommentActorIds)
+            ->whereNotIn('user_id', clone $blockingCommentActorIds);
 
-        $query = Post::query()
-            ->whereNotNull('posts.published_at')
-            ->whereNull('posts.hidden_at')
-            ->whereNotIn('posts.user_id', clone $hiddenActorIds)
-            ->whereNotIn('posts.user_id', clone $blockingActorIds)
+        $query = $this->visiblePosts
+            ->forFeed($user, $space, $followingOnly)
             ->with([
-                'author:id,name,handle',
-                'space:id,name,slug,visibility',
-                'media',
-                'mediaItems',
-                'highlight',
-                'topics:id,name',
                 'comments' => fn ($comments) => $visibleComments($comments)
                     ->with('author:id,name,handle')
                     ->latest('published_at')
@@ -129,28 +122,10 @@ final class CommunityFeed
                 ->addSelect('posts.*');
         }
 
-        if ($followingOnly) {
-            $query->whereIn(
-                'posts.user_id',
-                DB::table('user_follows')
-                    ->select('followed_id')
-                    ->where('follower_id', $user->getKey()),
-            );
-        }
-
         if ($topic instanceof Topic) {
             $query->whereHas(
                 'topics',
                 fn (Builder $topics): Builder => $topics->whereKey($topic->getKey()),
-            );
-        }
-
-        if ($space instanceof Space) {
-            $query->whereBelongsTo($space);
-        } else {
-            $query->whereIn(
-                'posts.space_id',
-                Space::query()->discoverableBy($user)->select('id'),
             );
         }
 
@@ -170,6 +145,7 @@ final class CommunityFeed
 
         $posts = $query->limit($highlightedOnly ? 3 : 30)->get();
         $reactionProjection = $this->reactions->forPosts($posts, $user);
+        $shareProjection = $this->shares->forPosts($posts, $user);
 
         $comments = $posts->flatMap(fn (Post $post) => $post->comments);
         $replyContexts = $this->replyContexts->for($user, $comments);
@@ -236,7 +212,9 @@ final class CommunityFeed
                 'highlightedAt' => $post->highlight?->created_at->toIso8601String(),
                 'isSaved' => (bool) $post->is_saved,
                 'reactions' => $reactionProjection[$post->getKey()],
+                'share' => $shareProjection[$post->getKey()] ?? null,
                 'canComment' => in_array($post->space_id, $memberSpaceIds, true),
+                'canShare' => $user->can('share', $post),
                 'canReport' => $post->user_id !== $user->getKey(),
                 'canEdit' => $post->user_id === $user->getKey()
                     && ! in_array($post->getKey(), $lockedPostIds, true),

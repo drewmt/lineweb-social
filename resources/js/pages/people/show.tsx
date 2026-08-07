@@ -18,6 +18,11 @@ import type {
 } from '@/components/social/mention-text';
 import { PostGallery } from '@/components/social/post-image';
 import type { PostMedia } from '@/components/social/post-image';
+import {
+    PostShareAction,
+    SharedPostPreview,
+} from '@/components/social/post-share';
+import type { SharedPost } from '@/components/social/post-share';
 import { SpaceCover } from '@/components/social/space-cover';
 import { Button } from '@/components/ui/button';
 import { ProfileFollowButton } from './profile-follow-button';
@@ -62,8 +67,11 @@ type ProfilePost = {
     mediaItems: PostMedia[];
     publishedAt: string | null;
     editedAt: string | null;
+    share: SharedPost | null;
+    canShare: boolean;
     canEdit: boolean;
     canDelete: boolean;
+    author: { name: string };
     space: { name: string; slug: string };
 };
 
@@ -508,20 +516,30 @@ export default function ShowProfile({
                                                 maxLength={2000}
                                                 compact
                                             />
-                                        </header>
-                                        <p className="mt-4 text-[1.01rem] leading-7 whitespace-pre-wrap text-foreground/90">
-                                            <MentionText
-                                                body={post.body}
-                                                mentions={post.mentions}
-                                                topics={post.topics}
+                                            <PostShareAction
+                                                post={post}
+                                                compact
                                             />
-                                        </p>
+                                        </header>
+                                        {post.body !== '' && (
+                                            <p className="mt-4 text-[1.01rem] leading-7 whitespace-pre-wrap text-foreground/90">
+                                                <MentionText
+                                                    body={post.body}
+                                                    mentions={post.mentions}
+                                                    topics={post.topics}
+                                                />
+                                            </p>
+                                        )}
                                         {post.mediaItems.length > 0 && (
                                             <PostGallery
                                                 media={post.mediaItems}
                                                 className="mt-4"
                                             />
                                         )}
+                                        <SharedPostPreview
+                                            share={post.share}
+                                            className="mt-4"
+                                        />
                                     </article>
                                 ))}
                             </div>
