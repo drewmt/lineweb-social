@@ -128,6 +128,28 @@ survive without its source.
   </tr>
 </table>
 
+### Decisions without exposing individual votes
+
+Members can publish a focused poll with two to four answers and an optional
+closing window. Each member has one changeable vote, while timelines and APIs
+receive aggregate results only. Drafts stay private, published choices stay
+immutable, and the server enforces Space membership before accepting a vote.
+
+<table>
+  <tr>
+    <td width="68%">
+      <img src="docs/screenshots/post-poll-desktop.jpg" alt="Lineweb Social community poll with aggregate results on desktop" />
+    </td>
+    <td width="32%">
+      <img src="docs/screenshots/post-poll-mobile.jpg" alt="Lineweb Social community poll in the mobile app layout" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Clear aggregate results on desktop</sub></td>
+    <td align="center"><sub>Touch-friendly voting on mobile</sub></td>
+  </tr>
+</table>
+
 ### Publishing without pressure
 
 A focused composer supports accessible four-image galleries and keeps unfinished
@@ -400,20 +422,20 @@ makes the final decision.
 
 ## Feature map
 
-| Area                | Included today                                                                                                                                                                                                                               |
-| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Accounts            | Verified registration, stable handles, passkeys, two-factor authentication, strong password defaults, active-account enforcement, and one human-reviewed appeal per restriction.                                                             |
-| Profiles            | Editable member identity, headlines, real activity, public/shared/private visibility, and discovery opt-out.                                                                                                                                 |
-| Spaces              | Public/private/hidden communities, searchable directory, join/leave rules, restricted invitations, roles, ownership transfer, member removal, and bounded curated highlights.                                                                |
+| Area                | Included today                                                                                                                                                                                                                                                        |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Accounts            | Verified registration, stable handles, passkeys, two-factor authentication, strong password defaults, active-account enforcement, and one human-reviewed appeal per restriction.                                                                                      |
+| Profiles            | Editable member identity, headlines, real activity, public/shared/private visibility, and discovery opt-out.                                                                                                                                                          |
+| Spaces              | Public/private/hidden communities, searchable directory, join/leave rules, restricted invitations, roles, ownership transfer, member removal, and bounded curated highlights.                                                                                         |
 | Publishing          | Focused composer, author-only drafts, private four-image WebP galleries with per-image alt text and swipe navigation, bounded private-first polls, chronological posts, privacy-safe quote posts and reposts, comments, permanent conversations, and author controls. |
-| Discovery           | Policy-filtered search across posts, Spaces, and People; Unicode hashtags; chronological topic trails; and privacy-aware Following.                                                                                                          |
-| Interactions        | Typed Like, Celebrate, and Insightful reactions, private Saved Posts, follows, mentions, one-level direct replies, same-Space quote/repost actions, comments, copy links, and conversation shortcuts.                              |
-| Messaging           | Canonical one-to-one conversations, participant-only history, unread state, block-aware delivery, and responsive inbox/thread views.                                                                                                         |
-| Trust and safety    | Mute, mutual block, Safety recovery, post/comment reporting, Space moderation queues, Direct Message reporting, and audited decisions.                                                                                                       |
-| Notifications       | Database-backed replies, mentions, and moderation alerts with per-category preferences, destination access revalidation, and opt-in privacy-safe daily email digests.                                                                        |
-| Platform operations | Dedicated responsive control center, console-granted administrators, focused member, appeals, and private-safety queues, transactional suspension/reinstatement, session and API-token revocation, and searchable append-only audit history. |
-| Data rights         | Password-confirmed personal JSON export and self-service deletion with active-community ownership safeguards.                                                                                                                                |
-| Developer surface   | Contract-first bearer API, scoped expiring Sanctum tokens, domain events, OpenAPI draft, allowlisted extension providers, checksum-owned migrations, and immutable SRI-backed CSS/ES-module releases.                                    |
+| Discovery           | Policy-filtered search across posts, Spaces, and People; Unicode hashtags; chronological topic trails; and privacy-aware Following.                                                                                                                                   |
+| Interactions        | Typed Like, Celebrate, and Insightful reactions, private Saved Posts, follows, mentions, one-level direct replies, same-Space quote/repost actions, comments, copy links, and conversation shortcuts.                                                                 |
+| Messaging           | Canonical one-to-one conversations, participant-only history, unread state, block-aware delivery, and responsive inbox/thread views.                                                                                                                                  |
+| Trust and safety    | Mute, mutual block, Safety recovery, post/comment reporting, Space moderation queues, Direct Message reporting, and audited decisions.                                                                                                                                |
+| Notifications       | Database-backed replies, mentions, and moderation alerts with per-category preferences, destination access revalidation, and opt-in privacy-safe daily email digests.                                                                                                 |
+| Platform operations | Dedicated responsive control center, console-granted administrators, focused member, appeals, and private-safety queues, transactional suspension/reinstatement, session and API-token revocation, and searchable append-only audit history.                          |
+| Data rights         | Password-confirmed personal JSON export and self-service deletion with active-community ownership safeguards.                                                                                                                                                         |
+| Developer surface   | Contract-first bearer API, scoped expiring Sanctum tokens, domain events, OpenAPI draft, allowlisted extension providers, checksum-owned migrations, and immutable SRI-backed CSS/ES-module releases.                                                                 |
 
 ## Product principles
 
@@ -523,7 +545,7 @@ only code structure.
 | Platform boundaries and extension direction      | [`docs/platform-architecture.md`](docs/platform-architecture.md)                     |
 | Extension manifests and compatibility inspection | [`docs/extensions.md`](docs/extensions.md)                                           |
 | Extension migration ownership and rollback       | [`docs/extension-migrations.md`](docs/extension-migrations.md)                       |
-| Extension browser assets and integrity            | [`docs/extension-assets.md`](docs/extension-assets.md)                               |
+| Extension browser assets and integrity           | [`docs/extension-assets.md`](docs/extension-assets.md)                               |
 | Authenticated API and machine-readable draft     | [`docs/api-v1.md`](docs/api-v1.md) · [`docs/openapi.json`](docs/openapi.json)        |
 | Direct Messages                                  | [`docs/direct-messages.md`](docs/direct-messages.md)                                 |
 | Chronological comments and direct replies        | [`docs/conversations.md`](docs/conversations.md)                                     |
