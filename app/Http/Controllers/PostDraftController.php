@@ -6,6 +6,8 @@ use App\Community\ManagePostDrafts;
 use App\Community\PostMediaView;
 use App\Http\Requests\SavePostDraftRequest;
 use App\Models\Post;
+use App\Models\PostPoll;
+use App\Models\PostPollOption;
 use App\Models\Space;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -24,7 +26,7 @@ class PostDraftController extends Controller
         $drafts = $user->posts()
             ->whereNull('published_at')
             ->whereNull('hidden_at')
-            ->with(['space:id,name,slug,visibility', 'media', 'mediaItems'])
+            ->with(['space:id,name,slug,visibility', 'media', 'mediaItems', 'poll.options'])
             ->latest('updated_at')
             ->latest('id')
             ->limit(ManagePostDrafts::MAX_DRAFTS_PER_MEMBER)
@@ -69,6 +71,7 @@ class PostDraftController extends Controller
             $request->string('body')->toString(),
             $request->galleryUploads(),
             $request->galleryAltTexts(),
+            $request->pollDefinition(),
         );
 
         return to_route('drafts.edit', $draft)->with('status', 'Draft saved privately.');
@@ -90,7 +93,7 @@ class PostDraftController extends Controller
         return Inertia::render('compose/index', [
             'spaces' => $this->spaceViews($spaces),
             'selectedSpace' => $selectedSpace,
-            'draft' => $this->draftView($post->load(['media', 'mediaItems']), $media),
+            'draft' => $this->draftView($post->load(['media', 'mediaItems', 'poll.options']), $media),
         ]);
     }
 
@@ -109,6 +112,7 @@ class PostDraftController extends Controller
             $request->galleryUploads(),
             $request->galleryAltTexts(),
             $request->retainedMediaAltTexts($post),
+            $request->pollDefinition(),
         );
 
         return back()->with('status', 'Draft updated privately.');
@@ -129,6 +133,7 @@ class PostDraftController extends Controller
             $request->galleryUploads(),
             $request->galleryAltTexts(),
             $request->retainedMediaAltTexts($post),
+            $request->pollDefinition(),
         );
 
         return to_route('posts.show', $published)->with('status', 'Post published.');
@@ -172,12 +177,14 @@ class PostDraftController extends Controller
     }
 
     /**
-     * @return array{id: int, body: string, updatedAt: string, editUrl: string, space: array{name: string, slug: string}, media: array{url: string, alt: string, width: int, height: int}|null, mediaItems: list<array{id: int, url: string, alt: string, width: int, height: int}>}
+     * @return array{id: int, body: string, updatedAt: string, editUrl: string, space: array{name: string, slug: string}, media: array{url: string, alt: string, width: int, height: int}|null, mediaItems: list<array{id: int, url: string, alt: string, width: int, height: int}>, poll: array{question: string, options: list<string>, duration: int|null}|null}
      */
     private function draftView(Post $draft, PostMediaView $media): array
     {
+        $poll = $draft->poll;
+
         return [
-            'id' => $draft->getKey(),
+            'id' => $draft->id,
             'body' => $draft->body,
             'updatedAt' => $draft->updated_at?->toIso8601String() ?? now()->toIso8601String(),
             'editUrl' => route('drafts.edit', $draft),
@@ -187,6 +194,14 @@ class PostDraftController extends Controller
             ],
             'media' => $media->for($draft),
             'mediaItems' => $media->galleryFor($draft),
+            'poll' => ! $poll instanceof PostPoll ? null : [
+                'question' => $poll->question,
+                'options' => array_values(array_map(
+                    static fn (PostPollOption $option): string => $option->label,
+                    $poll->options->all(),
+                )),
+                'duration' => $poll->closes_after_days,
+            ],
         ];
     }
 

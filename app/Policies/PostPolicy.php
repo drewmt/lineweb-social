@@ -9,7 +9,9 @@ class PostPolicy
 {
     public function view(User $user, Post $post): bool
     {
-        if ($post->body === '' && $post->shared_post_id === null) {
+        if ($post->body === ''
+            && $post->shared_post_id === null
+            && $post->poll === null) {
             return false;
         }
 
@@ -60,15 +62,27 @@ class PostPolicy
     public function share(User $user, Post $post): bool
     {
         return $post->shared_post_id === null
+            && $post->poll === null
             && $post->published_at !== null
             && $post->hidden_at === null
             && $this->view($user, $post)
             && $user->can('createPost', $post->space);
     }
 
+    public function votePoll(User $user, Post $post): bool
+    {
+        return $post->poll !== null
+            && ! $post->poll->isClosed()
+            && $post->published_at !== null
+            && $post->hidden_at === null
+            && $this->view($user, $post)
+            && $post->space->hasMember($user);
+    }
+
     public function update(User $user, Post $post): bool
     {
-        return $post->user_id === $user->getKey()
+        return $post->poll === null
+            && $post->user_id === $user->getKey()
             && $post->published_at !== null
             && $post->hidden_at === null;
     }

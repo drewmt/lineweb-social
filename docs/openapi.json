@@ -1390,6 +1390,7 @@
           "media_items",
           "comments_count",
           "reactions",
+          "poll",
           "author",
           "space",
           "viewer"
@@ -1501,6 +1502,16 @@
                 }
               }
             }
+          },
+          "poll": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PostPoll"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "author": {
             "$ref": "#/components/schemas/ProfileSummary"
@@ -1633,6 +1644,97 @@
                 }
               }
             }
+          }
+        }
+      },
+      "PostPoll": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "question",
+          "options",
+          "total_votes",
+          "viewer_option_id",
+          "can_vote",
+          "is_closed",
+          "closes_at",
+          "show_results"
+        ],
+        "properties": {
+          "question": {
+            "type": "string",
+            "maxLength": 180
+          },
+          "options": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 4,
+            "items": {
+              "$ref": "#/components/schemas/PostPollOption"
+            }
+          },
+          "total_votes": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "viewer_option_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "can_vote": {
+            "type": "boolean"
+          },
+          "is_closed": {
+            "type": "boolean"
+          },
+          "closes_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "show_results": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PostPollOption": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "label",
+          "votes",
+          "percentage"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "votes": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "percentage": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 100
           }
         }
       },

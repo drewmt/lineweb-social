@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Http\Requests\Concerns\HandlesPostGalleryUploads;
+use App\Http\Requests\Concerns\HandlesPostPoll;
 use App\Models\Space;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
@@ -10,6 +11,7 @@ use Illuminate\Validation\Validator;
 class StorePostRequest extends FormRequest
 {
     use HandlesPostGalleryUploads;
+    use HandlesPostPoll;
 
     public function authorize(): bool
     {
@@ -23,8 +25,9 @@ class StorePostRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'body' => ['required', 'string', 'max:2000'],
+            'body' => ['nullable', 'string', 'max:2000'],
             ...$this->galleryUploadRules(),
+            ...$this->postPollRules(),
         ];
     }
 
@@ -32,7 +35,6 @@ class StorePostRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'body.required' => 'Write something before publishing.',
             'body.max' => 'Posts can be up to 2,000 characters.',
             ...$this->galleryUploadMessages(),
         ];
@@ -42,13 +44,20 @@ class StorePostRequest extends FormRequest
     public function after(): array
     {
         return [
-            fn (Validator $validator) => $this->validateGalleryUploads($validator),
+            function (Validator $validator): void {
+                $this->validateGalleryUploads($validator);
+                $this->validatePostPoll(
+                    $validator,
+                    'Write something or add a poll before publishing.',
+                );
+            },
         ];
     }
 
     protected function prepareForValidation(): void
     {
         $this->prepareGalleryForValidation();
+        $this->preparePostPollForValidation();
         $this->merge([
             'body' => trim((string) $this->input('body')),
         ]);

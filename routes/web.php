@@ -22,6 +22,7 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\PostDraftController;
 use App\Http\Controllers\PostHighlightController;
 use App\Http\Controllers\PostImageController;
+use App\Http\Controllers\PostPollVoteController;
 use App\Http\Controllers\PostReactionController;
 use App\Http\Controllers\PostReportController;
 use App\Http\Controllers\PostReportModerationController;
@@ -215,6 +216,9 @@ Route::middleware(['auth', 'account.active', 'verified'])->group(function () {
     Route::delete('posts/{post}/reaction', [PostReactionController::class, 'destroy'])
         ->middleware('throttle:post-reacting')
         ->name('posts.reactions.destroy');
+    Route::put('posts/{post}/poll-vote', [PostPollVoteController::class, 'store'])
+        ->middleware('throttle:post-poll-voting')
+        ->name('posts.poll-votes.store');
     Route::post('posts/{post}/comments', [CommentController::class, 'store'])
         ->middleware('throttle:comment-publishing')
         ->name('posts.comments.store');

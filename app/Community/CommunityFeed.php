@@ -3,6 +3,7 @@
 namespace App\Community;
 
 use App\Community\Mentions\MentionProjection;
+use App\Community\Polls\PostPollProjection;
 use App\Enums\ReportStatus;
 use App\Enums\SpaceRole;
 use App\Enums\UserRelationshipType;
@@ -26,6 +27,7 @@ final class CommunityFeed
         private readonly CommentReplyProjection $replyContexts,
         private readonly PostShareProjection $shares,
         private readonly VisiblePostQuery $visiblePosts,
+        private readonly PostPollProjection $polls,
     ) {}
 
     /**
@@ -146,6 +148,7 @@ final class CommunityFeed
         $posts = $query->limit($highlightedOnly ? 3 : 30)->get();
         $reactionProjection = $this->reactions->forPosts($posts, $user);
         $shareProjection = $this->shares->forPosts($posts, $user);
+        $pollProjection = $this->polls->forPosts($posts, $user);
 
         $comments = $posts->flatMap(fn (Post $post) => $post->comments);
         $replyContexts = $this->replyContexts->for($user, $comments);
@@ -213,12 +216,16 @@ final class CommunityFeed
                 'isSaved' => (bool) $post->is_saved,
                 'reactions' => $reactionProjection[$post->getKey()],
                 'share' => $shareProjection[$post->getKey()] ?? null,
+                'poll' => $pollProjection[$post->getKey()] ?? null,
                 'canComment' => in_array($post->space_id, $memberSpaceIds, true),
-                'canShare' => $user->can('share', $post),
+                'canShare' => ! isset($pollProjection[$post->getKey()])
+                    && $user->can('share', $post),
                 'canReport' => $post->user_id !== $user->getKey(),
                 'canEdit' => $post->user_id === $user->getKey()
+                    && ! isset($pollProjection[$post->getKey()])
                     && ! in_array($post->getKey(), $lockedPostIds, true),
-                'canDelete' => $post->user_id === $user->getKey()
+                'canDelete' => ! isset($pollProjection[$post->getKey()])
+                    && $post->user_id === $user->getKey()
                     && ! in_array($post->getKey(), $lockedPostIds, true),
                 'hasReported' => in_array($post->getKey(), $reportedPostIds, true),
                 'commentsCount' => (int) $post->comments_count,

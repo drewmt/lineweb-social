@@ -153,7 +153,7 @@ class PostApiTest extends TestCase
             ->assertContent($secondMediaContents);
 
         $this->assertSame(
-            ['id', 'body', 'mentions', 'topics', 'published_at', 'edited_at', 'highlighted_at', 'share', 'media', 'media_items', 'comments_count', 'reactions', 'author', 'space', 'viewer'],
+            ['id', 'body', 'mentions', 'topics', 'published_at', 'edited_at', 'highlighted_at', 'share', 'media', 'media_items', 'comments_count', 'reactions', 'poll', 'author', 'space', 'viewer'],
             array_keys($response->json('data')),
         );
         $this->assertSame(

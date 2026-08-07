@@ -1,6 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import {
     ArrowRight,
+    BarChart3,
     FileText,
     Image as ImageIcon,
     LockKeyhole,
@@ -28,6 +29,11 @@ type Draft = {
     space: { name: string; slug: string };
     media: PostMedia | null;
     mediaItems: PostMedia[];
+    poll: {
+        question: string;
+        options: string[];
+        duration: number | null;
+    } | null;
 };
 
 type DraftsProps = {
@@ -175,12 +181,38 @@ export default function Drafts({ drafts, limit, status }: DraftsProps) {
                                             Private
                                         </span>
                                     </div>
-                                    <Link
-                                        href={draft.editUrl}
-                                        className="social-focus mt-4 line-clamp-4 rounded-lg text-base leading-7 font-semibold tracking-[-0.01em] hover:text-primary"
-                                    >
-                                        {draft.body}
-                                    </Link>
+                                    {draft.body !== '' && (
+                                        <Link
+                                            href={draft.editUrl}
+                                            className="social-focus mt-4 line-clamp-4 rounded-lg text-base leading-7 font-semibold tracking-[-0.01em] hover:text-primary"
+                                        >
+                                            {draft.body}
+                                        </Link>
+                                    )}
+                                    {draft.poll && (
+                                        <Link
+                                            href={draft.editUrl}
+                                            className="social-focus mt-4 rounded-xl border border-primary/15 bg-primary/6 px-3.5 py-3 text-left transition-colors hover:bg-primary/10"
+                                        >
+                                            <span className="flex items-center gap-1.5 text-[0.66rem] font-extrabold tracking-[0.1em] text-primary uppercase">
+                                                <BarChart3
+                                                    className="size-3.5"
+                                                    aria-hidden="true"
+                                                />
+                                                Community poll
+                                            </span>
+                                            <span className="mt-1.5 line-clamp-2 block text-sm leading-5 font-extrabold">
+                                                {draft.poll.question}
+                                            </span>
+                                            <span className="mt-2 block text-xs font-semibold text-muted-foreground">
+                                                {draft.poll.options.length}{' '}
+                                                answers ·{' '}
+                                                {draft.poll.duration === null
+                                                    ? 'No closing date'
+                                                    : `${draft.poll.duration}-day close`}
+                                            </span>
+                                        </Link>
+                                    )}
                                     <div className="mt-auto flex items-center justify-between gap-3 pt-5">
                                         <Button
                                             type="button"

@@ -16,6 +16,10 @@ All notable project changes will be documented here.
   re-evaluate source visibility on every web/API read. Hidden, blocked, and
   deleted originals never leak through a share; quotes retain only the sharing
   member's own note while empty reposts disappear.
+- Privacy-safe post polls with two to four distinct options, optional 1/3/7-day
+  closing windows, a single changeable member vote, draft support, immutable
+  published poll content, aggregate-only result projections, and member-only
+  voting enforced at the server boundary.
 - Bounded extension CSS/ES-module declarations, deterministic immutable asset
   releases, atomic private publication receipts, explicit deploy-time
   publication, source/public SHA-256 verification, SRI-backed runtime loading,

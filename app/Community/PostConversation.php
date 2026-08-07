@@ -3,6 +3,7 @@
 namespace App\Community;
 
 use App\Community\Mentions\MentionProjection;
+use App\Community\Polls\PostPollProjection;
 use App\Enums\ReportStatus;
 use App\Models\Comment;
 use App\Models\CommentReport;
@@ -25,6 +26,7 @@ final class PostConversation
         private readonly VisibleCommentQuery $visibleComments,
         private readonly CommentReplyProjection $replyContexts,
         private readonly PostShareProjection $shares,
+        private readonly PostPollProjection $polls,
     ) {}
 
     /**
@@ -60,6 +62,10 @@ final class PostConversation
             $viewer,
         );
         $shareProjection = $this->shares->forPosts(
+            new Collection([$post]),
+            $viewer,
+        );
+        $pollProjection = $this->polls->forPosts(
             new Collection([$post]),
             $viewer,
         );
@@ -153,10 +159,14 @@ final class PostConversation
                 'isSaved' => (bool) $post->is_saved,
                 'reactions' => $reactionProjection[$post->getKey()],
                 'share' => $shareProjection[$post->getKey()] ?? null,
+                'poll' => $pollProjection[$post->getKey()] ?? null,
                 'canComment' => $viewer->can('comment', $post),
-                'canShare' => $viewer->can('share', $post),
+                'canShare' => ! isset($pollProjection[$post->getKey()])
+                    && $viewer->can('share', $post),
                 'canReport' => $viewer->can('report', $post),
-                'canEdit' => $viewer->can('update', $post) && ! $postIsLocked,
+                'canEdit' => $viewer->can('update', $post)
+                    && ! isset($pollProjection[$post->getKey()])
+                    && ! $postIsLocked,
                 'canDelete' => $viewer->can('delete', $post) && ! $postIsLocked,
                 'hasReported' => PostReport::query()
                     ->where('post_id', $post->getKey())

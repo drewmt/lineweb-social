@@ -29,6 +29,7 @@ use Illuminate\Support\Carbon;
  * @property-read PostMedia|null $media
  * @property-read Collection<int, PostMedia> $mediaItems
  * @property-read SpacePostHighlight|null $highlight
+ * @property-read PostPoll|null $poll
  * @property-read int $is_saved
  */
 class Post extends Model
@@ -143,5 +144,11 @@ class Post extends Model
     public function highlight(): HasOne
     {
         return $this->hasOne(SpacePostHighlight::class);
+    }
+
+    /** @return HasOne<PostPoll, $this> */
+    public function poll(): HasOne
+    {
+        return $this->hasOne(PostPoll::class);
     }
 }

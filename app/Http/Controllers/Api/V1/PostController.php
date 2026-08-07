@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Community\Mentions\MentionProjection;
+use App\Community\Polls\PostPollProjection;
 use App\Community\PostReactionProjection;
 use App\Community\PostShareProjection;
 use App\Community\VisiblePostQuery;
@@ -25,6 +26,7 @@ class PostController extends Controller
         PostReactionProjection $reactions,
         MentionProjection $mentions,
         PostShareProjection $shares,
+        PostPollProjection $polls,
     ): JsonResponse {
         /** @var User $viewer */
         $viewer = $request->user();
@@ -33,7 +35,13 @@ class PostController extends Controller
             ->whereKey($post)
             ->firstOrFail();
 
-        $this->addViewerState(new Collection([$postModel]), $viewer, $reactions, $shares);
+        $this->addViewerState(
+            new Collection([$postModel]),
+            $viewer,
+            $reactions,
+            $shares,
+            $polls,
+        );
         $resolvedMentions = $mentions->resolve($viewer, [$postModel->body]);
         $postModel->setAttribute(
             'content_mentions',
@@ -51,6 +59,7 @@ class PostController extends Controller
         User $viewer,
         PostReactionProjection $reactions,
         PostShareProjection $shares,
+        PostPollProjection $polls,
     ): void {
         $postIds = $posts->modelKeys();
         $authorIds = $posts->pluck('user_id')->unique()->values();
@@ -72,6 +81,7 @@ class PostController extends Controller
             ->all();
         $reactionProjection = $reactions->forPosts($posts, $viewer);
         $shareProjection = $shares->forPosts($posts, $viewer);
+        $pollProjection = $polls->forPosts($posts, $viewer);
 
         $posts->each(function (Post $post) use (
             $viewer,
@@ -80,6 +90,7 @@ class PostController extends Controller
             $memberSpaceIds,
             $reactionProjection,
             $shareProjection,
+            $pollProjection,
         ): void {
             $post->setAttribute(
                 'author_profile_visible',
@@ -107,7 +118,12 @@ class PostController extends Controller
                 $reactionProjection[$post->getKey()]['canReact'],
             );
             $post->setAttribute('share', $shareProjection[$post->getKey()] ?? null);
-            $post->setAttribute('viewer_can_share', $viewer->can('share', $post));
+            $post->setAttribute(
+                'viewer_can_share',
+                ! isset($pollProjection[$post->getKey()])
+                    && $viewer->can('share', $post),
+            );
+            $post->setAttribute('poll_summary', $pollProjection[$post->getKey()] ?? null);
         });
     }
 }
