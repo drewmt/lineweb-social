@@ -3,20 +3,19 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Api\V1\PostCommentCursor;
+use App\Community\CommentReplyProjection;
 use App\Community\Mentions\MentionProjection;
+use App\Community\VisibleCommentQuery;
 use App\Community\VisiblePostQuery;
-use App\Enums\UserRelationshipType;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\V1\CommentResource;
 use App\Models\Comment;
 use App\Models\CommentReport;
-use App\Models\Post;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class PostCommentController extends Controller
 {
@@ -26,6 +25,8 @@ class PostCommentController extends Controller
         VisiblePostQuery $visiblePosts,
         PostCommentCursor $cursorFactory,
         MentionProjection $mentions,
+        VisibleCommentQuery $visibleComments,
+        CommentReplyProjection $replyContexts,
     ): JsonResponse {
         /** @var User $viewer */
         $viewer = $request->user();
@@ -40,7 +41,7 @@ class PostCommentController extends Controller
             ->firstOrFail();
         $limit = (int) ($validated['limit'] ?? 20);
 
-        $query = $this->visibleComments($viewer, $postModel);
+        $query = $visibleComments->forPost($viewer, $postModel);
 
         if (isset($validated['cursor'])) {
             $cursor = $cursorFactory->decode($validated['cursor'], $viewer, $postModel);
@@ -66,6 +67,7 @@ class PostCommentController extends Controller
 
         $hasMore = $comments->count() > $limit;
         $comments = $comments->take($limit)->values();
+        $resolvedReplyContexts = $replyContexts->for($viewer, $comments);
 
         /** @var list<int> $reportedCommentIds */
         $reportedCommentIds = CommentReport::query()
@@ -86,6 +88,12 @@ class PostCommentController extends Controller
         $comments->each(fn (Comment $comment) => $comment->setAttribute(
             'content_mentions',
             $mentions->forBody($comment->body, $resolvedMentions),
+        ));
+        $comments->each(fn (Comment $comment) => $comment->setAttribute(
+            'reply_to',
+            $comment->parent_id !== null
+                ? ($resolvedReplyContexts[$comment->getKey()] ?? null)
+                : null,
         ));
 
         $lastComment = $comments->last();
@@ -142,28 +150,5 @@ class PostCommentController extends Controller
                 in_array($comment->user_id, $visibleAuthorIds, true),
             );
         });
-    }
-
-    /** @return Builder<Comment> */
-    private function visibleComments(User $viewer, Post $post): Builder
-    {
-        $hiddenActorIds = DB::table('user_relationships')
-            ->select('target_id')
-            ->where('actor_id', $viewer->getKey())
-            ->whereIn('type', [
-                UserRelationshipType::Mute->value,
-                UserRelationshipType::Block->value,
-            ]);
-        $blockingActorIds = DB::table('user_relationships')
-            ->select('actor_id')
-            ->where('target_id', $viewer->getKey())
-            ->where('type', UserRelationshipType::Block->value);
-
-        return Comment::query()
-            ->whereBelongsTo($post)
-            ->whereNotNull('published_at')
-            ->whereNull('hidden_at')
-            ->whereNotIn('user_id', $hiddenActorIds)
-            ->whereNotIn('user_id', $blockingActorIds);
     }
 }

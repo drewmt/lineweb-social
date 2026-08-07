@@ -6,6 +6,11 @@ All notable project changes will be documented here.
 
 ### Added
 
+- One-level direct comment replies with transactional same-post/root-only
+  enforcement, flat chronological pagination, safe parent identity projections,
+  parent-author notifications, mention deduplication, moderation isolation,
+  parent-deletion survival, responsive reply composition, and additive API
+  documentation.
 - Bounded extension CSS/ES-module declarations, deterministic immutable asset
   releases, atomic private publication receipts, explicit deploy-time
   publication, source/public SHA-256 verification, SRI-backed runtime loading,
@@ -119,6 +124,8 @@ All notable project changes will be documented here.
 
 ### Changed
 
+- Updated Guzzle, its promise library, PostCSS, and brace expansion lockfile
+  resolutions to releases without the advisories current at validation time.
 - Mobile publishing now opens a full-screen app-like workspace with persistent
   draft and publish actions, while desktop keeps a focused writing surface and
   clear privacy context.

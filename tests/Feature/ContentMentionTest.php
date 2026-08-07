@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Comment;
 use App\Models\Post;
 use App\Models\Space;
 use App\Models\User;
@@ -148,6 +149,60 @@ class ContentMentionTest extends TestCase
             ->assertRedirect();
 
         $this->assertDatabaseCount('notifications', 1);
+    }
+
+    public function test_direct_reply_mentions_are_deduplicated_with_a_preference_aware_fallback(): void
+    {
+        $postAuthor = User::factory()->create();
+        $parentAuthor = User::factory()->create(['handle' => 'parent-author']);
+        $replyAuthor = User::factory()->create();
+        $space = Space::factory()->for($postAuthor, 'owner')->create();
+        $space->addMember($parentAuthor);
+        $space->addMember($replyAuthor);
+        $post = Post::factory()->for($space)->for($postAuthor, 'author')->create();
+        $firstParent = Comment::factory()->for($post)->for($parentAuthor, 'author')->create();
+
+        $this->actingAs($replyAuthor)
+            ->post(route('posts.comments.store', $post), [
+                'body' => 'Thanks @parent-author.',
+                'parent_id' => $firstParent->getKey(),
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseCount('notifications', 1);
+        $this->assertDatabaseHas('notifications', [
+            'notifiable_id' => $parentAuthor->getKey(),
+            'type' => 'comment_reply',
+        ]);
+        $this->assertDatabaseMissing('notifications', [
+            'notifiable_id' => $parentAuthor->getKey(),
+            'type' => 'content_mention',
+        ]);
+
+        DatabaseNotification::query()->delete();
+        $parentAuthor->notificationPreference()->create([
+            'comment_replies' => false,
+            'content_mentions' => true,
+            'space_moderation' => true,
+        ]);
+        $secondParent = Comment::factory()->for($post)->for($parentAuthor, 'author')->create();
+
+        $this->actingAs($replyAuthor)
+            ->post(route('posts.comments.store', $post), [
+                'body' => 'A mention fallback for @parent-author.',
+                'parent_id' => $secondParent->getKey(),
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseCount('notifications', 1);
+        $this->assertDatabaseHas('notifications', [
+            'notifiable_id' => $parentAuthor->getKey(),
+            'type' => 'content_mention',
+        ]);
+        $this->assertDatabaseMissing('notifications', [
+            'notifiable_id' => $parentAuthor->getKey(),
+            'type' => 'comment_reply',
+        ]);
     }
 
     public function test_a_mention_notification_becomes_unavailable_after_access_is_revoked(): void

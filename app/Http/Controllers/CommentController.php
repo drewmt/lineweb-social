@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Community\ManageAuthoredContent;
+use App\Community\PublishComment;
 use App\Events\CommentPublished;
 use App\Http\Requests\StoreCommentRequest;
 use App\Http\Requests\UpdateCommentRequest;
@@ -15,13 +16,22 @@ use Illuminate\Support\Facades\Gate;
 
 class CommentController extends Controller
 {
-    public function store(StoreCommentRequest $request, Post $post): RedirectResponse
-    {
-        $comment = $post->comments()->create([
-            'user_id' => $request->user()->getKey(),
-            'body' => $request->string('body')->toString(),
-            'published_at' => now(),
-        ]);
+    public function store(
+        StoreCommentRequest $request,
+        Post $post,
+        PublishComment $comments,
+    ): RedirectResponse {
+        /** @var User $user */
+        $user = $request->user();
+        $parentId = $request->filled('parent_id')
+            ? $request->integer('parent_id')
+            : null;
+        $comment = $comments->create(
+            $user,
+            $post,
+            $request->string('body')->toString(),
+            $parentId,
+        );
 
         CommentPublished::dispatch($comment);
 

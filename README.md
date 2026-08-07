@@ -61,7 +61,8 @@ repository.
 ### Community home
 
 A responsive, chronological experience with clear publishing, conversation,
-relationship, and navigation paths.
+relationship, and navigation paths. Direct replies add human context without
+recursive thread depth or changing the timeline's deterministic order.
 
 <table>
   <tr>
@@ -75,6 +76,32 @@ relationship, and navigation paths.
   <tr>
     <td align="center"><sub>Focused desktop timeline</sub></td>
     <td align="center"><sub>App-first mobile feed</sub></td>
+  </tr>
+</table>
+
+### Threaded conversations without the maze
+
+Members can reply directly to a top-level comment while the conversation stays
+chronological and easy to scan. A focused reply composer, clear parent identity,
+recipient-aware notifications, and a strict one-level boundary provide useful
+context without recursive thread depth.
+
+<table>
+  <tr>
+    <td width="58%">
+      <img src="docs/screenshots/threaded-replies-desktop.jpg" alt="Lineweb Social one-level threaded conversation on desktop" />
+    </td>
+    <td width="21%">
+      <img src="docs/screenshots/threaded-replies-mobile.jpg" alt="Lineweb Social one-level threaded conversation on mobile" />
+    </td>
+    <td width="21%">
+      <img src="docs/screenshots/threaded-reply-composer-mobile.jpg" alt="Lineweb Social focused mobile reply composer" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Chronological context on desktop</sub></td>
+    <td align="center"><sub>Readable one-level replies on mobile</sub></td>
+    <td align="center"><sub>Focused mobile reply composer</sub></td>
   </tr>
 </table>
 
@@ -357,7 +384,7 @@ makes the final decision.
 | Spaces              | Public/private/hidden communities, searchable directory, join/leave rules, restricted invitations, roles, ownership transfer, member removal, and bounded curated highlights.                                                                |
 | Publishing          | Focused composer, author-only drafts, private four-image WebP galleries with per-image alt text and swipe navigation, chronological posts, comments, permanent conversations, and author controls.                                           |
 | Discovery           | Policy-filtered search across posts, Spaces, and People; Unicode hashtags; chronological topic trails; and privacy-aware Following.                                                                                                          |
-| Interactions        | Typed Like, Celebrate, and Insightful reactions, private Saved Posts, follows, mentions, comments, copy links, and conversation shortcuts.                                                                                                   |
+| Interactions        | Typed Like, Celebrate, and Insightful reactions, private Saved Posts, follows, mentions, one-level direct replies, comments, copy links, and conversation shortcuts.                                                                          |
 | Messaging           | Canonical one-to-one conversations, participant-only history, unread state, block-aware delivery, and responsive inbox/thread views.                                                                                                         |
 | Trust and safety    | Mute, mutual block, Safety recovery, post/comment reporting, Space moderation queues, Direct Message reporting, and audited decisions.                                                                                                       |
 | Notifications       | Database-backed replies, mentions, and moderation alerts with per-category preferences, destination access revalidation, and opt-in privacy-safe daily email digests.                                                                        |
@@ -476,6 +503,7 @@ only code structure.
 | Extension browser assets and integrity            | [`docs/extension-assets.md`](docs/extension-assets.md)                               |
 | Authenticated API and machine-readable draft     | [`docs/api-v1.md`](docs/api-v1.md) · [`docs/openapi.json`](docs/openapi.json)        |
 | Direct Messages                                  | [`docs/direct-messages.md`](docs/direct-messages.md)                                 |
+| Chronological comments and direct replies        | [`docs/conversations.md`](docs/conversations.md)                                     |
 | Private message reporting and evidence retention | [`docs/message-reporting.md`](docs/message-reporting.md)                             |
 | Post/comment moderation and domain events        | [`docs/moderation.md`](docs/moderation.md)                                           |
 | Notification privacy and delivery categories     | [`docs/notifications.md`](docs/notifications.md)                                     |

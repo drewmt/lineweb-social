@@ -15,6 +15,12 @@ This contract is pre-release and may receive additive changes before the first t
    is open or under review. This prevents content or evidence from changing
    during an active moderation decision.
 
+One-level replies remain independent comment records. Hiding or reviewing a
+parent does not automatically hide another member's reply, and deleting a
+parent promotes surviving replies to top-level comments by clearing their
+foreign key. The public reply projection omits parent identity whenever that
+parent is no longer visible to the current viewer.
+
 Current states are `open`, `reviewing`, `resolved`, and `dismissed`. Current moderator actions are `review`, `hide`, `dismiss`, and `reopen`.
 
 ## Domain events

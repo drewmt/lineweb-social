@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Enums\ReportReason;
 use App\Enums\SpaceRole;
+use App\Events\CommentPublished;
+use App\Listeners\NotifyCommentRecipient;
 use App\Models\Comment;
 use App\Models\Post;
 use App\Models\Space;
@@ -93,6 +95,58 @@ class NotificationCenterTest extends TestCase
         $this->actingAs($commenter)
             ->post(route('posts.comments.store', $quietPost), ['body' => 'Preference-disabled reply.'])
             ->assertRedirect();
+
+        $this->assertDatabaseCount('notifications', 0);
+    }
+
+    public function test_direct_reply_notifies_the_parent_author_instead_of_the_post_author(): void
+    {
+        $postAuthor = User::factory()->create();
+        $parentAuthor = User::factory()->create();
+        $replyAuthor = User::factory()->create(['name' => 'Helpful Member']);
+        $space = Space::factory()->for($postAuthor, 'owner')->create(['name' => 'Builders']);
+        $space->addMember($parentAuthor);
+        $space->addMember($replyAuthor);
+        $post = Post::factory()->for($space)->for($postAuthor, 'author')->create();
+        $parent = Comment::factory()->for($post)->for($parentAuthor, 'author')->create();
+
+        $this->actingAs($replyAuthor)
+            ->post(route('posts.comments.store', $post), [
+                'body' => 'A direct response.',
+                'parent_id' => $parent->getKey(),
+            ])
+            ->assertRedirect();
+
+        $notification = DatabaseNotification::query()->sole();
+        $this->assertSame($parentAuthor->getKey(), $notification->notifiable_id);
+        $this->assertSame($parent->getKey(), $notification->data['reply_to_comment_id']);
+        $this->assertDatabaseMissing('notifications', ['notifiable_id' => $postAuthor->getKey()]);
+
+        $this->actingAs($parentAuthor)
+            ->get(route('notifications.index'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('items.0.title', 'Helpful Member replied to your comment')
+                ->where('items.0.description', 'Open the conversation in Builders.'));
+    }
+
+    public function test_parent_deletion_before_notification_delivery_does_not_notify_the_post_author(): void
+    {
+        $postAuthor = User::factory()->create();
+        $parentAuthor = User::factory()->create();
+        $replyAuthor = User::factory()->create();
+        $post = Post::factory()->for($postAuthor, 'author')->create();
+        $parent = Comment::factory()->for($post)->for($parentAuthor, 'author')->create();
+        $reply = Comment::factory()->for($post)->for($replyAuthor, 'author')->create([
+            'parent_id' => $parent->getKey(),
+        ]);
+        $staleReply = Comment::query()->findOrFail($reply->getKey());
+
+        $parent->delete();
+
+        $this->assertNull(Comment::query()->findOrFail($reply->getKey())->parent_id);
+
+        app(NotifyCommentRecipient::class)->handle(new CommentPublished($staleReply));
 
         $this->assertDatabaseCount('notifications', 0);
     }

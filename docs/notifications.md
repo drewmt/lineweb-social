@@ -1,7 +1,8 @@
 # Notifications
 
 The notification core is intentionally calm and useful. It alerts a member
-when another member replies to their post or directly mentions their handle,
+when another member replies to their post or top-level comment, or directly
+mentions their handle,
 and alerts eligible Space owners or moderators when a new post or comment
 report needs attention.
 
@@ -9,15 +10,15 @@ report needs attention.
 
 | Preference | Trigger | Recipient |
 | --- | --- | --- |
-| `comment_replies` | `CommentPublished` | The post author, unless they wrote the reply |
+| `comment_replies` | `CommentPublished` | The parent-comment author for a direct reply; otherwise the post author |
 | `content_mentions` | `PostPublished`, `CommentPublished`, or an author edit | Up to ten visible mentioned members, excluding the author |
 | `space_moderation` | `PostReported` or `CommentReported` | Current Space owners and moderators, excluding the reporter |
 
 All preferences default to enabled and affect new notifications only. Mention
 handles are case-insensitive, deduplicated, and bounded to ten per body. Editing
-content alerts only newly added handles. A mentioned post author receives the
-ordinary reply notification instead of a second alert unless reply alerts are
-disabled.
+content alerts only newly added handles. The ordinary recipient of a comment or
+direct-reply alert receives that notification instead of a second mention alert,
+unless reply alerts are disabled and mention alerts remain enabled.
 
 In-app delivery uses Laravel's database channel synchronously, so the core
 experience does not require a queue worker. Per-reaction notifications remain
@@ -72,6 +73,8 @@ report details, or reporter identity. Mention links are also resolved for the
 current viewer instead of being stored in rendered content. The presentation
 layer rechecks the same policies, profile visibility, Space access, mute
 relationships, and block relationships used by the destination itself.
+Direct replies may store `reply_to_comment_id` solely to preserve their
+notification context; top-level notification payloads remain unchanged.
 
 Opening a notification is a `POST` action. The server confirms that the
 notification belongs to the authenticated member, resolves its current safe

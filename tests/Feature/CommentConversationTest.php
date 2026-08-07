@@ -72,6 +72,181 @@ class CommentConversationTest extends TestCase
         $this->assertDatabaseCount('comments', 0);
     }
 
+    public function test_member_can_reply_to_a_visible_root_comment_with_safe_thread_context(): void
+    {
+        Event::fake([CommentPublished::class]);
+
+        $viewer = User::factory()->create();
+        $rootAuthor = User::factory()->create([
+            'name' => 'Root Author',
+            'handle' => 'root-author',
+            'profile_visibility' => 'public',
+        ]);
+        $space = Space::factory()->create();
+        $space->addMember($viewer);
+        $post = Post::factory()->for($space)->create();
+        $root = Comment::factory()->for($post)->for($rootAuthor, 'author')->create([
+            'body' => 'A useful starting point.',
+            'published_at' => now()->subMinute(),
+        ]);
+
+        $this->actingAs($viewer)
+            ->post(route('posts.comments.store', $post), [
+                'body' => '  Building on this.  ',
+                'parent_id' => $root->getKey(),
+            ])
+            ->assertRedirect();
+
+        $reply = Comment::query()->where('body', 'Building on this.')->sole();
+
+        $this->assertSame($root->getKey(), $reply->parent_id);
+        Event::assertDispatched(
+            CommentPublished::class,
+            fn (CommentPublished $event): bool => $event->comment->is($reply),
+        );
+
+        $this->actingAs($viewer)
+            ->get(route('posts.show', $post))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('post.commentsCount', 2)
+                ->where('comments.data.1.id', $reply->getKey())
+                ->where('comments.data.1.isReply', true)
+                ->where('comments.data.1.replyTo.id', $root->getKey())
+                ->where('comments.data.1.replyTo.author.name', 'Root Author')
+                ->where('comments.data.1.replyTo.author.handle', 'root-author')
+                ->where('comments.data.1.replyTo.author.profileVisible', true));
+
+        $this->actingAs($viewer)
+            ->get(route('feed'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('posts.0.comments.1.id', $reply->getKey())
+                ->where('posts.0.comments.1.isReply', true)
+                ->where('posts.0.comments.1.replyTo.id', $root->getKey()));
+    }
+
+    public function test_reply_target_must_be_a_visible_root_comment_on_the_same_post(): void
+    {
+        $member = User::factory()->create();
+        $mutedAuthor = User::factory()->create();
+        $blockedAuthor = User::factory()->create();
+        $space = Space::factory()->create();
+        $space->addMember($member);
+        $post = Post::factory()->for($space)->create();
+        $otherPost = Post::factory()->for($space)->create();
+        $root = Comment::factory()->for($post)->create();
+        $nested = Comment::factory()->for($post)->create(['parent_id' => $root->getKey()]);
+        $hidden = Comment::factory()->for($post)->create(['hidden_at' => now()]);
+        $otherPostComment = Comment::factory()->for($otherPost)->create();
+        $muted = Comment::factory()->for($post)->for($mutedAuthor, 'author')->create();
+        $blocked = Comment::factory()->for($post)->for($blockedAuthor, 'author')->create();
+        $member->outgoingRelationships()->create([
+            'target_id' => $mutedAuthor->getKey(),
+            'type' => 'mute',
+        ]);
+        $blockedAuthor->outgoingRelationships()->create([
+            'target_id' => $member->getKey(),
+            'type' => 'block',
+        ]);
+
+        foreach ([$nested, $hidden, $otherPostComment, $muted, $blocked] as $unavailableTarget) {
+            $this->actingAs($member)
+                ->post(route('posts.comments.store', $post), [
+                    'body' => 'Invalid nested reply.',
+                    'parent_id' => $unavailableTarget->getKey(),
+                ])
+                ->assertSessionHasErrors('parent_id');
+        }
+
+        $this->actingAs($member)
+            ->post(route('posts.comments.store', $post), [
+                'body' => 'Missing reply target.',
+                'parent_id' => 999999,
+            ])
+            ->assertSessionHasErrors('parent_id');
+
+        $this->assertDatabaseMissing('comments', ['user_id' => $member->getKey()]);
+    }
+
+    public function test_deleting_a_root_comment_preserves_its_replies_as_top_level_comments(): void
+    {
+        $rootAuthor = User::factory()->create();
+        $replyAuthor = User::factory()->create();
+        $post = Post::factory()->create();
+        $root = Comment::factory()->for($post)->for($rootAuthor, 'author')->create();
+        $reply = Comment::factory()->for($post)->for($replyAuthor, 'author')->create([
+            'parent_id' => $root->getKey(),
+        ]);
+
+        $this->actingAs($rootAuthor)
+            ->delete(route('comments.destroy', $root))
+            ->assertRedirect();
+
+        $this->assertDatabaseMissing('comments', ['id' => $root->getKey()]);
+        $this->assertDatabaseHas('comments', [
+            'id' => $reply->getKey(),
+            'parent_id' => null,
+        ]);
+    }
+
+    public function test_hidden_parent_does_not_hide_a_reply_or_expose_parent_context(): void
+    {
+        $viewer = User::factory()->create();
+        $space = Space::factory()->create();
+        $space->addMember($viewer);
+        $post = Post::factory()->for($space)->create();
+        $parent = Comment::factory()->for($post)->create([
+            'body' => 'Moderated parent content.',
+            'hidden_at' => now(),
+            'published_at' => now()->subMinute(),
+        ]);
+        $reply = Comment::factory()->for($post)->create([
+            'body' => 'A still-valid response.',
+            'parent_id' => $parent->getKey(),
+            'published_at' => now(),
+        ]);
+
+        $this->actingAs($viewer)
+            ->get(route('posts.show', $post))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('post.commentsCount', 1)
+                ->has('comments.data', 1)
+                ->where('comments.data.0.id', $reply->getKey())
+                ->where('comments.data.0.isReply', true)
+                ->where('comments.data.0.replyTo', null));
+    }
+
+    public function test_malformed_cross_post_parent_does_not_expose_foreign_comment_context(): void
+    {
+        $viewer = User::factory()->create();
+        $foreignAuthor = User::factory()->create([
+            'name' => 'Foreign Author',
+            'handle' => 'foreign-author',
+            'profile_visibility' => 'public',
+        ]);
+        $space = Space::factory()->create();
+        $space->addMember($viewer);
+        $post = Post::factory()->for($space)->create();
+        $foreignPost = Post::factory()->for($space)->create();
+        $foreignParent = Comment::factory()
+            ->for($foreignPost)
+            ->for($foreignAuthor, 'author')
+            ->create();
+        $malformedReply = Comment::factory()->for($post)->create([
+            'parent_id' => $foreignParent->getKey(),
+        ]);
+
+        $this->actingAs($viewer)
+            ->get(route('posts.show', $post))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('comments.data.0.id', $malformedReply->getKey())
+                ->where('comments.data.0.isReply', true)
+                ->where('comments.data.0.replyTo', null));
+    }
+
     public function test_feed_returns_visible_comments_in_conversation_order_and_respects_mute(): void
     {
         $viewer = User::factory()->create();

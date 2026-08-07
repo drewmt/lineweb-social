@@ -4,7 +4,6 @@ namespace App\Community;
 
 use App\Community\Mentions\MentionProjection;
 use App\Enums\ReportStatus;
-use App\Enums\UserRelationshipType;
 use App\Models\Comment;
 use App\Models\CommentReport;
 use App\Models\Post;
@@ -14,7 +13,6 @@ use App\Models\Topic;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Facades\DB;
 
 final class PostConversation
 {
@@ -24,6 +22,8 @@ final class PostConversation
         private readonly PostMediaView $media,
         private readonly PostReactionProjection $reactions,
         private readonly MentionProjection $mentions,
+        private readonly VisibleCommentQuery $visibleComments,
+        private readonly CommentReplyProjection $replyContexts,
     ) {}
 
     /**
@@ -31,7 +31,7 @@ final class PostConversation
      *
      * @return array{
      *     post: array{id: int, url: string, body: string, media: array{url: string, alt: string, width: int, height: int}|null, mediaItems: list<array{id: int, url: string, alt: string, width: int, height: int}>, publishedAt: string|null, editedAt: string|null, isHighlighted: bool, highlightedAt: string|null, isDraft: bool, isHidden: bool, isSaved: bool, canComment: bool, canReport: bool, canEdit: bool, canDelete: bool, hasReported: bool, commentsCount: int, author: array{name: string, handle: string, profileVisible: bool}, space: array{name: string, slug: string, description: string|null, visibility: string, memberCount: int}},
-     *     comments: array{data: list<array{id: int, body: string, publishedAt: string, editedAt: string|null, canReport: bool, canEdit: bool, canDelete: bool, hasReported: bool, author: array{name: string, handle: string, profileVisible: bool}}>, meta: array{currentPage: int, lastPage: int, perPage: int, total: int}, links: array{newer: string|null, older: string|null}}
+     *     comments: array{data: list<array{id: int, body: string, publishedAt: string, editedAt: string|null, isReply: bool, replyTo: array{id: int, author: array{name: string, handle: string, profileVisible: bool}}|null, canReport: bool, canEdit: bool, canDelete: bool, hasReported: bool, author: array{name: string, handle: string, profileVisible: bool}}>, meta: array{currentPage: int, lastPage: int, perPage: int, total: int}, links: array{newer: string|null, older: string|null}}
      * }
      */
     public function for(User $viewer, Post $post): array
@@ -54,7 +54,7 @@ final class PostConversation
             $viewer,
         );
 
-        $comments = $this->visibleComments($viewer, $post)
+        $comments = $this->visibleComments->forPost($viewer, $post)
             ->with('author:id,name,handle')
             ->latest('published_at')
             ->latest('id')
@@ -62,6 +62,7 @@ final class PostConversation
             ->withQueryString();
 
         $commentModels = $comments->getCollection();
+        $replyContexts = $this->replyContexts->for($viewer, $commentModels);
         $resolvedMentions = $this->mentions->resolve(
             $viewer,
             $commentModels->pluck('body')->push($post->body),
@@ -100,6 +101,10 @@ final class PostConversation
                 'mentions' => $this->mentions->forBody($comment->body, $resolvedMentions),
                 'publishedAt' => $comment->published_at->toIso8601String(),
                 'editedAt' => $comment->edited_at?->toIso8601String(),
+                'isReply' => $comment->parent_id !== null,
+                'replyTo' => $comment->parent_id !== null
+                    ? ($replyContexts[$comment->getKey()] ?? null)
+                    : null,
                 'canReport' => $viewer->can('report', $comment),
                 'canEdit' => $viewer->can('update', $comment)
                     && ! in_array($comment->getKey(), $lockedCommentIds, true),
@@ -178,7 +183,7 @@ final class PostConversation
     public function urlForComment(User $viewer, Comment $comment): ?string
     {
         $comment->loadMissing('post');
-        $query = $this->visibleComments($viewer, $comment->post);
+        $query = $this->visibleComments->forPost($viewer, $comment->post);
 
         if (! (clone $query)->whereKey($comment->getKey())->exists()) {
             return null;
@@ -203,28 +208,5 @@ final class PostConversation
         }
 
         return route('posts.show', $parameters).'#comment-'.$comment->id;
-    }
-
-    /** @return Builder<Comment> */
-    private function visibleComments(User $viewer, Post $post): Builder
-    {
-        $hiddenActorIds = DB::table('user_relationships')
-            ->select('target_id')
-            ->where('actor_id', $viewer->getKey())
-            ->whereIn('type', [
-                UserRelationshipType::Mute->value,
-                UserRelationshipType::Block->value,
-            ]);
-        $blockingActorIds = DB::table('user_relationships')
-            ->select('actor_id')
-            ->where('target_id', $viewer->getKey())
-            ->where('type', UserRelationshipType::Block);
-
-        return Comment::query()
-            ->whereBelongsTo($post)
-            ->whereNotNull('published_at')
-            ->whereNull('hidden_at')
-            ->whereNotIn('user_id', $hiddenActorIds)
-            ->whereNotIn('user_id', $blockingActorIds);
     }
 }

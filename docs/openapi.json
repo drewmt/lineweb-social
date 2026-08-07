@@ -393,7 +393,7 @@
     "/posts/{post}/comments": {
       "get": {
         "operationId": "listPostComments",
-        "summary": "Return visible comments in chronological order",
+        "summary": "Return visible comments with bounded reply context in chronological order",
         "tags": [
           "Posts"
         ],
@@ -1307,6 +1307,19 @@
             ],
             "format": "date-time"
           },
+          "is_reply": {
+            "type": "boolean"
+          },
+          "reply_to": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CommentReplyContext"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "author": {
             "$ref": "#/components/schemas/ProfileSummary"
           },
@@ -1322,6 +1335,39 @@
                 "type": "boolean"
               },
               "has_reported": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      },
+      "CommentReplyContext": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "author"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "author": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "handle",
+              "name",
+              "profile_visible"
+            ],
+            "properties": {
+              "handle": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "profile_visible": {
                 "type": "boolean"
               }
             }
