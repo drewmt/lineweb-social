@@ -1,6 +1,6 @@
-<div align="center">
-  <img src="public/favicon.svg" width="84" height="84" alt="Lineweb Social" />
+![Lineweb Social self-hosted social platform shown across laptop and mobile](docs/mockups/readme-hero.webp)
 
+<div align="center">
   <h1>Lineweb Social</h1>
 
   <p><strong>Build the social product people want to stay in.</strong></p>
@@ -26,8 +26,6 @@
     <a href="CONTRIBUTING.md">Contributing</a>
   </p>
 </div>
-
-![Lineweb Social product homepage on desktop](docs/screenshots/home-desktop.jpg)
 
 ## A social foundation with a point of view
 
@@ -64,20 +62,15 @@ A responsive, chronological experience with clear publishing, conversation,
 relationship, and navigation paths. Direct replies add human context without
 recursive thread depth or changing the timeline's deterministic order.
 
-<table>
-  <tr>
-    <td width="68%">
-      <img src="docs/screenshots/feed-desktop.jpg" alt="Lineweb Social chronological community feed on desktop" />
-    </td>
-    <td width="32%">
-      <img src="docs/screenshots/feed-mobile.jpg" alt="Lineweb Social chronological community feed on mobile" />
-    </td>
-  </tr>
-  <tr>
-    <td align="center"><sub>Focused desktop timeline</sub></td>
-    <td align="center"><sub>App-first mobile feed</sub></td>
-  </tr>
-</table>
+![Lineweb Social chronological feed, gallery publishing, and private messages across desktop and mobile](docs/mockups/readme-community.webp)
+
+### Light when you want it. Dark when you need it.
+
+The full social experience follows one visual system in light, dark, or the
+member's device preference. Contrast, hierarchy, and touch targets stay clear
+instead of treating dark mode as a simple color inversion.
+
+![Lineweb Social native dark mode across laptop and mobile profile highlights](docs/mockups/readme-dark.webp)
 
 ### Threaded conversations without the maze
 
@@ -409,20 +402,7 @@ Members, Appeals, Safety, and append-only Audit surfaces. Account restrictions
 remain reason-required, account appeals are human-reviewed, and private safety
 reviews expose only the evidence a member explicitly submitted.
 
-<table>
-  <tr>
-    <td width="68%">
-      <img src="docs/screenshots/admin-desktop.jpg" alt="Lineweb Social dedicated platform administration control center on desktop" />
-    </td>
-    <td width="32%">
-      <img src="docs/screenshots/admin-mobile.jpg" alt="Lineweb Social protected mobile administration sidebar" />
-    </td>
-  </tr>
-  <tr>
-    <td align="center"><sub>Focused operations, real queues, and privileged audit trail</sub></td>
-    <td align="center"><sub>App-like mobile operator navigation</sub></td>
-  </tr>
-</table>
+![Lineweb Social accountable platform operations across desktop and mobile](docs/mockups/readme-operations.webp)
 
 ### Account decisions with a visible path back
 
@@ -471,7 +451,7 @@ makes the final decision.
 | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Accounts            | Verified registration, stable handles, passkeys, two-factor authentication, strong password defaults, active-account enforcement, and one human-reviewed appeal per restriction.                                                                                      |
 | Profiles            | Editable member identity, headlines, author-curated three-post highlights, real chronological activity, public/shared/private visibility, and discovery opt-out.                                                                                                      |
-| Spaces              | Public/private/hidden communities, searchable directory, join/leave rules, restricted invitations, roles, ownership transfer, member removal, bounded curated highlights, and official events with private RSVPs.                                                   |
+| Spaces              | Public/private/hidden communities, searchable directory, join/leave rules, restricted invitations, roles, ownership transfer, member removal, bounded curated highlights, and official events with private RSVPs.                                                     |
 | Publishing          | Focused composer, author-only drafts, private four-image WebP galleries with per-image alt text and swipe navigation, bounded private-first polls, chronological posts, privacy-safe quote posts and reposts, comments, permanent conversations, and author controls. |
 | Discovery           | Policy-filtered search across posts, Spaces, and People; Unicode hashtags; chronological topic trails; and privacy-aware Following.                                                                                                                                   |
 | Interactions        | Typed Like, Celebrate, and Insightful reactions, private Saved Posts, follows, mentions, one-level direct replies, same-Space quote/repost actions, comments, copy links, and conversation shortcuts.                                                                 |
