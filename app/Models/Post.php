@@ -29,6 +29,7 @@ use Illuminate\Support\Carbon;
  * @property-read PostMedia|null $media
  * @property-read Collection<int, PostMedia> $mediaItems
  * @property-read SpacePostHighlight|null $highlight
+ * @property-read ProfilePostHighlight|null $profileHighlight
  * @property-read PostPoll|null $poll
  * @property-read int $is_saved
  */
@@ -44,6 +45,13 @@ class Post extends Model
 
             foreach ($post->mediaItems as $media) {
                 $media->deleteStoredFile();
+            }
+        });
+
+        static::updated(function (Post $post): void {
+            if ($post->wasChanged(['published_at', 'hidden_at'])
+                && ($post->published_at === null || $post->hidden_at !== null)) {
+                $post->profileHighlight()->delete();
             }
         });
     }
@@ -144,6 +152,12 @@ class Post extends Model
     public function highlight(): HasOne
     {
         return $this->hasOne(SpacePostHighlight::class);
+    }
+
+    /** @return HasOne<ProfilePostHighlight, $this> */
+    public function profileHighlight(): HasOne
+    {
+        return $this->hasOne(ProfilePostHighlight::class);
     }
 
     /** @return HasOne<PostPoll, $this> */

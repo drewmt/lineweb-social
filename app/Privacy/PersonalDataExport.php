@@ -62,6 +62,7 @@ class PersonalDataExport
             'comments' => $this->comments($userId),
             'post_reactions' => $this->postReactions($userId),
             'saved_posts' => $this->savedPosts($userId),
+            'profile_highlights' => $this->profileHighlights($userId),
             'following' => $this->following($userId),
             'followers' => $this->followers($userId),
             'safety_relationships' => $this->safetyRelationships($userId),
@@ -263,6 +264,12 @@ class PersonalDataExport
     private function savedPosts(int $userId): Generator
     {
         yield from $this->postReferences('post_saves', $userId);
+    }
+
+    /** @return Generator<int, array<string, mixed>> */
+    private function profileHighlights(int $userId): Generator
+    {
+        yield from $this->postReferences('profile_post_highlights', $userId);
     }
 
     /**

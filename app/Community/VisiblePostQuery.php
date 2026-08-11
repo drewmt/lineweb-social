@@ -32,6 +32,7 @@ final class VisiblePostQuery
                 'media',
                 'mediaItems',
                 'highlight',
+                'profileHighlight',
                 'topics:id,name',
                 'sharedPost' => fn ($shared) => $shared->with([
                     'author:id,name,handle',

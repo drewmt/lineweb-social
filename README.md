@@ -266,6 +266,28 @@ the current member is allowed to see them.
   </tr>
 </table>
 
+### Profiles with an intentional first impression
+
+Members can feature up to three of their own conversations without changing
+the chronological feed. Every Profile Highlight is rechecked against the
+current viewer's Space, moderation, mute, and block boundaries, while the
+mobile presentation stays swipe-first and app-like.
+
+<table>
+  <tr>
+    <td width="68%">
+      <img src="docs/screenshots/profile-highlights-desktop.png" alt="Lineweb Social creator profile with three privacy-safe highlights on desktop" />
+    </td>
+    <td width="32%">
+      <img src="docs/screenshots/profile-highlights-mobile.png" alt="Lineweb Social edge-to-edge Profile Highlights rail on mobile" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><sub>A deliberate creator-led introduction</sub></td>
+    <td align="center"><sub>Swipe-first highlights on mobile</sub></td>
+  </tr>
+</table>
+
 ### A guarded foundation for extensions
 
 Operators can inspect every local extension manifest, its declared access,
@@ -448,7 +470,7 @@ makes the final decision.
 | Area                | Included today                                                                                                                                                                                                                                                        |
 | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Accounts            | Verified registration, stable handles, passkeys, two-factor authentication, strong password defaults, active-account enforcement, and one human-reviewed appeal per restriction.                                                                                      |
-| Profiles            | Editable member identity, headlines, real activity, public/shared/private visibility, and discovery opt-out.                                                                                                                                                          |
+| Profiles            | Editable member identity, headlines, author-curated three-post highlights, real chronological activity, public/shared/private visibility, and discovery opt-out.                                                                                                      |
 | Spaces              | Public/private/hidden communities, searchable directory, join/leave rules, restricted invitations, roles, ownership transfer, member removal, bounded curated highlights, and official events with private RSVPs.                                                   |
 | Publishing          | Focused composer, author-only drafts, private four-image WebP galleries with per-image alt text and swipe navigation, bounded private-first polls, chronological posts, privacy-safe quote posts and reposts, comments, permanent conversations, and author controls. |
 | Discovery           | Policy-filtered search across posts, Spaces, and People; Unicode hashtags; chronological topic trails; and privacy-aware Following.                                                                                                                                   |

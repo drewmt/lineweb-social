@@ -110,4 +110,17 @@ class PostPolicy
     {
         return $user->can('moderate', $post->space);
     }
+
+    public function pinToProfile(User $user, Post $post): bool
+    {
+        return $post->user_id === $user->getKey()
+            && $post->published_at !== null
+            && $post->hidden_at === null
+            && $this->view($user, $post);
+    }
+
+    public function removeProfileHighlight(User $user, Post $post): bool
+    {
+        return $post->user_id === $user->getKey();
+    }
 }

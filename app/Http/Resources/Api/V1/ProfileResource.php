@@ -25,6 +25,7 @@ class ProfileResource extends JsonResource
             'location' => $profile->location,
             'website_url' => $profile->website_url,
             'member_since' => $profile->created_at?->toDateString(),
+            'highlights' => $profile->getAttribute('visible_profile_highlights') ?? [],
             'stats' => [
                 'followers' => (int) $profile->followers_count,
                 'following' => (int) $profile->following_count,

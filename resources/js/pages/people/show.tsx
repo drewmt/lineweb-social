@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import {
     ArrowRight,
     CalendarDays,
@@ -6,9 +6,12 @@ import {
     MapPin,
     MessageCircleMore,
     MessageCircle,
+    Pin,
+    PinOff,
     Settings,
     UsersRound,
 } from 'lucide-react';
+import { useState } from 'react';
 import { AuthoredContentMenu } from '@/components/social/authored-content-menu';
 import { AvatarMark } from '@/components/social/avatar-mark';
 import { MentionText } from '@/components/social/mention-text';
@@ -74,6 +77,8 @@ type ProfilePost = {
     canShare: boolean;
     canEdit: boolean;
     canDelete: boolean;
+    isProfileHighlighted: boolean;
+    canManageProfileHighlight: boolean;
     author: { name: string };
     space: { name: string; slug: string };
 };
@@ -102,15 +107,163 @@ const websiteHost = (value: string) => {
     }
 };
 
+function ProfileHighlightAction({
+    handle,
+    post,
+    limitReached,
+    compact = false,
+}: {
+    handle: string;
+    post: ProfilePost;
+    limitReached: boolean;
+    compact?: boolean;
+}) {
+    const [processing, setProcessing] = useState(false);
+    const unavailable = !post.isProfileHighlighted && limitReached;
+    const endpoint = `/people/${encodeURIComponent(handle)}/posts/${post.id}/highlight`;
+    const label = post.isProfileHighlighted
+        ? 'Remove from profile highlights'
+        : unavailable
+          ? 'Remove a profile highlight before pinning another post'
+          : 'Pin to profile highlights';
+
+    const toggle = () => {
+        const options = {
+            preserveScroll: true,
+            onStart: () => setProcessing(true),
+            onFinish: () => setProcessing(false),
+        };
+
+        if (post.isProfileHighlighted) {
+            router.delete(endpoint, options);
+
+            return;
+        }
+
+        router.put(endpoint, {}, options);
+    };
+
+    return (
+        <Button
+            type="button"
+            variant={post.isProfileHighlighted ? 'secondary' : 'ghost'}
+            size={compact ? 'icon' : 'sm'}
+            className={
+                compact ? 'size-10 rounded-full' : 'rounded-full px-3 text-xs'
+            }
+            onClick={toggle}
+            disabled={processing || unavailable}
+            aria-label={label}
+            aria-pressed={post.isProfileHighlighted}
+            title={label}
+        >
+            {post.isProfileHighlighted ? (
+                <PinOff className="size-4" aria-hidden="true" />
+            ) : (
+                <Pin className="size-4" aria-hidden="true" />
+            )}
+            {!compact &&
+                (processing
+                    ? 'Updating…'
+                    : post.isProfileHighlighted
+                      ? 'Unpin'
+                      : 'Pin')}
+        </Button>
+    );
+}
+
+function ProfileHighlightCard({
+    profile,
+    post,
+    limitReached,
+}: {
+    profile: Profile;
+    post: ProfilePost;
+    limitReached: boolean;
+}) {
+    const firstMedia = post.mediaItems[0];
+    const preview = post.body || post.poll?.question || 'Shared a conversation';
+
+    return (
+        <article className="social-card group relative flex min-h-[19rem] snap-start flex-col overflow-hidden rounded-[1.45rem]">
+            <Link
+                href={post.url}
+                className="social-focus relative block min-h-36 overflow-hidden bg-[linear-gradient(135deg,oklch(0.96_0.025_255),oklch(0.94_0.05_190))]"
+                aria-label={`Open highlighted post from ${post.space.name}`}
+            >
+                {firstMedia ? (
+                    <img
+                        src={firstMedia.url}
+                        alt={firstMedia.alt}
+                        width={firstMedia.width}
+                        height={firstMedia.height}
+                        loading="lazy"
+                        decoding="async"
+                        className="absolute inset-0 size-full object-cover transition-transform duration-300 group-hover:scale-[1.025]"
+                    />
+                ) : (
+                    <div className="absolute inset-0 flex items-end p-5">
+                        <p className="line-clamp-4 text-[1.05rem] leading-7 font-black tracking-[-0.02em] text-foreground/88">
+                            {preview}
+                        </p>
+                    </div>
+                )}
+                <span className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-card/92 px-3 py-1.5 text-[0.68rem] font-black tracking-[0.08em] text-primary uppercase shadow-sm backdrop-blur-md">
+                    <Pin className="size-3.5" aria-hidden="true" />
+                    Profile highlight
+                </span>
+            </Link>
+
+            <div className="flex flex-1 flex-col p-4">
+                {firstMedia && (
+                    <p className="line-clamp-3 text-sm leading-6 font-bold text-foreground/88">
+                        {preview}
+                    </p>
+                )}
+                <div className="mt-auto flex items-end justify-between gap-3 pt-4">
+                    <div className="min-w-0">
+                        <Link
+                            href={`/spaces/${post.space.slug}`}
+                            className="social-focus block truncate rounded text-xs font-extrabold text-primary hover:underline"
+                        >
+                            {post.space.name}
+                        </Link>
+                        <Link
+                            href={post.url}
+                            className="social-focus mt-1 block rounded text-xs font-semibold text-muted-foreground hover:text-foreground"
+                        >
+                            <time dateTime={post.publishedAt ?? undefined}>
+                                {postDate(post.publishedAt)}
+                            </time>
+                        </Link>
+                    </div>
+                    {profile.isSelf && post.canManageProfileHighlight && (
+                        <ProfileHighlightAction
+                            handle={profile.handle}
+                            post={post}
+                            limitReached={limitReached}
+                            compact
+                        />
+                    )}
+                </div>
+            </div>
+        </article>
+    );
+}
+
 export default function ShowProfile({
     profile,
     stats,
     spaces,
+    highlights,
+    profileHighlightLimitReached,
     posts,
 }: {
     profile: Profile;
     stats: ProfileStats;
     spaces: ProfileSpace[];
+    highlights: ProfilePost[];
+    profileHighlightLimitReached: boolean;
     posts: ProfilePost[];
 }) {
     const joined = monthYear(profile.memberSince);
@@ -260,6 +413,14 @@ export default function ShowProfile({
                             >
                                 Overview
                             </a>
+                            {(highlights.length > 0 || profile.isSelf) && (
+                                <a
+                                    href="#highlights"
+                                    className="social-focus px-1 py-4 text-sm font-extrabold text-muted-foreground hover:text-foreground"
+                                >
+                                    Highlights
+                                </a>
+                            )}
                             <a
                                 href="#activity"
                                 className="social-focus px-1 py-4 text-sm font-extrabold text-muted-foreground hover:text-foreground"
@@ -420,138 +581,219 @@ export default function ShowProfile({
                         </section>
                     </aside>
 
-                    <section
-                        id="activity"
-                        className="scroll-mt-24"
-                        aria-labelledby="profile-posts-title"
-                    >
-                        <div className="mb-3 flex items-end justify-between px-1">
-                            <div>
-                                <p className="social-eyebrow">
-                                    Recent activity
-                                </p>
-                                <h2
-                                    id="profile-posts-title"
-                                    className="mt-1 text-2xl font-black tracking-[-0.035em]"
-                                >
-                                    Conversations
-                                </h2>
-                            </div>
-                            <MessageCircle
-                                className="size-5 text-muted-foreground"
-                                aria-hidden="true"
-                            />
-                        </div>
-                        {posts.length === 0 ? (
-                            <div className="social-card rounded-[1.45rem] px-6 py-14 text-center">
-                                <span className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-primary/8 text-primary">
-                                    <MessageCircle
-                                        className="size-5"
-                                        aria-hidden="true"
-                                    />
-                                </span>
-                                <p className="mt-4 font-extrabold">
-                                    Nothing visible here yet.
-                                </p>
-                                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
-                                    Posts appear only when you can also view the
-                                    Space where they were shared.
-                                </p>
-                            </div>
-                        ) : (
-                            <div className="space-y-3">
-                                {posts.map((post) => (
-                                    <article
-                                        key={post.id}
-                                        className="social-card rounded-[1.45rem] p-4 sm:p-5"
-                                    >
-                                        <header className="flex items-start gap-3">
-                                            <AvatarMark
-                                                name={profile.name}
-                                                className="size-10"
-                                            />
-                                            <div className="min-w-0 flex-1">
-                                                <p className="truncate text-sm font-extrabold">
-                                                    {profile.name}
-                                                </p>
-                                                <div className="flex flex-wrap items-center gap-x-1.5 text-xs font-semibold text-muted-foreground">
-                                                    <Link
-                                                        href={`/spaces/${post.space.slug}`}
-                                                        className="text-primary hover:underline"
-                                                    >
-                                                        {post.space.name}
-                                                    </Link>
-                                                    <span aria-hidden="true">
-                                                        ·
-                                                    </span>
-                                                    <Link
-                                                        href={post.url}
-                                                        className="social-focus rounded-md hover:text-foreground"
-                                                    >
-                                                        <time
-                                                            dateTime={
-                                                                post.publishedAt ??
-                                                                undefined
-                                                            }
-                                                        >
-                                                            {postDate(
-                                                                post.publishedAt,
-                                                            )}
-                                                        </time>
-                                                    </Link>
-                                                    {post.editedAt && (
-                                                        <>
-                                                            <span aria-hidden="true">
-                                                                ·
-                                                            </span>
-                                                            <span>Edited</span>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <AuthoredContentMenu
-                                                body={post.body}
-                                                canEdit={post.canEdit}
-                                                canDelete={post.canDelete}
-                                                contentType="post"
-                                                updateUrl={`/posts/${post.id}`}
-                                                deleteUrl={`/posts/${post.id}`}
-                                                maxLength={2000}
-                                                compact
-                                            />
-                                            <PostShareAction
-                                                post={post}
-                                                compact
-                                            />
-                                        </header>
-                                        {post.body !== '' && (
-                                            <p className="mt-4 text-[1.01rem] leading-7 whitespace-pre-wrap text-foreground/90">
-                                                <MentionText
-                                                    body={post.body}
-                                                    mentions={post.mentions}
-                                                    topics={post.topics}
-                                                />
+                    <div className="min-w-0 space-y-8">
+                        {(highlights.length > 0 || profile.isSelf) && (
+                            <section
+                                id="highlights"
+                                className="scroll-mt-24"
+                                aria-labelledby="profile-highlights-title"
+                            >
+                                <div className="mb-3 flex items-end justify-between px-1">
+                                    <div>
+                                        <p className="social-eyebrow">
+                                            Profile highlights
+                                        </p>
+                                        <h2
+                                            id="profile-highlights-title"
+                                            className="mt-1 text-2xl font-black tracking-[-0.035em]"
+                                        >
+                                            Start here
+                                        </h2>
+                                    </div>
+                                    <span className="text-xs font-bold text-muted-foreground">
+                                        {highlights.length} / 3
+                                    </span>
+                                </div>
+
+                                {highlights.length === 0 ? (
+                                    <div className="social-card rounded-[1.45rem] border-dashed px-6 py-8 sm:flex sm:items-center sm:justify-between sm:gap-6">
+                                        <div>
+                                            <p className="font-extrabold">
+                                                Shape the first impression of
+                                                your profile.
                                             </p>
-                                        )}
-                                        {post.mediaItems.length > 0 && (
-                                            <PostGallery
-                                                media={post.mediaItems}
+                                            <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
+                                                Use the pin action on any of
+                                                your recent posts to feature up
+                                                to three conversations here.
+                                            </p>
+                                        </div>
+                                        <span className="mt-5 inline-flex size-12 shrink-0 items-center justify-center rounded-2xl bg-primary/9 text-primary sm:mt-0">
+                                            <Pin
+                                                className="size-5"
+                                                aria-hidden="true"
+                                            />
+                                        </span>
+                                    </div>
+                                ) : (
+                                    <div className="-mx-4 flex snap-x snap-mandatory [scrollbar-width:none] gap-3 overflow-x-auto px-4 pb-2 md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0 md:pb-0 [&::-webkit-scrollbar]:hidden">
+                                        {highlights.map((post) => (
+                                            <div
+                                                key={post.id}
+                                                className="w-[82vw] max-w-[22rem] shrink-0 md:w-auto md:max-w-none"
+                                            >
+                                                <ProfileHighlightCard
+                                                    profile={profile}
+                                                    post={post}
+                                                    limitReached={
+                                                        profileHighlightLimitReached
+                                                    }
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </section>
+                        )}
+
+                        <section
+                            id="activity"
+                            className="scroll-mt-24"
+                            aria-labelledby="profile-posts-title"
+                        >
+                            <div className="mb-3 flex items-end justify-between px-1">
+                                <div>
+                                    <p className="social-eyebrow">
+                                        Recent activity
+                                    </p>
+                                    <h2
+                                        id="profile-posts-title"
+                                        className="mt-1 text-2xl font-black tracking-[-0.035em]"
+                                    >
+                                        Conversations
+                                    </h2>
+                                </div>
+                                <MessageCircle
+                                    className="size-5 text-muted-foreground"
+                                    aria-hidden="true"
+                                />
+                            </div>
+                            {posts.length === 0 ? (
+                                <div className="social-card rounded-[1.45rem] px-6 py-14 text-center">
+                                    <span className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-primary/8 text-primary">
+                                        <MessageCircle
+                                            className="size-5"
+                                            aria-hidden="true"
+                                        />
+                                    </span>
+                                    <p className="mt-4 font-extrabold">
+                                        Nothing visible here yet.
+                                    </p>
+                                    <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
+                                        Posts appear only when you can also view
+                                        the Space where they were shared.
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    {posts.map((post) => (
+                                        <article
+                                            key={post.id}
+                                            className="social-card rounded-[1.45rem] p-4 sm:p-5"
+                                        >
+                                            <header className="flex items-start gap-3">
+                                                <AvatarMark
+                                                    name={profile.name}
+                                                    className="size-10"
+                                                />
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="truncate text-sm font-extrabold">
+                                                        {profile.name}
+                                                    </p>
+                                                    <div className="flex flex-wrap items-center gap-x-1.5 text-xs font-semibold text-muted-foreground">
+                                                        <Link
+                                                            href={`/spaces/${post.space.slug}`}
+                                                            className="text-primary hover:underline"
+                                                        >
+                                                            {post.space.name}
+                                                        </Link>
+                                                        <span aria-hidden="true">
+                                                            ·
+                                                        </span>
+                                                        <Link
+                                                            href={post.url}
+                                                            className="social-focus rounded-md hover:text-foreground"
+                                                        >
+                                                            <time
+                                                                dateTime={
+                                                                    post.publishedAt ??
+                                                                    undefined
+                                                                }
+                                                            >
+                                                                {postDate(
+                                                                    post.publishedAt,
+                                                                )}
+                                                            </time>
+                                                        </Link>
+                                                        {post.editedAt && (
+                                                            <>
+                                                                <span aria-hidden="true">
+                                                                    ·
+                                                                </span>
+                                                                <span>
+                                                                    Edited
+                                                                </span>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <AuthoredContentMenu
+                                                    body={post.body}
+                                                    canEdit={post.canEdit}
+                                                    canDelete={post.canDelete}
+                                                    contentType="post"
+                                                    updateUrl={`/posts/${post.id}`}
+                                                    deleteUrl={`/posts/${post.id}`}
+                                                    maxLength={2000}
+                                                    compact
+                                                />
+                                                {profile.isSelf &&
+                                                    post.canManageProfileHighlight && (
+                                                        <ProfileHighlightAction
+                                                            handle={
+                                                                profile.handle
+                                                            }
+                                                            post={post}
+                                                            limitReached={
+                                                                profileHighlightLimitReached
+                                                            }
+                                                            compact
+                                                        />
+                                                    )}
+                                                <PostShareAction
+                                                    post={post}
+                                                    compact
+                                                />
+                                            </header>
+                                            {post.body !== '' && (
+                                                <p className="mt-4 text-[1.01rem] leading-7 whitespace-pre-wrap text-foreground/90">
+                                                    <MentionText
+                                                        body={post.body}
+                                                        mentions={post.mentions}
+                                                        topics={post.topics}
+                                                    />
+                                                </p>
+                                            )}
+                                            {post.mediaItems.length > 0 && (
+                                                <PostGallery
+                                                    media={post.mediaItems}
+                                                    className="mt-4"
+                                                />
+                                            )}
+                                            <SharedPostPreview
+                                                share={post.share}
                                                 className="mt-4"
                                             />
-                                        )}
-                                        <SharedPostPreview
-                                            share={post.share}
-                                            className="mt-4"
-                                        />
-                                        <PostPoll
-                                            postId={post.id}
-                                            poll={post.poll}
-                                        />
-                                    </article>
-                                ))}
-                            </div>
-                        )}
-                    </section>
+                                            <PostPoll
+                                                postId={post.id}
+                                                poll={post.poll}
+                                            />
+                                        </article>
+                                    ))}
+                                </div>
+                            )}
+                        </section>
+                    </div>
                 </div>
             </main>
         </>

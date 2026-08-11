@@ -4,6 +4,14 @@ All notable project changes will be documented here.
 
 ## Unreleased
 
+### Added
+
+- Author-curated Profile Highlights with transactional ownership checks, a
+  three-post bound, automatic stale-state cleanup, current-viewer privacy
+  filtering, read-only API and personal-export coverage, domain events, and a
+  responsive swipe-first profile presentation that leaves activity
+  chronological.
+
 ## [0.2.0-beta.1] - 2026-08-11
 
 ### Added

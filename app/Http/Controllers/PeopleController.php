@@ -10,10 +10,12 @@ use App\Community\VisiblePostQuery;
 use App\Enums\ReportStatus;
 use App\Models\Post;
 use App\Models\PostReport;
+use App\Models\ProfilePostHighlight;
 use App\Models\Space;
 use App\Models\Topic;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -107,52 +109,41 @@ class PeopleController extends Controller
             ->limit(12)
             ->get();
 
-        $lockedPostIds = PostReport::query()
-            ->whereIn('post_id', $postModels->modelKeys())
-            ->whereIn('status', [
-                ReportStatus::Open->value,
-                ReportStatus::Reviewing->value,
-            ])
+        $profileHighlightRows = ProfilePostHighlight::query()
+            ->whereBelongsTo($profile)
+            ->latest('created_at')
+            ->latest('id')
+            ->limit(3)
+            ->get(['id', 'post_id', 'created_at']);
+        $highlightOrder = $profileHighlightRows
             ->pluck('post_id')
-            ->all();
-        $resolvedMentions = $mentions->resolve($viewer, $postModels->pluck('body'));
-        $shareProjection = $shares->forPosts($postModels, $viewer);
-        $pollProjection = $polls->forPosts($postModels, $viewer);
+            ->flip();
+        $highlightModels = $visiblePostQuery
+            ->forFeed($viewer)
+            ->whereBelongsTo($profile, 'author')
+            ->whereKey($profileHighlightRows->pluck('post_id'))
+            ->get()
+            ->sortBy(fn (Post $post): int => (int) $highlightOrder->get($post->getKey()))
+            ->values();
+
+        $projectedPosts = $this->projectPosts(
+            $postModels
+                ->concat($highlightModels)
+                ->unique(fn (Post $post): int => $post->getKey())
+                ->values(),
+            $viewer,
+            $media,
+            $mentions,
+            $shares,
+            $polls,
+        );
 
         $posts = $postModels
-            ->map(fn (Post $post): array => [
-                'id' => $post->id,
-                'url' => route('posts.show', $post),
-                'body' => $post->body,
-                'mentions' => $mentions->forBody($post->body, $resolvedMentions),
-                'topics' => $post->topics
-                    ->map(fn (Topic $topic): array => [
-                        'name' => $topic->name,
-                        'url' => route('topics.show', $topic),
-                    ])
-                    ->values()
-                    ->all(),
-                'media' => $media->for($post),
-                'mediaItems' => $media->galleryFor($post),
-                'share' => $shareProjection[$post->getKey()] ?? null,
-                'poll' => $pollProjection[$post->getKey()] ?? null,
-                'publishedAt' => $post->published_at?->toIso8601String(),
-                'editedAt' => $post->edited_at?->toIso8601String(),
-                'canEdit' => Gate::forUser($viewer)->allows('update', $post)
-                    && ! isset($pollProjection[$post->getKey()])
-                    && ! in_array($post->getKey(), $lockedPostIds, true),
-                'canDelete' => Gate::forUser($viewer)->allows('delete', $post)
-                    && ! in_array($post->getKey(), $lockedPostIds, true),
-                'canShare' => ! isset($pollProjection[$post->getKey()])
-                    && Gate::forUser($viewer)->allows('share', $post),
-                'author' => [
-                    'name' => $post->author->name,
-                ],
-                'space' => [
-                    'name' => $post->space->name,
-                    'slug' => $post->space->slug,
-                ],
-            ])
+            ->map(fn (Post $post): array => $projectedPosts[$post->getKey()])
+            ->values()
+            ->all();
+        $highlights = $highlightModels
+            ->map(fn (Post $post): array => $projectedPosts[$post->getKey()])
             ->values()
             ->all();
 
@@ -178,7 +169,74 @@ class PeopleController extends Controller
                 'following' => (int) $profile->following_count,
             ],
             'spaces' => $spaces,
+            'highlights' => $highlights,
+            'profileHighlightLimitReached' => count($highlights) >= 3,
             'posts' => $posts,
         ]);
+    }
+
+    /**
+     * @param  Collection<int, Post>  $postModels
+     * @return array<int, array<string, mixed>>
+     */
+    private function projectPosts(
+        Collection $postModels,
+        User $viewer,
+        PostMediaView $media,
+        MentionProjection $mentions,
+        PostShareProjection $shares,
+        PostPollProjection $polls,
+    ): array {
+        $lockedPostIds = PostReport::query()
+            ->whereIn('post_id', $postModels->modelKeys())
+            ->whereIn('status', [
+                ReportStatus::Open->value,
+                ReportStatus::Reviewing->value,
+            ])
+            ->pluck('post_id')
+            ->all();
+        $resolvedMentions = $mentions->resolve($viewer, $postModels->pluck('body'));
+        $shareProjection = $shares->forPosts($postModels, $viewer);
+        $pollProjection = $polls->forPosts($postModels, $viewer);
+
+        return $postModels
+            ->mapWithKeys(fn (Post $post): array => [$post->getKey() => [
+                'id' => $post->id,
+                'url' => route('posts.show', $post),
+                'body' => $post->body,
+                'mentions' => $mentions->forBody($post->body, $resolvedMentions),
+                'topics' => $post->topics
+                    ->map(fn (Topic $topic): array => [
+                        'name' => $topic->name,
+                        'url' => route('topics.show', $topic),
+                    ])
+                    ->values()
+                    ->all(),
+                'media' => $media->for($post),
+                'mediaItems' => $media->galleryFor($post),
+                'share' => $shareProjection[$post->getKey()] ?? null,
+                'poll' => $pollProjection[$post->getKey()] ?? null,
+                'publishedAt' => $post->published_at?->toIso8601String(),
+                'editedAt' => $post->edited_at?->toIso8601String(),
+                'isProfileHighlighted' => $post->profileHighlight !== null,
+                'canManageProfileHighlight' => $post->user_id === $viewer->getKey()
+                    && ($post->profileHighlight !== null
+                        || Gate::forUser($viewer)->allows('pinToProfile', $post)),
+                'canEdit' => Gate::forUser($viewer)->allows('update', $post)
+                    && ! isset($pollProjection[$post->getKey()])
+                    && ! in_array($post->getKey(), $lockedPostIds, true),
+                'canDelete' => Gate::forUser($viewer)->allows('delete', $post)
+                    && ! in_array($post->getKey(), $lockedPostIds, true),
+                'canShare' => ! isset($pollProjection[$post->getKey()])
+                    && Gate::forUser($viewer)->allows('share', $post),
+                'author' => [
+                    'name' => $post->author->name,
+                ],
+                'space' => [
+                    'name' => $post->space->name,
+                    'slug' => $post->space->slug,
+                ],
+            ]])
+            ->all();
     }
 }

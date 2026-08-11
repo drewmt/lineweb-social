@@ -205,7 +205,8 @@ The first resources expose only allowlisted fields:
 - profiles exclude email, verification state, privacy configuration, login
   metadata, relationship rows, follower identities, and undiscoverable
   membership; they expose only aggregate follow counts and the current viewer's
-  follow state;
+  follow state. Their bounded Profile Highlights contain post references only
+  after the underlying posts pass the current viewer's visibility rules;
 - Spaces exclude invitation recipients, audit records, and hidden membership;
 - Space events exclude creator, attendee, and cancellation-actor identities;
   they expose aggregate RSVP totals plus only the current viewer's status;

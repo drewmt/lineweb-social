@@ -4,6 +4,8 @@ namespace Tests\Feature\Api;
 
 use App\Enums\ProfileVisibility;
 use App\Enums\UserRelationshipType;
+use App\Models\Post;
+use App\Models\ProfilePostHighlight;
 use App\Models\Space;
 use App\Models\User;
 use App\Models\UserFollow;
@@ -55,9 +57,47 @@ class VisibleProfileTest extends TestCase
             ->assertJsonMissingPath('data.is_discoverable');
 
         $this->assertSame(
-            ['handle', 'name', 'headline', 'bio', 'location', 'website_url', 'member_since', 'stats', 'viewer'],
+            ['handle', 'name', 'headline', 'bio', 'location', 'website_url', 'member_since', 'highlights', 'stats', 'viewer'],
             array_keys($response->json('data')),
         );
+    }
+
+    public function test_profile_highlights_reapply_current_post_visibility(): void
+    {
+        $viewer = User::factory()->create();
+        $profile = User::factory()->create([
+            'profile_visibility' => ProfileVisibility::Public,
+        ]);
+        $publicSpace = Space::factory()->for($profile, 'owner')->create();
+        $privateSpace = Space::factory()->private()->for($profile, 'owner')->create();
+        $publicPost = Post::factory()->create([
+            'space_id' => $publicSpace->getKey(),
+            'user_id' => $profile->getKey(),
+        ]);
+        $privatePost = Post::factory()->create([
+            'space_id' => $privateSpace->getKey(),
+            'user_id' => $profile->getKey(),
+        ]);
+        ProfilePostHighlight::query()->create([
+            'user_id' => $profile->getKey(),
+            'post_id' => $privatePost->getKey(),
+        ]);
+        $visibleHighlight = ProfilePostHighlight::query()->create([
+            'user_id' => $profile->getKey(),
+            'post_id' => $publicPost->getKey(),
+        ]);
+
+        $response = $this->withToken($this->token($viewer, ['profiles:read']))
+            ->getJson(route('api.v1.profiles.show', $profile));
+
+        $response
+            ->assertOk()
+            ->assertJsonCount(1, 'data.highlights')
+            ->assertJsonPath('data.highlights.0.post_id', $publicPost->getKey())
+            ->assertJsonPath(
+                'data.highlights.0.highlighted_at',
+                $visibleHighlight->created_at->toIso8601String(),
+            );
     }
 
     public function test_discovery_opt_out_does_not_hide_an_otherwise_public_direct_profile(): void
