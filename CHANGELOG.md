@@ -142,6 +142,9 @@ All notable project changes will be documented here.
 - Gallery-order migrations now preserve an alternate foreign-key index before
   replacing the original one-image unique constraint, so clean MariaDB/MySQL
   installations complete without disabling foreign-key checks.
+- Asset preload response headers are bounded to the eight most important Vite
+  assets so default reverse-proxy buffers can serve every public and auth page
+  without sacrificing critical script, stylesheet, and font preloading.
 
 ### Changed
 
