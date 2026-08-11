@@ -12,7 +12,7 @@
 
   <p>
     <a href="https://github.com/drewmt/lineweb-social/actions/workflows/tests.yml"><img src="https://github.com/drewmt/lineweb-social/actions/workflows/tests.yml/badge.svg" alt="Tests" /></a>
-    <a href="https://github.com/drewmt/lineweb-social/releases"><img src="https://img.shields.io/badge/release-0.1.0--alpha.1-f97316.svg" alt="Release 0.1.0 alpha 1" /></a>
+    <a href="https://github.com/drewmt/lineweb-social/releases"><img src="https://img.shields.io/badge/release-0.2.0--beta.1-2563eb.svg" alt="Release 0.2.0 beta 1" /></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0--or--later-254ada.svg" alt="GPL 3.0 or later" /></a>
     <img src="https://img.shields.io/badge/Laravel-13-FF2D20.svg?logo=laravel&logoColor=white" alt="Laravel 13" />
     <img src="https://img.shields.io/badge/React-19-087EA4.svg?logo=react&logoColor=white" alt="React 19" />
@@ -493,11 +493,12 @@ is reviewed trusted code, not a sandbox. Remote downloads, arbitrary ZIP
 installation, browser actions, and destructive uninstall are intentionally
 unavailable.
 
-## Alpha status
+## Beta status
 
 > [!IMPORTANT]
-> `0.1.0-alpha.1` is for local evaluation, extension-contract discussion, and
-> early community feedback. It is not a production release.
+> `0.2.0-beta.1` is the first production-shaped public beta. It is suitable for
+> evaluation and controlled community pilots, but it is not a stable `1.0`
+> release and operators should review the documented boundaries below.
 
 The following are deliberately still outside the supported core:
 

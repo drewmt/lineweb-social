@@ -339,7 +339,7 @@ export default function Welcome() {
 
                 <footer className="mx-auto flex max-w-[88rem] flex-col gap-2 px-5 py-8 text-xs font-semibold text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-8 lg:px-12">
                     <p>Built for communities that want to own their future.</p>
-                    <p>Open-source alpha · GPL-3.0-or-later</p>
+                    <p>Open-source beta · GPL-3.0-or-later</p>
                 </footer>
             </div>
         </>

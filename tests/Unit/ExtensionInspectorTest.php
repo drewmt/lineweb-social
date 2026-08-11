@@ -11,7 +11,7 @@ class ExtensionInspectorTest extends TestCase
 {
     public function test_inspector_isolates_compatible_incompatible_and_invalid_manifests(): void
     {
-        config()->set('extensions.core_version', '0.1.0-alpha.1');
+        config()->set('extensions.core_version', '0.2.0-beta.1');
 
         $inspections = (new ExtensionInspector)->inspect([
             base_path('tests/Fixtures/extension-center'),
@@ -37,14 +37,14 @@ class ExtensionInspectorTest extends TestCase
 
         $this->assertInstanceOf(ExtensionInspection::class, $incompatible);
         $this->assertStringContainsString(
-            'this installation is 0.1.0-alpha.1',
+            'this installation is 0.2.0-beta.1',
             $incompatible->message,
         );
     }
 
     public function test_inspector_marks_every_manifest_that_declares_a_duplicate_id(): void
     {
-        config()->set('extensions.core_version', '0.1.0-alpha.1');
+        config()->set('extensions.core_version', '0.2.0-beta.1');
 
         $inspections = (new ExtensionInspector)->inspect([
             base_path('tests/Fixtures/extensions'),

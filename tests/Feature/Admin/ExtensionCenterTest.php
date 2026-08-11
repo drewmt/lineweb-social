@@ -39,7 +39,7 @@ class ExtensionCenterTest extends TestCase
             ->get(route('admin.extensions.index'))
             ->assertInertia(fn (Assert $page) => $page
                 ->component('admin/extensions')
-                ->where('coreVersion', '0.1.0-alpha.1')
+                ->where('coreVersion', '0.2.0-beta.1')
                 ->where('summary.discovered', 1)
                 ->where('summary.active', 0)
                 ->where('summary.compatible', 1)
@@ -82,7 +82,7 @@ class ExtensionCenterTest extends TestCase
         $output = Artisan::output();
 
         $this->assertStringContainsString(
-            'Lineweb Social 0.1.0-alpha.1',
+            'Lineweb Social 0.2.0-beta.1',
             $output,
         );
         $this->assertStringContainsString('Example Polls', $output);

@@ -15,7 +15,7 @@ return [
     | support. Keep this value aligned with the public application release.
     |
     */
-    'core_version' => env('LINEWEB_SOCIAL_CORE_VERSION', '0.1.0-alpha.1'),
+    'core_version' => env('LINEWEB_SOCIAL_CORE_VERSION', '0.2.0-beta.1'),
 
     /*
     |--------------------------------------------------------------------------

@@ -9,7 +9,7 @@
             "url": "https://www.lineweb.gr"
         }
     ],
-    "core": "^0.1.0-alpha.1",
+    "core": "^0.2.0-beta.1",
     "provider": "Tests\\Fixtures\\ExtensionProviders\\ReadyExtensionProvider",
     "permissions": [
         "posts.read"

@@ -22,7 +22,7 @@ accessibility, and deletion remain server-enforced platform contracts.
   URLs remain outside the contract.
 
 The legacy single `image` and `image_alt` request fields remain accepted during
-the alpha transition. A legacy draft upload replaces the previous primary
+the legacy gallery transition. A legacy draft upload replaces the previous primary
 image. New clients use `images[]` and `image_alts[]`; requests cannot mix the
 two upload contracts.
 

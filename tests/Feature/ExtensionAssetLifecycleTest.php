@@ -32,7 +32,7 @@ class ExtensionAssetLifecycleTest extends TestCase
             $this->extensionRoot,
         );
 
-        config()->set('extensions.core_version', '0.1.0-alpha.1');
+        config()->set('extensions.core_version', '0.2.0-beta.1');
         config()->set('extensions.paths', [$this->extensionRoot]);
         config()->set('extensions.enabled', []);
         config()->set('extensions.assets.public_root', $this->temporaryRoot.'/public');

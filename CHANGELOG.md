@@ -4,6 +4,8 @@ All notable project changes will be documented here.
 
 ## Unreleased
 
+## [0.2.0-beta.1] - 2026-08-11
+
 ### Added
 
 - Official Space events with owner/moderator publishing and cancellation,
@@ -177,7 +179,7 @@ All notable project changes will be documented here.
 - Mobile Space cards now begin on the shared 16px content gutter while their
   horizontal scroll rail remains edge-to-edge.
 - The README now presents the project as a product: grouped feature coverage,
-  an experience-led desktop/mobile tour, honest alpha boundaries, a quick-start
+  an experience-led desktop/mobile tour, honest prerelease boundaries, a quick-start
   path, and a navigable map of the public architecture contracts.
 - Long feed posts, comments, and Space-card descriptions now stay compact with
   explicit read-more controls that preserve the complete content on demand.
@@ -241,5 +243,6 @@ All notable project changes will be documented here.
   product-specific presentation and extension-owned capabilities.
 - Feature, authorization, manifest, lint, type, and build checks.
 
-[Unreleased]: https://github.com/drewmt/lineweb-social/compare/v0.1.0-alpha.1...HEAD
+[Unreleased]: https://github.com/drewmt/lineweb-social/compare/v0.2.0-beta.1...HEAD
+[0.2.0-beta.1]: https://github.com/drewmt/lineweb-social/compare/v0.1.0-alpha.1...v0.2.0-beta.1
 [0.1.0-alpha.1]: https://github.com/drewmt/lineweb-social/releases/tag/v0.1.0-alpha.1

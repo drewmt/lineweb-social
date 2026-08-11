@@ -77,7 +77,7 @@ class ExtensionActivatorTest extends TestCase
     /** @param list<string> $enabled */
     private function configure(array $enabled): void
     {
-        config()->set('extensions.core_version', '0.1.0-alpha.1');
+        config()->set('extensions.core_version', '0.2.0-beta.1');
         config()->set('extensions.paths', [
             base_path('tests/Fixtures/extension-activation'),
         ]);
