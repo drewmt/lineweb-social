@@ -12,6 +12,12 @@ All notable project changes will be documented here.
   responsive swipe-first profile presentation that leaves activity
   chronological.
 
+### Changed
+
+- Refreshed the public product presentation with current laptop/mobile
+  mockups, dedicated native dark-mode coverage, and a more focused community
+  and platform-operations tour built only from synthetic demo screens.
+
 ## [0.2.0-beta.1] - 2026-08-11
 
 ### Added
