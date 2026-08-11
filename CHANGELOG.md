@@ -6,6 +6,12 @@ All notable project changes will be documented here.
 
 ### Added
 
+- Official Space events with owner/moderator publishing and cancellation,
+  timezone-safe UTC scheduling, venue or HTTPS meeting details, serialized
+  capacity enforcement, private changeable member RSVPs, aggregate-only web
+  and API projections, append-only Space audit records, personal-export
+  coverage, responsive desktop/mobile surfaces, domain events, and a documented
+  extension boundary.
 - One-level direct comment replies with transactional same-post/root-only
   enforcement, flat chronological pagination, safe parent identity projections,
   parent-author notifications, mention deduplication, moderation isolation,
@@ -133,6 +139,8 @@ All notable project changes will be documented here.
 
 ### Changed
 
+- Updated `league/commonmark` to 2.9.2 after new denial-of-service and unsafe-link
+  advisories affected the previously locked transitive release.
 - Updated Guzzle, its promise library, PostCSS, and brace expansion lockfile
   resolutions to releases without the advisories current at validation time.
 - Mobile publishing now opens a full-screen app-like workspace with persistent

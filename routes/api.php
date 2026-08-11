@@ -8,6 +8,8 @@ use App\Http\Controllers\Api\V1\PostController;
 use App\Http\Controllers\Api\V1\PostMediaController;
 use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\Api\V1\SpaceController;
+use App\Http\Controllers\Api\V1\SpaceEventController;
+use App\Http\Controllers\Api\V1\SpaceEventIndexController;
 use App\Http\Controllers\Api\V1\SpaceIndexController;
 use App\Http\Middleware\AssignApiRequestId;
 use App\Http\Middleware\RequireBearerAccessToken;
@@ -35,6 +37,12 @@ Route::prefix('v1')
         Route::get('spaces/{space:slug}', SpaceController::class)
             ->middleware('abilities:spaces:read')
             ->name('api.v1.spaces.show');
+        Route::get('spaces/{space:slug}/events', SpaceEventIndexController::class)
+            ->middleware('abilities:spaces:read')
+            ->name('api.v1.spaces.events.index');
+        Route::get('events/{spaceEvent}', SpaceEventController::class)
+            ->middleware('abilities:spaces:read')
+            ->name('api.v1.events.show');
         Route::get('feed', FeedController::class)
             ->middleware('abilities:feed:read')
             ->name('api.v1.feed');

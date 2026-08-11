@@ -12,6 +12,9 @@ The core owns invariants that an extension must not bypass:
 - profile visibility, discovery, idempotent follows, mute, and mutual block
   boundaries;
 - Space visibility, roles, membership, invitations, and ownership;
+- official Space events with owner/moderator creation, private member RSVP
+  identities, aggregate attendance, capacity serialization, cancellation, and
+  append-only audit records;
 - bounded Space highlights with moderator-only writes, chronological timeline
   isolation, and append-only audit records;
 - chronological posts and comments;
@@ -38,7 +41,7 @@ An Instagram-like product may render media-first cards, an X-like product may re
 ## Extension-owned capabilities
 
 Extensions may add new content projections, integrations, notification channels,
-search indexes, analytics, commerce, learning, events, or alternative feed
+search indexes, analytics, commerce, learning, ticketing, or alternative feed
 presentation. Extension data belongs in extension-owned tables and must reference
 core entities with explicit foreign keys.
 
@@ -109,6 +112,13 @@ does not reorder the timeline, and exposes no selecting-member identity to web
 or API readers. The full contract is documented in
 [`space-highlights.md`](space-highlights.md).
 
+Space events are official community records, not ordinary feed posts. Only an
+owner or moderator may publish or cancel one; members can change their own RSVP
+until the event starts, while cancellation and capacity checks are serialized
+server-side. Web and API projections expose aggregate attendance and the
+current viewer's status only. The full contract is documented in
+[`space-events.md`](space-events.md).
+
 Post topics are normalized indexes, not independent public content. Topic pages
 and search counts begin from the same policy-filtered post query, so a tag never
 grants access to a private Space or muted, blocked, draft, or moderated content.
@@ -151,7 +161,7 @@ in [`platform-administration.md`](platform-administration.md) and
 
 ## Near-term contract work
 
-1. Expand the authenticated read-only API beyond the available profile
+1. Expand the authenticated read-only API beyond the available social and event
    resources using the contract-first [`api-v1.md`](api-v1.md) and
    [`openapi.json`](openapi.json) draft, preserving the stable web conversation,
    notification, and media policy boundaries.

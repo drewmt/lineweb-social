@@ -48,6 +48,8 @@ import {
 } from '@/components/social/post-share';
 import type { SharedPost } from '@/components/social/post-share';
 import { SpaceCover } from '@/components/social/space-cover';
+import { SpaceEventsPreview } from '@/components/social/space-event-card';
+import type { SpaceEventSummary } from '@/components/social/space-event-card';
 import { Button } from '@/components/ui/button';
 import { useClipboard } from '@/hooks/use-clipboard';
 import type { Auth } from '@/types';
@@ -106,6 +108,7 @@ type FeedProps = {
     spaces: Space[];
     posts: FeedPost[];
     highlights?: FeedPost[];
+    events?: SpaceEventSummary[];
     reportReasons: ReportReason[];
     reactionTypes: ReactionType[];
     selectedSpace: string | null;
@@ -1092,6 +1095,7 @@ export default function Feed({
     spaces,
     posts,
     highlights = [],
+    events = [],
     reportReasons,
     reactionTypes,
     selectedSpace,
@@ -1266,10 +1270,17 @@ export default function Feed({
                             </div>
                         )}
                         {selected && !savedView && !topicView && (
-                            <SpaceHighlights
-                                posts={highlights}
-                                canManage={selected.canManage}
-                            />
+                            <>
+                                <SpaceEventsPreview
+                                    events={events}
+                                    spaceSlug={selected.slug}
+                                    canManage={selected.canManage}
+                                />
+                                <SpaceHighlights
+                                    posts={highlights}
+                                    canManage={selected.canManage}
+                                />
+                            </>
                         )}
 
                         <section

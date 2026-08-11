@@ -30,6 +30,8 @@ use App\Http\Controllers\PostShareController;
 use App\Http\Controllers\SavedPostController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SpaceController;
+use App\Http\Controllers\SpaceEventController;
+use App\Http\Controllers\SpaceEventRsvpController;
 use App\Http\Controllers\SpaceInvitationAcceptanceController;
 use App\Http\Controllers\SpaceInvitationController;
 use App\Http\Controllers\SpaceManagementController;
@@ -134,6 +136,11 @@ Route::middleware(['auth', 'account.active', 'verified'])->group(function () {
         ->middleware('throttle:space-creation')
         ->name('spaces.store');
     Route::get('spaces/{space:slug}', [SpaceController::class, 'show'])->name('spaces.show');
+    Route::get('spaces/{space:slug}/events', [SpaceEventController::class, 'index'])
+        ->name('spaces.events.index');
+    Route::post('spaces/{space:slug}/events', [SpaceEventController::class, 'store'])
+        ->middleware('throttle:space-events')
+        ->name('spaces.events.store');
     Route::get('spaces/{space:slug}/manage', SpaceManagementController::class)
         ->name('spaces.manage');
     Route::get('spaces/{space:slug}/moderation', SpaceModerationController::class)
@@ -219,6 +226,17 @@ Route::middleware(['auth', 'account.active', 'verified'])->group(function () {
     Route::put('posts/{post}/poll-vote', [PostPollVoteController::class, 'store'])
         ->middleware('throttle:post-poll-voting')
         ->name('posts.poll-votes.store');
+    Route::get('events/{spaceEvent}', [SpaceEventController::class, 'show'])
+        ->name('events.show');
+    Route::put('events/{spaceEvent}/rsvp', [SpaceEventRsvpController::class, 'store'])
+        ->middleware('throttle:space-event-rsvps')
+        ->name('events.rsvps.store');
+    Route::delete('events/{spaceEvent}/rsvp', [SpaceEventRsvpController::class, 'destroy'])
+        ->middleware('throttle:space-event-rsvps')
+        ->name('events.rsvps.destroy');
+    Route::patch('events/{spaceEvent}/cancel', [SpaceEventController::class, 'cancel'])
+        ->middleware('throttle:space-events')
+        ->name('events.cancel');
     Route::post('posts/{post}/comments', [CommentController::class, 'store'])
         ->middleware('throttle:comment-publishing')
         ->name('posts.comments.store');

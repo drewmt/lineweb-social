@@ -102,6 +102,12 @@ class Space extends Model
         return $this->hasMany(SpacePostHighlight::class);
     }
 
+    /** @return HasMany<SpaceEvent, $this> */
+    public function events(): HasMany
+    {
+        return $this->hasMany(SpaceEvent::class);
+    }
+
     /** @return HasMany<PostReport, $this> */
     public function postReports(): HasMany
     {
@@ -147,6 +153,16 @@ class Space extends Model
 
     public function roleFor(User $user): ?SpaceRole
     {
+        if ($this->relationLoaded('members')) {
+            $member = $this->members->first(
+                fn (User $member): bool => $member->getKey() === $user->getKey(),
+            );
+            $pivot = $member?->getRelation('pivot');
+            $role = $pivot instanceof Model ? $pivot->getAttribute('role') : null;
+
+            return is_string($role) ? SpaceRole::tryFrom($role) : null;
+        }
+
         $role = $this->members()
             ->whereKey($user->getKey())
             ->value('space_members.role');

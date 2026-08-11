@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Community\CommunityFeed;
 use App\Community\CreateSpace;
+use App\Community\SpaceEventProjection;
 use App\Enums\PostReactionType;
 use App\Enums\ReportReason;
 use App\Enums\SpaceVisibility;
@@ -45,8 +46,12 @@ class SpaceController extends Controller
             ->with('status', 'Your space is ready.');
     }
 
-    public function show(Request $request, Space $space, CommunityFeed $feed): Response
-    {
+    public function show(
+        Request $request,
+        Space $space,
+        CommunityFeed $feed,
+        SpaceEventProjection $events,
+    ): Response {
         Gate::authorize('view', $space);
 
         /** @var User $user */
@@ -60,6 +65,7 @@ class SpaceController extends Controller
                 space: $space,
                 highlightedOnly: true,
             ),
+            'events' => $events->upcoming($user, $space, 3),
             'reportReasons' => ReportReason::options(),
             'reactionTypes' => PostReactionType::options(),
             'selectedSpace' => $space->slug,

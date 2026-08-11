@@ -56,6 +56,8 @@ class PersonalDataExport
             ],
             'space_memberships' => $this->spaceMemberships($userId),
             'owned_spaces' => $this->ownedSpaces($userId),
+            'created_space_events' => $this->createdSpaceEvents($userId),
+            'space_event_rsvps' => $this->spaceEventRsvps($userId),
             'posts' => $this->posts($userId),
             'comments' => $this->comments($userId),
             'post_reactions' => $this->postReactions($userId),
@@ -118,6 +120,58 @@ class PersonalDataExport
             ->where('owner_id', $userId)
             ->orderBy('id')
             ->select(['id', 'name', 'slug', 'description', 'visibility', 'created_at', 'updated_at'])
+            ->lazy(500);
+
+        foreach ($rows as $row) {
+            yield (array) $row;
+        }
+    }
+
+    /** @return Generator<int, array<string, mixed>> */
+    private function createdSpaceEvents(int $userId): Generator
+    {
+        $rows = DB::table('space_events')
+            ->join('spaces', 'spaces.id', '=', 'space_events.space_id')
+            ->where('space_events.created_by', $userId)
+            ->orderBy('space_events.id')
+            ->select([
+                'space_events.id',
+                'spaces.slug as space_slug',
+                'space_events.title',
+                'space_events.description',
+                'space_events.starts_at',
+                'space_events.ends_at',
+                'space_events.timezone',
+                'space_events.venue',
+                'space_events.online_url',
+                'space_events.capacity',
+                'space_events.cancelled_at',
+                'space_events.created_at',
+                'space_events.updated_at',
+            ])
+            ->lazy(500);
+
+        foreach ($rows as $row) {
+            yield (array) $row;
+        }
+    }
+
+    /** @return Generator<int, array<string, mixed>> */
+    private function spaceEventRsvps(int $userId): Generator
+    {
+        $rows = DB::table('space_event_rsvps')
+            ->join('space_events', 'space_events.id', '=', 'space_event_rsvps.space_event_id')
+            ->join('spaces', 'spaces.id', '=', 'space_events.space_id')
+            ->where('space_event_rsvps.user_id', $userId)
+            ->orderBy('space_event_rsvps.id')
+            ->select([
+                'space_events.id as event_id',
+                'spaces.slug as space_slug',
+                'space_events.title as event_title',
+                'space_event_rsvps.status',
+                'space_event_rsvps.created_at',
+                'space_event_rsvps.updated_at',
+            ])
             ->lazy(500);
 
         foreach ($rows as $row) {

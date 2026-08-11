@@ -5,6 +5,7 @@
 This document defines the first public contract for authenticated native and
 decoupled clients. `GET /api/v1/me`, `GET /api/v1/profiles/{handle}`,
 `GET /api/v1/spaces`, `GET /api/v1/spaces/{slug}`, `GET /api/v1/feed`,
+`GET /api/v1/spaces/{slug}/events`, `GET /api/v1/events/{event}`,
 `GET /api/v1/posts/{post}`, `GET /api/v1/posts/{post}/comments`, 
 `GET /api/v1/posts/{post}/media`,
 `GET /api/v1/posts/{post}/media/{media}`, `GET /api/v1/notifications`,
@@ -206,6 +207,8 @@ The first resources expose only allowlisted fields:
   membership; they expose only aggregate follow counts and the current viewer's
   follow state;
 - Spaces exclude invitation recipients, audit records, and hidden membership;
+- Space events exclude creator, attendee, and cancellation-actor identities;
+  they expose aggregate RSVP totals plus only the current viewer's status;
 - posts and comments exclude storage paths, report details, moderator notes,
   hidden timestamps, and author account identifiers; nullable `edited_at`
   communicates an author change without exposing internal update timestamps,
@@ -251,6 +254,8 @@ The implemented API roadmap contains:
 - `GET /api/v1/profiles/{handle}` — available
 - `GET /api/v1/spaces` — available
 - `GET /api/v1/spaces/{slug}` — available
+- `GET /api/v1/spaces/{slug}/events` — available
+- `GET /api/v1/events/{event}` — available
 - `GET /api/v1/feed` — available
 - `GET /api/v1/posts/{post}` — available
 - `GET /api/v1/posts/{post}/comments` — available
@@ -262,7 +267,8 @@ The implemented API roadmap contains:
 
 OpenAPI operations carry `x-lineweb-status: planned` until their routes,
 resources, authorization, throttling, and feature tests exist. `/me`,
-`/profiles/{handle}`, `/spaces`, `/spaces/{slug}`, `/feed`,
+`/profiles/{handle}`, `/spaces`, `/spaces/{slug}`,
+`/spaces/{slug}/events`, `/events/{event}`, `/feed`,
 `/posts/{post}`, `/posts/{post}/comments`, `/posts/{post}/media`,
 `/posts/{post}/media/{media}`, and
 `/notifications`, `/notifications/{notification}/read`, and `/notifications/read-all`
