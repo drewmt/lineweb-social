@@ -11,9 +11,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('post_media', function (Blueprint $table): void {
-            $table->dropUnique(['post_id']);
             $table->unsignedTinyInteger('position')->default(0)->after('post_id');
+        });
+
+        Schema::table('post_media', function (Blueprint $table): void {
             $table->unique(['post_id', 'position']);
+        });
+
+        Schema::table('post_media', function (Blueprint $table): void {
+            $table->dropUnique(['post_id']);
         });
     }
 
@@ -37,9 +43,12 @@ return new class extends Migration
             });
 
         Schema::table('post_media', function (Blueprint $table): void {
+            $table->unique('post_id');
+        });
+
+        Schema::table('post_media', function (Blueprint $table): void {
             $table->dropUnique(['post_id', 'position']);
             $table->dropColumn('position');
-            $table->unique('post_id');
         });
     }
 };

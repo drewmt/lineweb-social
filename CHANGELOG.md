@@ -137,6 +137,12 @@ All notable project changes will be documented here.
   timestamps, responsive management dialogs, strict ownership checks, and
   active moderation-review locks.
 
+### Fixed
+
+- Gallery-order migrations now preserve an alternate foreign-key index before
+  replacing the original one-image unique constraint, so clean MariaDB/MySQL
+  installations complete without disabling foreign-key checks.
+
 ### Changed
 
 - Updated `league/commonmark` to 2.9.2 after new denial-of-service and unsafe-link
