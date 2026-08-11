@@ -678,6 +678,111 @@
           }
         }
       }
+    },
+    "/spaces/{slug}/events": {
+      "get": {
+        "operationId": "listSpaceEvents",
+        "summary": "List upcoming or past events visible in a Space",
+        "tags": [
+          "Events"
+        ],
+        "x-lineweb-status": "available",
+        "x-required-ability": "spaces:read",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SpaceSlug"
+          },
+          {
+            "$ref": "#/components/parameters/Cursor"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "upcoming",
+                "past"
+              ],
+              "default": "upcoming"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Visible Space events with aggregate attendance",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpaceEventCollection"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationFailed"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/events/{event}": {
+      "get": {
+        "operationId": "getSpaceEvent",
+        "summary": "Return one Space event visible to the member",
+        "tags": [
+          "Events"
+        ],
+        "x-lineweb-status": "available",
+        "x-required-ability": "spaces:read",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/EventId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Visible Space event with aggregate attendance",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpaceEventResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -729,6 +834,16 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 120
+        }
+      },
+      "EventId": {
+        "name": "event",
+        "in": "path",
+        "required": true,
+        "description": "Opaque Space event identifier.",
+        "schema": {
+          "type": "string",
+          "minLength": 1
         }
       },
       "PostId": {
@@ -1152,6 +1267,204 @@
           },
           "meta": {
             "$ref": "#/components/schemas/PaginationMeta"
+          }
+        }
+      },
+      "SpaceEvent": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "title",
+          "description",
+          "starts_at",
+          "ends_at",
+          "timezone",
+          "venue",
+          "online_url",
+          "capacity",
+          "cancelled_at",
+          "rsvp",
+          "space"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 2000
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "ends_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "timezone": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "venue": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 160
+          },
+          "online_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "maxLength": 2048
+          },
+          "capacity": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 2,
+            "maximum": 10000
+          },
+          "cancelled_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "rsvp": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "going_count",
+              "interested_count",
+              "viewer_status",
+              "is_full",
+              "can_respond"
+            ],
+            "properties": {
+              "going_count": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "interested_count": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "viewer_status": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "going",
+                  "interested",
+                  null
+                ]
+              },
+              "is_full": {
+                "type": "boolean"
+              },
+              "can_respond": {
+                "type": "boolean"
+              }
+            }
+          },
+          "space": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "slug"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "slug": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "SpaceEventResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SpaceEvent"
+          }
+        }
+      },
+      "SpaceEventCollection": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "links",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SpaceEvent"
+            }
+          },
+          "links": {
+            "$ref": "#/components/schemas/PaginationLinks"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/SpaceEventPaginationMeta"
+          }
+        }
+      },
+      "SpaceEventPaginationMeta": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "next_cursor",
+          "has_more",
+          "limit",
+          "scope"
+        ],
+        "properties": {
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "has_more": {
+            "type": "boolean"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "upcoming",
+              "past"
+            ]
           }
         }
       },

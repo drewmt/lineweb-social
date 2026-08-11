@@ -142,6 +142,18 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         return $this->hasMany(Post::class);
     }
 
+    /** @return HasMany<SpaceEvent, $this> */
+    public function createdSpaceEvents(): HasMany
+    {
+        return $this->hasMany(SpaceEvent::class, 'created_by');
+    }
+
+    /** @return HasMany<SpaceEventRsvp, $this> */
+    public function spaceEventRsvps(): HasMany
+    {
+        return $this->hasMany(SpaceEventRsvp::class);
+    }
+
     /** @return HasMany<PostSave, $this> */
     public function postSaves(): HasMany
     {

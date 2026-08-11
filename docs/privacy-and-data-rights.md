@@ -16,6 +16,8 @@ The export currently includes:
 
 - profile and account fields, including platform role and suspension timestamp;
 - Space memberships and owned Space metadata;
+- Space events created by the member and the member's own RSVP status, without
+  exposing any other attendee identity;
 - published posts and private drafts, including publication state and safe image
   metadata, plus comments, reactions, saves, follows, and safety relationships;
 - messages authored by the member;
@@ -78,6 +80,13 @@ member’s export includes their own statement and the response intentionally
 shown to them, but excludes the reviewing administrator, internal suspension
 reason, and privileged audit context. See
 [`account-appeals.md`](account-appeals.md) for the complete projection boundary.
+
+Space event attendance is private by design. Public and API projections expose
+only aggregate `going` and `interested` totals plus the current member's own
+status. The personal export follows the same boundary: it contains events the
+member created and their own RSVPs, never another member's attendance record.
+Cancelling an event preserves its bounded audit record instead of silently
+rewriting community history. See [`space-events.md`](space-events.md).
 
 Direct-message report evidence may survive deletion of the original message or
 either account so an active safety review is not silently destroyed. Active

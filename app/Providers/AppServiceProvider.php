@@ -108,6 +108,12 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('space-highlights', fn (Request $request): Limit => Limit::perMinute(20)
             ->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
 
+        RateLimiter::for('space-events', fn (Request $request): Limit => Limit::perHour(20)
+            ->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
+
+        RateLimiter::for('space-event-rsvps', fn (Request $request): Limit => Limit::perMinute(30)
+            ->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
+
         RateLimiter::for('user-safety', fn (Request $request): Limit => Limit::perMinute(30)
             ->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
 

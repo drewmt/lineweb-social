@@ -3,6 +3,7 @@
 namespace Tests\Feature\Settings;
 
 use App\Enums\NotificationDigestFrequency;
+use App\Enums\SpaceEventRsvpStatus;
 use App\Models\Comment;
 use App\Models\Conversation;
 use App\Models\DirectMessage;
@@ -11,6 +12,8 @@ use App\Models\NotificationPreference;
 use App\Models\PlatformAppeal;
 use App\Models\Post;
 use App\Models\Space;
+use App\Models\SpaceEvent;
+use App\Models\SpaceEventRsvp;
 use App\Models\SpaceInvitation;
 use App\Models\User;
 use App\Models\UserFollow;
@@ -35,6 +38,15 @@ class PersonalDataExportTest extends TestCase
         $other = User::factory()->create(['handle' => 'community-member']);
         $space = Space::factory()->for($other, 'owner')->create(['slug' => 'makers-circle']);
         $space->addMember($user);
+        $spaceEvent = SpaceEvent::factory()->for($space)->create([
+            'created_by' => $user->getKey(),
+            'title' => 'My community event',
+        ]);
+        SpaceEventRsvp::query()->create([
+            'space_event_id' => $spaceEvent->getKey(),
+            'user_id' => $user->getKey(),
+            'status' => SpaceEventRsvpStatus::Going,
+        ]);
 
         $post = Post::factory()->create([
             'space_id' => $space->getKey(),
@@ -145,6 +157,8 @@ class PersonalDataExportTest extends TestCase
         $this->assertSame(1, $export['export_version']);
         $this->assertSame('andrew@example.com', $export['account']['email']);
         $this->assertSame('makers-circle', $export['space_memberships'][0]['space_slug']);
+        $this->assertSame('My community event', $export['created_space_events'][0]['title']);
+        $this->assertSame('going', $export['space_event_rsvps'][0]['status']);
         $this->assertSame('My exported post', $export['posts'][0]['body']);
         $this->assertSame('My exported comment', $export['comments'][0]['body']);
         $this->assertSame($parent->getKey(), $export['comments'][0]['parent_id']);

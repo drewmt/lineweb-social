@@ -223,6 +223,29 @@ layer that never reorders the chronological timeline.
   </tr>
 </table>
 
+### Gather beyond the timeline
+
+Space owners and moderators can publish official in-person, online, or hybrid
+events with timezone-safe scheduling and bounded capacity. Members can answer
+Going or Interested without joining a public attendee directory: every shared
+surface exposes aggregate attendance plus only the current member's own RSVP.
+Cancellation remains visible and audited instead of silently deleting history.
+
+<table>
+  <tr>
+    <td width="68%">
+      <img src="docs/screenshots/space-events-desktop.jpg" alt="Lineweb Social official Space events and event studio on desktop" />
+    </td>
+    <td width="32%">
+      <img src="docs/screenshots/space-events-mobile.jpg" alt="Lineweb Social private RSVP controls in the mobile app layout" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Official events and a focused creator studio</sub></td>
+    <td align="center"><sub>Private, touch-friendly RSVP controls</sub></td>
+  </tr>
+</table>
+
 ### Discovery without weakening privacy
 
 People, posts, Spaces, relationships, and topics remain discoverable only when
@@ -426,7 +449,7 @@ makes the final decision.
 | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Accounts            | Verified registration, stable handles, passkeys, two-factor authentication, strong password defaults, active-account enforcement, and one human-reviewed appeal per restriction.                                                                                      |
 | Profiles            | Editable member identity, headlines, real activity, public/shared/private visibility, and discovery opt-out.                                                                                                                                                          |
-| Spaces              | Public/private/hidden communities, searchable directory, join/leave rules, restricted invitations, roles, ownership transfer, member removal, and bounded curated highlights.                                                                                         |
+| Spaces              | Public/private/hidden communities, searchable directory, join/leave rules, restricted invitations, roles, ownership transfer, member removal, bounded curated highlights, and official events with private RSVPs.                                                   |
 | Publishing          | Focused composer, author-only drafts, private four-image WebP galleries with per-image alt text and swipe navigation, bounded private-first polls, chronological posts, privacy-safe quote posts and reposts, comments, permanent conversations, and author controls. |
 | Discovery           | Policy-filtered search across posts, Spaces, and People; Unicode hashtags; chronological topic trails; and privacy-aware Following.                                                                                                                                   |
 | Interactions        | Typed Like, Celebrate, and Insightful reactions, private Saved Posts, follows, mentions, one-level direct replies, same-Space quote/repost actions, comments, copy links, and conversation shortcuts.                                                                 |
@@ -480,7 +503,9 @@ The following are deliberately still outside the supported core:
 
 - Message attachments, group conversations, realtime presence, and delivery
   receipts.
-- Galleries, video, and direct-to-object-storage uploads.
+- Video, audio, story formats, and direct-to-object-storage uploads.
+- Recurring events, ticket sales, public attendee directories, reminders, and
+  external calendar or conferencing synchronization.
 - Web/mobile push delivery, instant email, and custom digest schedules.
 - Advanced indexed search, a stable JavaScript UI-slot SDK, and destructive
   extension uninstall lifecycles.
@@ -556,6 +581,7 @@ only code structure.
 | Post polls and aggregate-result boundary         | [`docs/post-polls.md`](docs/post-polls.md)                                           |
 | Post media validation and lifecycle              | [`docs/media.md`](docs/media.md)                                                     |
 | Unicode topics and visibility                    | [`docs/topics.md`](docs/topics.md)                                                   |
+| Official Space events and private RSVP boundary  | [`docs/space-events.md`](docs/space-events.md)                                       |
 | Platform administration                          | [`docs/platform-administration.md`](docs/platform-administration.md)                 |
 | Account status and human-reviewed appeals        | [`docs/account-appeals.md`](docs/account-appeals.md)                                 |
 | Personal export and account deletion             | [`docs/privacy-and-data-rights.md`](docs/privacy-and-data-rights.md)                 |
