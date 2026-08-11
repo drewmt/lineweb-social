@@ -52,6 +52,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property-read int $shared_space_count
  * @property-read NotificationPreference|null $notificationPreference
  * @property-read Collection<int, PlatformAppeal> $platformAppeals
+ * @property-read Collection<int, ProfilePostHighlight> $profileHighlights
  */
 #[Fillable([
     'name',
@@ -140,6 +141,12 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     public function posts(): HasMany
     {
         return $this->hasMany(Post::class);
+    }
+
+    /** @return HasMany<ProfilePostHighlight, $this> */
+    public function profileHighlights(): HasMany
+    {
+        return $this->hasMany(ProfilePostHighlight::class);
     }
 
     /** @return HasMany<SpaceEvent, $this> */

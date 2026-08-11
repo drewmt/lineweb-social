@@ -1073,6 +1073,7 @@
           "location",
           "website_url",
           "member_since",
+          "highlights",
           "stats",
           "viewer"
         ],
@@ -1111,6 +1112,33 @@
           "member_since": {
             "type": "string",
             "format": "date"
+          },
+          "highlights": {
+            "type": "array",
+            "maxItems": 3,
+            "description": "Profile-selected posts that remain visible to the current member.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "post_id",
+                "url",
+                "highlighted_at"
+              ],
+              "properties": {
+                "post_id": {
+                  "type": "integer"
+                },
+                "url": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "highlighted_at": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
           },
           "stats": {
             "type": "object",

@@ -11,6 +11,8 @@ The core owns invariants that an extension must not bypass:
   authorization, and append-only operator audit records;
 - profile visibility, discovery, idempotent follows, mute, and mutual block
   boundaries;
+- author-owned Profile Highlights with a three-post bound and current-viewer
+  post visibility;
 - Space visibility, roles, membership, invitations, and ownership;
 - official Space events with owner/moderator creation, private member RSVP
   identities, aggregate attendance, capacity serialization, cancellation, and
@@ -111,6 +113,14 @@ serialized Space lock. The highlight projection reuses normal post visibility,
 does not reorder the timeline, and exposes no selecting-member identity to web
 or API readers. The full contract is documented in
 [`space-highlights.md`](space-highlights.md).
+
+Profile highlights are member-owned presentation, not feed ranking. A member
+may select at most three of their own published posts under a serialized
+profile lock. The profile projection resolves those identifiers through normal
+post visibility for every viewer, while recent activity remains chronological.
+Hidden, unpublished, deleted, or no-longer-accessible posts cannot occupy a new
+selection slot indefinitely. The full contract is documented in
+[`profile-highlights.md`](profile-highlights.md).
 
 Space events are official community records, not ordinary feed posts. Only an
 owner or moderator may publish or cancel one; members can change their own RSVP

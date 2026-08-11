@@ -133,7 +133,7 @@ class ApiContractDocumentationTest extends TestCase
         $schemas = $contract['components']['schemas'];
 
         $this->assertSame(
-            ['handle', 'name', 'headline', 'bio', 'location', 'website_url', 'member_since', 'stats', 'viewer'],
+            ['handle', 'name', 'headline', 'bio', 'location', 'website_url', 'member_since', 'highlights', 'stats', 'viewer'],
             array_keys($schemas['Profile']['properties']),
         );
         $this->assertSame(

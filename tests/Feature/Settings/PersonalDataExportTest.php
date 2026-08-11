@@ -11,6 +11,7 @@ use App\Models\DirectMessageReport;
 use App\Models\NotificationPreference;
 use App\Models\PlatformAppeal;
 use App\Models\Post;
+use App\Models\ProfilePostHighlight;
 use App\Models\Space;
 use App\Models\SpaceEvent;
 use App\Models\SpaceEventRsvp;
@@ -52,6 +53,10 @@ class PersonalDataExportTest extends TestCase
             'space_id' => $space->getKey(),
             'user_id' => $user->getKey(),
             'body' => 'My exported post',
+        ]);
+        ProfilePostHighlight::query()->create([
+            'user_id' => $user->getKey(),
+            'post_id' => $post->getKey(),
         ]);
         $parent = Comment::factory()->create([
             'post_id' => $post->getKey(),
@@ -160,6 +165,7 @@ class PersonalDataExportTest extends TestCase
         $this->assertSame('My community event', $export['created_space_events'][0]['title']);
         $this->assertSame('going', $export['space_event_rsvps'][0]['status']);
         $this->assertSame('My exported post', $export['posts'][0]['body']);
+        $this->assertSame($post->getKey(), $export['profile_highlights'][0]['post_id']);
         $this->assertSame('My exported comment', $export['comments'][0]['body']);
         $this->assertSame($parent->getKey(), $export['comments'][0]['parent_id']);
         $this->assertSame('community-member', $export['following'][0]['handle']);

@@ -46,7 +46,7 @@ class CurrentProfileTest extends TestCase
             ->assertHeader('X-RateLimit-Limit', '120');
 
         $this->assertSame(
-            ['handle', 'name', 'headline', 'bio', 'location', 'website_url', 'member_since', 'stats', 'viewer'],
+            ['handle', 'name', 'headline', 'bio', 'location', 'website_url', 'member_since', 'highlights', 'stats', 'viewer'],
             array_keys($response->json('data')),
         );
         $this->assertRequestId($response->headers->get('X-Request-ID'));
