@@ -146,6 +146,12 @@ All notable project changes will be documented here.
   assets so default reverse-proxy buffers can serve every public and auth page
   without sacrificing critical script, stylesheet, and font preloading.
 
+### Security
+
+- Public and authenticated responses now deny framing, disable MIME sniffing,
+  use a strict cross-origin referrer policy, and disable unused camera,
+  microphone, and geolocation browser capabilities by default.
+
 ### Changed
 
 - Updated `league/commonmark` to 2.9.2 after new denial-of-service and unsafe-link
