@@ -19,6 +19,19 @@ class AuthenticationTest extends TestCase
         $response->assertOk();
     }
 
+    public function test_login_asset_preload_header_stays_within_common_proxy_limits(): void
+    {
+        $response = $this->get(route('login'));
+
+        $response->assertOk();
+
+        $linkHeader = $response->headers->get('Link');
+
+        $this->assertNotNull($linkHeader);
+        $this->assertLessThanOrEqual(8, count(explode(', ', $linkHeader)));
+        $this->assertLessThan(3072, strlen($linkHeader));
+    }
+
     public function test_users_can_authenticate_using_the_login_screen()
     {
         $user = User::factory()->create();
