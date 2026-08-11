@@ -37,3 +37,54 @@ jobs:
 
       - name: Run CI Checks
         run: composer ci:check
+
+  mariadb-migrations:
+    runs-on: ubuntu-latest
+
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_DATABASE: lineweb_social_test
+          MARIADB_USER: lineweb
+          MARIADB_PASSWORD: lineweb_ci
+          MARIADB_ROOT_PASSWORD: root_ci
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_mysql
+          tools: composer:v2
+          coverage: none
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Prepare application key
+        run: |
+          cp .env.example .env
+          php artisan key:generate --force --no-interaction
+
+      - name: Run MariaDB migrations
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: lineweb_social_test
+          DB_USERNAME: lineweb
+          DB_PASSWORD: lineweb_ci
+        run: php artisan migrate:fresh --force --no-interaction
