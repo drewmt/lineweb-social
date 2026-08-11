@@ -24,7 +24,7 @@ trait HandlesPostGalleryUploads
             'images.*' => $imageRules,
             'image_alts' => ['nullable', 'array', 'max:'.(int) config('media.max_gallery_items')],
             'image_alts.*' => ['nullable', 'string', 'max:300'],
-            // Kept during the alpha transition for existing clients.
+            // Kept during the legacy gallery transition for existing clients.
             'image' => ['nullable', ...$imageRules],
             'image_alt' => ['nullable', 'string', 'max:300'],
         ];

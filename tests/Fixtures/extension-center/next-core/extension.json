@@ -8,7 +8,7 @@
             "name": "Lineweb"
         }
     ],
-    "core": ">=0.2.0",
+    "core": ">=0.3.0",
     "provider": "Extensions\\NextCore\\NextCoreServiceProvider",
     "permissions": [],
     "ui_slots": []
