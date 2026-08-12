@@ -56,6 +56,30 @@ Every preview below uses synthetic local demo content. No private member data,
 credentials, database, uploads, or generated build output are part of the public
 repository.
 
+### Product identity from the first visit
+
+The public landing experience shows the product instead of hiding it behind a
+generic marketing page. Login and registration continue the same visual system
+with clear hierarchy, responsive forms, passkey support, and familiar community
+context.
+
+![Lineweb Social product-led public landing page](docs/screenshots/home-desktop.jpg)
+
+<table>
+  <tr>
+    <td width="50%">
+      <img src="docs/screenshots/login-desktop.jpg" alt="Lineweb Social secure login experience" />
+    </td>
+    <td width="50%">
+      <img src="docs/screenshots/register-desktop.jpg" alt="Lineweb Social community registration experience" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Passkey-ready login with a focused return path</sub></td>
+    <td align="center"><sub>Clear registration and email-verification expectations</sub></td>
+  </tr>
+</table>
+
 ### Community home
 
 A responsive, chronological experience with clear publishing, conversation,

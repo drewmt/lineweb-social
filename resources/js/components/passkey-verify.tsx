@@ -45,7 +45,8 @@ export default function PasskeyVerify({
                 <Button
                     type="button"
                     variant="outline"
-                    className="w-full"
+                    size="lg"
+                    className="w-full rounded-2xl"
                     onClick={verify}
                     disabled={isLoading}
                 >
@@ -64,7 +65,7 @@ export default function PasskeyVerify({
                     <Separator className="w-full" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-2 text-muted-foreground">
+                    <span className="bg-background px-3 text-[0.62rem] font-bold tracking-[0.08em] text-muted-foreground">
                         {separator ?? 'Or continue with email'}
                     </span>
                 </div>

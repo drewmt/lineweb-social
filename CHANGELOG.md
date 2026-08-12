@@ -14,6 +14,10 @@ All notable project changes will be documented here.
 
 ### Changed
 
+- Reworked the public landing, login, and registration experiences around one
+  responsive product identity, with a product-led social preview, clearer
+  onboarding hierarchy, passkey-aware sign-in, and explicit email-verification
+  expectations without changing the Fortify authentication contracts.
 - Refreshed the public product presentation with current laptop/mobile
   mockups, dedicated native dark-mode coverage, and a more focused community
   and platform-operations tour built only from synthetic demo screens.
