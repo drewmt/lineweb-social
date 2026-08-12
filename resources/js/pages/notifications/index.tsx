@@ -28,6 +28,10 @@ type NotificationItem = {
     available: boolean;
 };
 
+type NotificationKind =
+    'comment_reply' | 'content_mention' | 'space_moderation';
+type NotificationKindFilter = 'all' | NotificationKind;
+
 type NotificationsProps = {
     items: NotificationItem[];
     meta: {
@@ -35,12 +39,14 @@ type NotificationsProps = {
         lastPage: number;
         perPage: number;
         total: number;
+        unreadCount: number;
     };
     links: {
         previous: string | null;
         next: string | null;
     };
     filter: 'all' | 'unread';
+    kind: NotificationKindFilter;
     notificationSummary: { unreadCount: number };
     status?: string;
 };
@@ -51,15 +57,58 @@ const timestamp = (value: string) =>
         timeStyle: 'short',
     }).format(new Date(value));
 
+const KIND_OPTIONS: Array<{ kind: NotificationKindFilter; label: string }> = [
+    { kind: 'all', label: 'All' },
+    { kind: 'comment_reply', label: 'Replies' },
+    { kind: 'content_mention', label: 'Mentions' },
+    { kind: 'space_moderation', label: 'Moderation' },
+];
+
+function kindLabel(kind: NotificationKindFilter): string {
+    return KIND_OPTIONS.find((option) => option.kind === kind)?.label ?? 'All';
+}
+
+function buildNotificationUrl(
+    kind: NotificationKindFilter,
+    filter: 'all' | 'unread',
+): string {
+    const params: string[] = [];
+
+    if (kind !== 'all') {
+        params.push(`kind=${encodeURIComponent(kind)}`);
+    }
+
+    if (filter === 'unread') {
+        params.push('filter=unread');
+    }
+
+    return params.length === 0
+        ? '/notifications'
+        : `/notifications?${params.join('&')}`;
+}
+
+function buildReadAllUrl(kind: NotificationKindFilter): string {
+    return kind === 'all'
+        ? '/notifications/read-all'
+        : `/notifications/read-all?kind=${encodeURIComponent(kind)}`;
+}
+
 export default function Notifications({
     items,
     meta,
     links,
     filter,
+    kind,
     notificationSummary,
     status,
 }: NotificationsProps) {
-    const unreadCount = notificationSummary.unreadCount;
+    const totalUnreadCount = notificationSummary.unreadCount;
+    const scopedUnreadCount = meta.unreadCount;
+    const resolvedKind: NotificationKindFilter = kind;
+    const notificationScope =
+        resolvedKind === 'all'
+            ? 'All notification types'
+            : kindLabel(resolvedKind);
 
     return (
         <>
@@ -77,16 +126,20 @@ export default function Notifications({
                             </h1>
                             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
                                 Replies, mentions, and moderation work that
-                                deserve your attention — no engagement ranking
-                                or noise.
+                                deserve your attention, ordered by time rather
+                                than engagement.
                             </p>
                         </div>
                         <Button
                             type="button"
                             variant="outline"
-                            disabled={unreadCount === 0}
+                            disabled={scopedUnreadCount === 0}
                             onClick={() =>
-                                router.patch('/notifications/read-all')
+                                router.patch(
+                                    buildReadAllUrl(resolvedKind),
+                                    {},
+                                    { preserveScroll: true },
+                                )
                             }
                             className="min-h-11 rounded-xl"
                         >
@@ -119,22 +172,45 @@ export default function Notifications({
                                     Recent activity
                                 </h2>
                                 <p className="mt-0.5 text-xs font-semibold text-muted-foreground">
-                                    {unreadCount.toLocaleString()} unread
+                                    {notificationScope} ·{' '}
+                                    {scopedUnreadCount.toLocaleString()} unread
+                                    {resolvedKind !== 'all' &&
+                                        ` · ${totalUnreadCount.toLocaleString()} total`}
                                 </p>
                             </div>
                             <div className="flex rounded-xl bg-secondary/70 p-1">
                                 <FilterLink
-                                    href="/notifications"
+                                    href={buildNotificationUrl(
+                                        resolvedKind,
+                                        'all',
+                                    )}
                                     active={filter === 'all'}
                                 >
                                     All
                                 </FilterLink>
                                 <FilterLink
-                                    href="/notifications?filter=unread"
+                                    href={buildNotificationUrl(
+                                        resolvedKind,
+                                        'unread',
+                                    )}
                                     active={filter === 'unread'}
                                 >
                                     Unread
                                 </FilterLink>
+                            </div>
+                            <div className="mt-2 flex flex-wrap gap-2 rounded-xl bg-secondary/50 p-1">
+                                {KIND_OPTIONS.map((option) => (
+                                    <FilterLink
+                                        key={option.kind}
+                                        href={buildNotificationUrl(
+                                            option.kind,
+                                            filter,
+                                        )}
+                                        active={resolvedKind === option.kind}
+                                    >
+                                        {option.label}
+                                    </FilterLink>
+                                ))}
                             </div>
                         </div>
 

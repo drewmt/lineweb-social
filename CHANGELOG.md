@@ -18,6 +18,9 @@ All notable project changes will be documented here.
   responsive product identity, with a product-led social preview, clearer
   onboarding hierarchy, passkey-aware sign-in, and explicit email-verification
   expectations without changing the Fortify authentication contracts.
+- Added inbox category filtering for notifications (replies, mentions, moderation)
+  on both web and `/api/v1/notifications`, including kind-scoped cursor
+  pagination and graceful invalidation when cursor scope changes.
 - Refreshed the public product presentation with current laptop/mobile
   mockups, dedicated native dark-mode coverage, and a more focused community
   and platform-operations tour built only from synthetic demo screens.

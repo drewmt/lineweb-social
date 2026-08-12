@@ -9,6 +9,7 @@ use App\Models\Post;
 use App\Models\PostReport;
 use App\Models\Space;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\Gate;
 
@@ -54,15 +55,16 @@ final class NotificationCenter
     /**
      * @return array{
      *     items: list<array{id: string, kind: string, title: string, description: string, createdAt: string, readAt: string|null, available: bool}>,
-     *     meta: array{currentPage: int, lastPage: int, perPage: int, total: int},
+     *     meta: array{currentPage: int, lastPage: int, perPage: int, total: int, unreadCount: int},
      *     links: array{previous: string|null, next: string|null}
      * }
      */
-    public function for(User $viewer, string $filter): array
+    public function for(User $viewer, string $filter, ?NotificationType $kind = null): array
     {
-        $notifications = DatabaseNotification::query()
-            ->where('notifiable_type', $viewer->getMorphClass())
-            ->where('notifiable_id', $viewer->getKey())
+        $unreadCount = $this->query($viewer, $kind)
+            ->whereNull('read_at')
+            ->count();
+        $notifications = $this->query($viewer, $kind)
             ->when($filter === 'unread', fn ($query) => $query->whereNull('read_at'))
             ->latest()
             ->paginate(self::PER_PAGE)
@@ -89,12 +91,22 @@ final class NotificationCenter
                 'lastPage' => $notifications->lastPage(),
                 'perPage' => $notifications->perPage(),
                 'total' => $notifications->total(),
+                'unreadCount' => $unreadCount,
             ],
             'links' => [
                 'previous' => $notifications->previousPageUrl(),
                 'next' => $notifications->nextPageUrl(),
             ],
         ];
+    }
+
+    public function markAllAsRead(User $viewer, ?NotificationType $kind = null): int
+    {
+        return $this->query($viewer, $kind)
+            ->whereNull('read_at')
+            ->update([
+                'read_at' => now(),
+            ]);
     }
 
     public function findFor(User $viewer, string $id): DatabaseNotification
@@ -119,6 +131,17 @@ final class NotificationCenter
         }
 
         return NotificationType::tryFrom($resolved['kind']);
+    }
+
+    /**
+     * @return Builder<DatabaseNotification>
+     */
+    private function query(User $viewer, ?NotificationType $kind): Builder
+    {
+        return DatabaseNotification::query()
+            ->where('notifiable_type', $viewer->getMorphClass())
+            ->where('notifiable_id', $viewer->getKey())
+            ->when($kind !== null, fn ($notifications) => $notifications->where('type', $kind->value));
     }
 
     /** @return array{kind: string, title: string, description: string, destination: string|null} */

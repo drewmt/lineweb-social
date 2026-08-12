@@ -109,6 +109,64 @@ class NotificationApiTest extends TestCase
             ->assertJsonPath('code', 'invalid_cursor');
     }
 
+    public function test_notifications_supports_kind_filter_and_cursor_scope(): void
+    {
+        $viewer = User::factory()->create();
+        $author = User::factory()->create();
+        $space = Space::factory()->for($viewer, 'owner')->create();
+        $post = Post::factory()->for($space)->for($author, 'author')->create();
+        $commentOne = Comment::factory()->for($post)->for($author, 'author')->create();
+        $commentTwo = Comment::factory()->for($post)->for($author, 'author')->create();
+
+        $viewer->notify(ContentMentionNotification::forPost($post));
+        $this->travel(1)->second();
+        $viewer->notify(new CommentReplyNotification($commentOne));
+        $this->travel(1)->second();
+        $viewer->notify(new CommentReplyNotification($commentTwo));
+
+        $this->withToken($this->token($viewer))
+            ->getJson(route('api.v1.notifications', ['kind' => 'content_mention']))
+            ->assertOk()
+            ->assertJsonPath('meta.has_more', false)
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.kind', 'content_mention');
+
+        $comments = $this->withToken($this->token($viewer))
+            ->getJson(route('api.v1.notifications', ['kind' => 'comment_reply', 'limit' => 1]));
+
+        $comments
+            ->assertOk()
+            ->assertJsonPath('meta.has_more', true)
+            ->assertJsonPath('meta.limit', 1)
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.kind', 'comment_reply');
+
+        $commentCursor = $comments->json('meta.next_cursor');
+        $this->assertIsString($commentCursor);
+
+        $this->withToken($this->token($viewer))
+            ->getJson(route('api.v1.notifications', [
+                'kind' => 'comment_reply',
+                'cursor' => $commentCursor,
+            ]))
+            ->assertOk()
+            ->assertJsonPath('meta.has_more', false)
+            ->assertJsonPath('data.0.kind', 'comment_reply');
+
+        $this->withToken($this->token($viewer))
+            ->getJson(route('api.v1.notifications', [
+                'kind' => 'content_mention',
+                'cursor' => $commentCursor,
+            ]))
+            ->assertBadRequest()
+            ->assertJsonPath('code', 'invalid_cursor');
+
+        $this->withToken($this->token($viewer))
+            ->getJson(route('api.v1.notifications', ['cursor' => $commentCursor]))
+            ->assertBadRequest()
+            ->assertJsonPath('code', 'invalid_cursor');
+    }
+
     public function test_content_mentions_expose_only_a_current_policy_safe_target(): void
     {
         $viewer = User::factory()->create();
@@ -187,6 +245,33 @@ class NotificationApiTest extends TestCase
         ]);
     }
 
+    public function test_mark_all_read_api_respects_the_selected_notification_kind(): void
+    {
+        $viewer = User::factory()->create();
+        $author = User::factory()->create();
+        $space = Space::factory()->for($viewer, 'owner')->create();
+        $post = Post::factory()->for($space)->for($author, 'author')->create();
+        $comment = Comment::factory()->for($post)->for($author, 'author')->create();
+
+        $viewer->notify(new CommentReplyNotification($comment));
+        $viewer->notify(ContentMentionNotification::forPost($post));
+
+        $this->withToken($this->token($viewer, ['notifications:write']))
+            ->patchJson(route('api.v1.notifications.read-all', ['kind' => 'content_mention']))
+            ->assertNoContent();
+
+        $this->assertDatabaseMissing('notifications', [
+            'notifiable_id' => $viewer->getKey(),
+            'type' => 'content_mention',
+            'read_at' => null,
+        ]);
+        $this->assertDatabaseHas('notifications', [
+            'notifiable_id' => $viewer->getKey(),
+            'type' => 'comment_reply',
+            'read_at' => null,
+        ]);
+    }
+
     public function test_notifications_require_scope_and_verified_access(): void
     {
         $viewer = User::factory()->create();
@@ -209,6 +294,11 @@ class NotificationApiTest extends TestCase
 
         $this->withToken($this->token($viewer, ['notifications:read']))
             ->getJson(route('api.v1.notifications', ['filter' => 'maybe']))
+            ->assertUnprocessable()
+            ->assertJsonPath('code', 'validation_failed');
+
+        $this->withToken($this->token($viewer, ['notifications:read']))
+            ->getJson(route('api.v1.notifications', ['kind' => 'invalid_kind']))
             ->assertUnprocessable()
             ->assertJsonPath('code', 'validation_failed');
     }
