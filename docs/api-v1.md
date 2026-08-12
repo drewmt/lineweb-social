@@ -263,8 +263,14 @@ The implemented API roadmap contains:
 - `GET /api/v1/posts/{post}/media` — available
 - `GET /api/v1/posts/{post}/media/{media}` — available
 - `GET /api/v1/notifications` — available
+  - Supports `kind` filtering (`comment_reply`, `content_mention`,
+    `space_moderation`) as an optional scope.
+  - The cursor returned in `meta.next_cursor` is bound to both `filter` and
+    `kind` and returns `invalid_cursor` on scope mismatch.
 - `PATCH /api/v1/notifications/{notification}/read` — available
 - `PATCH /api/v1/notifications/read-all` — available
+  - Supports an optional `kind` (`comment_reply`, `content_mention`,
+    `space_moderation`) so bulk read can be limited to one category.
 
 OpenAPI operations carry `x-lineweb-status: planned` until their routes,
 resources, authorization, throttling, and feature tests exist. `/me`,

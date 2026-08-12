@@ -3,10 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Community\NotificationCenter;
+use App\Enums\NotificationType;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Notifications\DatabaseNotification;
+use Illuminate\Support\Arr;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -17,10 +18,12 @@ class NotificationController extends Controller
         /** @var User $user */
         $user = $request->user();
         $filter = $request->query('filter') === 'unread' ? 'unread' : 'all';
+        $kind = NotificationType::tryFrom((string) Arr::get($request->query(), 'kind'));
 
         return Inertia::render('notifications/index', [
-            ...$center->for($user, $filter),
+            ...$center->for($user, $filter, $kind),
             'filter' => $filter,
+            'kind' => $kind instanceof NotificationType ? $kind->value : 'all',
         ]);
     }
 
@@ -49,16 +52,20 @@ class NotificationController extends Controller
         return back()->with('status', 'Notification marked as read.');
     }
 
-    public function readAll(Request $request): RedirectResponse
+    public function readAll(Request $request, NotificationCenter $center): RedirectResponse
     {
         /** @var User $user */
         $user = $request->user();
+        /** @var array{kind?: string} $validated */
+        $validated = $request->validate([
+            'kind' => ['sometimes', 'string', 'in:all,comment_reply,content_mention,space_moderation'],
+        ]);
 
-        DatabaseNotification::query()
-            ->where('notifiable_type', $user->getMorphClass())
-            ->where('notifiable_id', $user->getKey())
-            ->whereNull('read_at')
-            ->update(['read_at' => now()]);
+        $kind = isset($validated['kind']) && $validated['kind'] !== 'all'
+            ? NotificationType::tryFrom($validated['kind'])
+            : null;
+
+        $center->markAllAsRead($user, $kind);
 
         return back()->with('status', 'All notifications marked as read.');
     }

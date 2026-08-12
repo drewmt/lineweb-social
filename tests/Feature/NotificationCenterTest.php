@@ -11,6 +11,7 @@ use App\Models\Post;
 use App\Models\Space;
 use App\Models\User;
 use App\Notifications\CommentReplyNotification;
+use App\Notifications\ContentMentionNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Notifications\DatabaseNotification;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -97,6 +98,43 @@ class NotificationCenterTest extends TestCase
             ->assertRedirect();
 
         $this->assertDatabaseCount('notifications', 0);
+    }
+
+    public function test_notifications_index_supports_notification_kind_filters(): void
+    {
+        $viewer = User::factory()->create();
+        $author = User::factory()->create();
+        $space = Space::factory()->for($viewer, 'owner')->create(['name' => 'Makers Circle']);
+        $post = Post::factory()->for($space)->for($author, 'author')->create();
+        $comment = Comment::factory()->for($post)->for($author, 'author')->create();
+
+        $viewer->notify(new CommentReplyNotification($comment));
+        $viewer->notify(ContentMentionNotification::forPost($post));
+
+        $this->actingAs($viewer)
+            ->get(route('notifications.index', ['kind' => 'content_mention']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('filter', 'all')
+                ->where('kind', 'content_mention')
+                ->where('meta.unreadCount', 1)
+                ->has('items', 1)
+                ->where('items.0.kind', 'content_mention'));
+
+        $this->actingAs($viewer)
+            ->get(route('notifications.index', ['kind' => 'comment_reply']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('kind', 'comment_reply')
+                ->has('items', 1)
+                ->where('items.0.kind', 'comment_reply'));
+
+        $this->actingAs($viewer)
+            ->get(route('notifications.index', ['kind' => 'invalid']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('kind', 'all')
+                ->has('items', 2));
     }
 
     public function test_direct_reply_notifies_the_parent_author_instead_of_the_post_author(): void
@@ -227,6 +265,46 @@ class NotificationCenterTest extends TestCase
             ->post(route('notifications.open', $second->id))
             ->assertRedirect(route('posts.show', $post).'#comment-'.$comment->id);
         $this->assertNotNull($second->refresh()->read_at);
+    }
+
+    public function test_mark_all_read_respects_the_selected_notification_kind(): void
+    {
+        $recipient = User::factory()->create();
+        $author = User::factory()->create();
+        $space = Space::factory()->for($recipient, 'owner')->create();
+        $post = Post::factory()->for($space)->for($author, 'author')->create();
+        $comment = Comment::factory()->for($post)->for($author, 'author')->create();
+
+        $recipient->notify(new CommentReplyNotification($comment));
+        $recipient->notify(ContentMentionNotification::forPost($post));
+
+        $this->actingAs($recipient)
+            ->patch(route('notifications.read-all', ['kind' => 'comment_reply']))
+            ->assertRedirect()
+            ->assertSessionHas('status', 'All notifications marked as read.');
+
+        $this->assertDatabaseMissing('notifications', [
+            'notifiable_id' => $recipient->getKey(),
+            'type' => 'comment_reply',
+            'read_at' => null,
+        ]);
+        $this->assertDatabaseHas('notifications', [
+            'notifiable_id' => $recipient->getKey(),
+            'type' => 'content_mention',
+            'read_at' => null,
+        ]);
+
+        $this->actingAs($recipient)
+            ->get(route('notifications.index', ['kind' => 'comment_reply']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('meta.unreadCount', 0));
+
+        $this->actingAs($recipient)
+            ->get(route('notifications.index', ['kind' => 'content_mention']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('meta.unreadCount', 1));
     }
 
     public function test_reply_opening_resolves_the_page_that_currently_contains_the_comment(): void

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Api\V1\NotificationCursor;
 use App\Community\NotificationCenter;
+use App\Enums\NotificationType;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
@@ -21,26 +22,31 @@ class NotificationController extends Controller
         /** @var User $viewer */
         $viewer = $request->user();
 
-        /** @var array{cursor?: string, limit?: int, filter?: string} $validated */
+        /** @var array{cursor?: string, limit?: int, filter?: string, kind?: string} $validated */
         $validated = $request->validate([
             'cursor' => ['sometimes', 'string', 'max:2048'],
             'limit' => ['sometimes', 'integer', 'min:1', 'max:50'],
             'filter' => ['sometimes', 'string', 'in:all,unread'],
+            'kind' => ['sometimes', 'string', 'in:all,comment_reply,content_mention,space_moderation'],
         ]);
 
         $filter = $validated['filter'] ?? 'all';
         $limit = (int) ($validated['limit'] ?? 20);
+        $kind = isset($validated['kind']) && $validated['kind'] !== 'all'
+            ? NotificationType::tryFrom($validated['kind'])
+            : null;
 
         $query = DatabaseNotification::query()
             ->where('notifiable_type', $viewer->getMorphClass())
             ->where('notifiable_id', $viewer->getKey())
             ->when($filter === 'unread', fn ($notifications) => $notifications->whereNull('read_at'))
+            ->when($kind !== null, fn ($notifications) => $notifications->where('type', $kind->value))
             ->orderBy('created_at', 'desc')
             ->orderBy('id', 'desc')
             ->limit($limit + 1);
 
         if (isset($validated['cursor'])) {
-            $cursor = $cursorFactory->decode($validated['cursor'], $viewer, $filter);
+            $cursor = $cursorFactory->decode($validated['cursor'], $viewer, $filter, $kind);
 
             $query->where(function ($notifications) use ($cursor): void {
                 $notifications
@@ -60,7 +66,7 @@ class NotificationController extends Controller
 
         $lastNotification = $notifications->last();
         $nextCursor = $hasMore && $lastNotification instanceof DatabaseNotification
-            ? $cursorFactory->encode($viewer, $filter, $lastNotification)
+            ? $cursorFactory->encode($viewer, $filter, $kind, $lastNotification)
             : null;
 
         $next = $nextCursor !== null
@@ -68,6 +74,7 @@ class NotificationController extends Controller
                 'cursor' => $nextCursor,
                 'limit' => $limit,
                 'filter' => $filter === 'unread' ? $filter : null,
+                'kind' => $kind?->value,
             ], static fn (mixed $value): bool => $value !== null))
             : null;
 
@@ -99,16 +106,22 @@ class NotificationController extends Controller
         return response()->json(null, 204);
     }
 
-    public function readAll(Request $request): JsonResponse
-    {
+    public function readAll(
+        Request $request,
+        NotificationCenter $center,
+    ): JsonResponse {
         /** @var User $viewer */
         $viewer = $request->user();
+        /** @var array{kind?: string} $validated */
+        $validated = $request->validate([
+            'kind' => ['sometimes', 'string', 'in:all,comment_reply,content_mention,space_moderation'],
+        ]);
 
-        DatabaseNotification::query()
-            ->where('notifiable_type', $viewer->getMorphClass())
-            ->where('notifiable_id', $viewer->getKey())
-            ->whereNull('read_at')
-            ->update(['read_at' => now()]);
+        $kind = isset($validated['kind']) && $validated['kind'] !== 'all'
+            ? NotificationType::tryFrom($validated['kind'])
+            : null;
+
+        $center->markAllAsRead($viewer, $kind);
 
         return response()->json(null, 204);
     }

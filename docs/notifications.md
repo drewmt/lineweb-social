@@ -25,6 +25,13 @@ experience does not require a queue worker. Per-reaction notifications remain
 deliberately unavailable. Typed post reactions
 emit `PostReactionChanged` for extensions, but the core deliberately avoids a
 notification for every reaction.
+
+The inbox supports on-page filtering by notification category (`comment_reply`,
+`content_mention`, `space_moderation`) and a single `unread` state switch.
+This same category scope is enforced on the API to keep cursor pagination
+deterministic and safe if a client continues a stream across refreshes.
+Bulk read actions respect the selected category, so “Mark all read” only updates
+currently unread rows in that category.
 Follow changes similarly emit `UserFollowChanged` for extensions, but the core
 does not create a notification for every follow in this release.
 

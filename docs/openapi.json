@@ -154,6 +154,22 @@
               ],
               "default": "all"
             }
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "description": "Filter notification rows by category.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "all",
+                "comment_reply",
+                "content_mention",
+                "space_moderation"
+              ],
+              "default": "all"
+            }
           }
         ],
         "responses": {
@@ -191,6 +207,24 @@
         "summary": "Mark all notifications as read",
         "tags": [
           "Notifications"
+        ],
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "description": "Optional notification kind scope.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "all",
+                "comment_reply",
+                "content_mention",
+                "space_moderation"
+              ],
+              "default": "all"
+            }
+          }
         ],
         "x-lineweb-status": "available",
         "x-required-ability": "notifications:write",
