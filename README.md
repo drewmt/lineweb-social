@@ -3,11 +3,11 @@
 <div align="center">
   <h1>Lineweb Social</h1>
 
-  <p><strong>Build the social product people want to stay in.</strong></p>
+  <p><strong>The open-source community foundation for Laravel.</strong></p>
 
   <p>
-    A Laravel-native, self-hosted foundation for modern communities,<br />
-    creator networks, local platforms, and focused social products.
+    Launch a private, branded community without rebuilding profiles, feeds,<br />
+    spaces, messaging, moderation, and privacy from scratch.
   </p>
 
   <p>
@@ -19,6 +19,7 @@
   </p>
 
   <p>
+    <a href="https://social.lineweb.gr/">Live beta</a> ·
     <a href="#product-tour">Product tour</a> ·
     <a href="#feature-map">Features</a> ·
     <a href="#quick-start">Quick start</a> ·
@@ -49,6 +50,16 @@ products without rebuilding the difficult boundaries first.
 
 The goal is a strong shared core—not a clone with someone else's product
 decisions baked in.
+
+### Choose your path
+
+| Evaluate                                                                 | Build locally                                        | Run a pilot                                                        |
+| ------------------------------------------------------------------------ | ---------------------------------------------------- | ------------------------------------------------------------------ |
+| [Explore the live beta](https://social.lineweb.gr/) and product tour.    | Start the complete Docker stack with one command.    | [Propose a controlled pilot](https://github.com/drewmt/lineweb-social/issues/new?template=pilot.yml) with a real community. |
+
+The public beta is for evaluation and controlled pilots. It is not yet a
+stable `1.0`, and the live installation must not be used for sensitive or
+business-critical member data.
 
 ## Product tour
 
@@ -555,6 +566,24 @@ implemented, tested, and supported.
 
 ## Quick start
 
+### Docker evaluation (recommended)
+
+Requirements: Docker with Compose v2, OpenSSL, and curl.
+
+```bash
+git clone https://github.com/drewmt/lineweb-social.git
+cd lineweb-social
+./bin/docker-setup
+```
+
+Open `http://127.0.0.1:8080`. The command builds the application, starts
+MariaDB, runs migrations, starts the queue worker and scheduler, and waits for
+the health endpoint. Generated secrets stay in the ignored `.env.docker` file;
+database and private media persist in named volumes. Read the
+[`Docker evaluation guide`](docs/docker.md) for lifecycle and reset commands.
+
+### Native development
+
 Requirements:
 
 - PHP 8.3+ with GD/WebP, EXIF, Fileinfo, and SQLite support.
@@ -595,6 +624,7 @@ only code structure.
 | Contract                                         | Documentation                                                                        |
 | ------------------------------------------------ | ------------------------------------------------------------------------------------ |
 | Platform boundaries and extension direction      | [`docs/platform-architecture.md`](docs/platform-architecture.md)                     |
+| Reproducible local Docker evaluation              | [`docs/docker.md`](docs/docker.md)                                                     |
 | Extension manifests and compatibility inspection | [`docs/extensions.md`](docs/extensions.md)                                           |
 | Extension migration ownership and rollback       | [`docs/extension-migrations.md`](docs/extension-migrations.md)                       |
 | Extension browser assets and integrity           | [`docs/extension-assets.md`](docs/extension-assets.md)                               |

@@ -1,0 +1,65 @@
+name: docker evaluation
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/docker.yml
+      - bin/docker-setup
+      - compose.yaml
+      - docker/**
+      - Dockerfile
+      - composer.json
+      - composer.lock
+      - package.json
+      - package-lock.json
+  pull_request:
+    paths:
+      - .github/workflows/docker.yml
+      - bin/docker-setup
+      - compose.yaml
+      - docker/**
+      - Dockerfile
+      - composer.json
+      - composer.lock
+      - package.json
+      - package-lock.json
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Start Docker evaluation environment
+        run: ./bin/docker-setup
+
+      - name: Verify runtime services
+        run: |
+          docker compose --env-file .env.docker ps
+          curl --fail --silent --show-error http://127.0.0.1:8080/up
+          docker compose --env-file .env.docker exec -T app php artisan migrate:status --no-interaction
+
+      - name: Collect application logs on failure
+        if: failure()
+        run: |
+          if [ -f .env.docker ]; then
+            docker compose --env-file .env.docker logs --tail=120 app worker scheduler database
+          fi
+
+      - name: Stop Docker evaluation environment
+        if: always()
+        run: |
+          if [ -f .env.docker ]; then
+            docker compose --env-file .env.docker down --volumes
+          fi

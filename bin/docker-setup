@@ -1,0 +1,74 @@
+#!/usr/bin/env sh
+
+set -eu
+
+cd "$(dirname "$0")/.."
+
+for command_name in docker openssl curl; do
+    if ! command -v "$command_name" >/dev/null 2>&1; then
+        echo "Required command not found: $command_name" >&2
+        exit 1
+    fi
+done
+
+if ! docker compose version >/dev/null 2>&1; then
+    echo "Docker Compose v2 is required." >&2
+    exit 1
+fi
+
+if [ ! -f .env.docker ]; then
+    umask 077
+    app_key="base64:$(openssl rand -base64 32 | tr -d '\n')"
+    database_password="$(openssl rand -hex 24)"
+
+    {
+        printf '%s\n' 'APP_NAME="Lineweb Social"'
+        printf '%s\n' 'APP_ENV=production'
+        printf '%s\n' "APP_KEY=$app_key"
+        printf '%s\n' 'APP_DEBUG=false'
+        printf '%s\n' 'APP_URL=http://localhost:8080'
+        printf '%s\n' 'APP_PORT=8080'
+        printf '%s\n' 'APP_LOCALE=en'
+        printf '%s\n' 'APP_FALLBACK_LOCALE=en'
+        printf '%s\n' 'LOG_CHANNEL=stderr'
+        printf '%s\n' 'LOG_LEVEL=info'
+        printf '%s\n' 'DB_CONNECTION=mysql'
+        printf '%s\n' 'DB_HOST=database'
+        printf '%s\n' 'DB_PORT=3306'
+        printf '%s\n' 'DB_DATABASE=lineweb_social'
+        printf '%s\n' 'DB_USERNAME=lineweb_social'
+        printf '%s\n' "DB_PASSWORD=$database_password"
+        printf '%s\n' 'SESSION_DRIVER=database'
+        printf '%s\n' 'CACHE_STORE=database'
+        printf '%s\n' 'QUEUE_CONNECTION=database'
+        printf '%s\n' 'BROADCAST_CONNECTION=log'
+        printf '%s\n' 'FILESYSTEM_DISK=local'
+        printf '%s\n' 'MEDIA_DISK=media'
+        printf '%s\n' 'MAIL_MAILER=log'
+        printf '%s\n' 'MAIL_FROM_ADDRESS=hello@example.com'
+        printf '%s\n' 'MAIL_FROM_NAME="${APP_NAME}"'
+        printf '%s\n' 'LINEWEB_SOCIAL_CORE_VERSION=0.2.0-beta.1'
+        printf '%s\n' 'VITE_APP_NAME="${APP_NAME}"'
+    } > .env.docker
+
+    echo "Created a local .env.docker with generated secrets."
+fi
+
+chmod 0600 .env.docker
+
+docker compose --env-file .env.docker up --build --detach
+
+attempts=0
+until curl --fail --silent --show-error http://127.0.0.1:8080/up >/dev/null 2>&1; do
+    attempts=$((attempts + 1))
+
+    if [ "$attempts" -ge 60 ]; then
+        echo "Lineweb Social did not become healthy in time." >&2
+        docker compose --env-file .env.docker logs --tail=80 app >&2
+        exit 1
+    fi
+
+    sleep 2
+done
+
+echo "Lineweb Social is ready at http://127.0.0.1:8080"
