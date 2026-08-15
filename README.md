@@ -606,6 +606,20 @@ worker that processes the `notifications` queue (for example,
 `php artisan queue:work --queue=notifications,default`). Read the
 [`notification delivery contract`](docs/notifications.md) before turning it on.
 
+### Bootstrap the first community
+
+After an owner has registered and verified their email, a trusted operator can
+prepare an idempotent private starter Space without creating a shared demo
+account or password:
+
+```bash
+php artisan platform:starter-community owner@example.com --confirm
+```
+
+The starter includes welcome, introductions, and roadmap prompts plus one
+highlighted post. Read the [`starter community contract`](docs/starter-community.md)
+for customization and safety boundaries.
+
 ### Quality checks
 
 ```bash
@@ -625,6 +639,7 @@ only code structure.
 | ------------------------------------------------ | ------------------------------------------------------------------------------------ |
 | Platform boundaries and extension direction      | [`docs/platform-architecture.md`](docs/platform-architecture.md)                     |
 | Reproducible local Docker evaluation              | [`docs/docker.md`](docs/docker.md)                                                     |
+| Idempotent first-community bootstrap              | [`docs/starter-community.md`](docs/starter-community.md)                              |
 | Extension manifests and compatibility inspection | [`docs/extensions.md`](docs/extensions.md)                                           |
 | Extension migration ownership and rollback       | [`docs/extension-migrations.md`](docs/extension-migrations.md)                       |
 | Extension browser assets and integrity           | [`docs/extension-assets.md`](docs/extension-assets.md)                               |

@@ -6,6 +6,7 @@ type AuditTimelineProps = {
 };
 
 const actionLabels: Record<string, string> = {
+    'starter.provisioned': 'provisioned the starter community',
     'invitation.sent': 'sent an invitation',
     'invitation.accepted': 'accepted an invitation',
     'invitation.revoked': 'cancelled an invitation',

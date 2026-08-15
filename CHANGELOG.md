@@ -6,6 +6,10 @@ All notable project changes will be documented here.
 
 ### Added
 
+- An explicit-confirmation, idempotent starter-community command for an
+  existing verified and active member, with a private default Space, three
+  practical starter posts, one highlight, append-only provenance, and no demo
+  credentials, reset endpoint, destructive behavior, or administrator grant.
 - A one-command Docker evaluation environment with MariaDB, queue worker,
   scheduler, generated local secrets, health-gated startup, persistent named
   volumes, least-privilege application containers, and explicit lifecycle and
