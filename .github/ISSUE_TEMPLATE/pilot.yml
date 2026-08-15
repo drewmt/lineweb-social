@@ -1,0 +1,55 @@
+name: Community pilot
+description: Explore a controlled Lineweb Social pilot for a real community.
+title: '[Pilot]: '
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for considering Lineweb Social. Describe the community and the outcome you need, but do not include member data, credentials, private business information, or other sensitive details.
+  - type: checkboxes
+    attributes:
+      label: Before submitting
+      options:
+        - label: I understand this is a public issue and have removed sensitive information.
+          required: true
+        - label: I understand Lineweb Social is currently a public beta, not a stable 1.0 release.
+          required: true
+  - type: dropdown
+    id: stage
+    attributes:
+      label: Current stage
+      options:
+        - Evaluating community software
+        - Planning a new community
+        - Adding community to an existing Laravel product
+        - Migrating an existing community
+    validations:
+      required: true
+  - type: textarea
+    id: community
+    attributes:
+      label: Community and audience
+      description: Describe the type of community, its purpose, and the expected member range.
+    validations:
+      required: true
+  - type: textarea
+    id: workflows
+    attributes:
+      label: Essential workflows
+      description: Which member, moderator, and operator journeys must work for the pilot to be useful?
+    validations:
+      required: true
+  - type: textarea
+    id: deployment
+    attributes:
+      label: Technical environment
+      description: Share the intended hosting and integration shape, such as standalone, existing Laravel product, SSO, or private network. Do not include secrets.
+    validations:
+      required: true
+  - type: textarea
+    id: success
+    attributes:
+      label: Pilot success
+      description: What observable result would make the pilot successful?
+    validations:
+      required: true

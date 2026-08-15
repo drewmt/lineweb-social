@@ -1,0 +1,82 @@
+x-lineweb-app: &lineweb-app
+  image: lineweb-social:local
+  env_file:
+    - .env.docker
+  environment:
+    DB_HOST: database
+    DB_PORT: 3306
+  depends_on:
+    database:
+      condition: service_healthy
+  init: true
+  restart: unless-stopped
+  read_only: true
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,nodev,size=64m
+  volumes:
+    - app-storage:/var/www/html/storage
+    - app-cache:/var/www/html/bootstrap/cache
+
+services:
+  app:
+    <<: *lineweb-app
+    build:
+      context: .
+      target: runtime
+    command: serve
+    ports:
+      - 127.0.0.1:${APP_PORT:-8080}:8000
+    healthcheck:
+      test:
+        - CMD
+        - php
+        - -r
+        - "exit(@file_get_contents('http://127.0.0.1:8000/up') === false ? 1 : 0);"
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 20s
+
+  worker:
+    <<: *lineweb-app
+    command: worker
+    depends_on:
+      database:
+        condition: service_healthy
+      app:
+        condition: service_healthy
+
+  scheduler:
+    <<: *lineweb-app
+    command: scheduler
+    depends_on:
+      database:
+        condition: service_healthy
+      app:
+        condition: service_healthy
+
+  database:
+    image: mariadb:11.4
+    environment:
+      MARIADB_DATABASE: ${DB_DATABASE:?Run ./bin/docker-setup first}
+      MARIADB_USER: ${DB_USERNAME:?Run ./bin/docker-setup first}
+      MARIADB_PASSWORD: ${DB_PASSWORD:?Run ./bin/docker-setup first}
+      MARIADB_RANDOM_ROOT_PASSWORD: "1"
+    restart: unless-stopped
+    healthcheck:
+      test: [CMD, healthcheck.sh, --connect, --innodb_initialized]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+    volumes:
+      - database-data:/var/lib/mysql
+
+volumes:
+  app-cache:
+  app-storage:
+  database-data:

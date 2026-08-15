@@ -6,6 +6,10 @@ All notable project changes will be documented here.
 
 ### Added
 
+- A one-command Docker evaluation environment with MariaDB, queue worker,
+  scheduler, generated local secrets, health-gated startup, persistent named
+  volumes, least-privilege application containers, and explicit lifecycle and
+  reset documentation.
 - Author-curated Profile Highlights with transactional ownership checks, a
   three-post bound, automatic stale-state cleanup, current-viewer privacy
   filtering, read-only API and personal-export coverage, domain events, and a
@@ -14,6 +18,10 @@ All notable project changes will be documented here.
 
 ### Changed
 
+- Refocused the public onboarding around Lineweb Social as the open-source
+  Laravel community foundation, with a live-beta path, clearer pilot boundary,
+  structured community-pilot intake, Docker-first quick start, and current
+  beta issue-reporting language.
 - Reworked the public landing, login, and registration experiences around one
   responsive product identity, with a product-led social preview, clearer
   onboarding hierarchy, passkey-aware sign-in, and explicit email-verification
@@ -24,6 +32,11 @@ All notable project changes will be documented here.
 - Refreshed the public product presentation with current laptop/mobile
   mockups, dedicated native dark-mode coverage, and a more focused community
   and platform-operations tour built only from synthetic demo screens.
+
+### Security
+
+- Updated the locked transitive `js-yaml` and `nanoid` packages to patched
+  releases after dependency auditing.
 
 ## [0.2.0-beta.1] - 2026-08-11
 
