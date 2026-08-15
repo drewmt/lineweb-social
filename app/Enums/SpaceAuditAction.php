@@ -4,6 +4,7 @@ namespace App\Enums;
 
 enum SpaceAuditAction: string
 {
+    case StarterProvisioned = 'starter.provisioned';
     case InvitationSent = 'invitation.sent';
     case InvitationAccepted = 'invitation.accepted';
     case InvitationRevoked = 'invitation.revoked';
