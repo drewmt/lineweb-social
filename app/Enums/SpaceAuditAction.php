@@ -16,6 +16,7 @@ enum SpaceAuditAction: string
     case OwnershipTransferred = 'ownership.transferred';
     case PostHighlighted = 'post.highlighted';
     case PostUnhighlighted = 'post.unhighlighted';
+    case StoryRemoved = 'story.removed';
     case EventCreated = 'event.created';
     case EventCancelled = 'event.cancelled';
     case PostReportReviewStarted = 'post_report.review_started';

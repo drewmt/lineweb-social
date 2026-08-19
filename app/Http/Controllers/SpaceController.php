@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Community\CommunityFeed;
 use App\Community\CreateSpace;
 use App\Community\SpaceEventProjection;
+use App\Community\StoryProjection;
 use App\Enums\PostReactionType;
 use App\Enums\ReportReason;
 use App\Enums\SpaceVisibility;
@@ -51,6 +52,7 @@ class SpaceController extends Controller
         Space $space,
         CommunityFeed $feed,
         SpaceEventProjection $events,
+        StoryProjection $stories,
     ): Response {
         Gate::authorize('view', $space);
 
@@ -66,6 +68,7 @@ class SpaceController extends Controller
                 highlightedOnly: true,
             ),
             'events' => $events->upcoming($user, $space, 3),
+            'stories' => $stories->active($user, $space),
             'reportReasons' => ReportReason::options(),
             'reactionTypes' => PostReactionType::options(),
             'selectedSpace' => $space->slug,

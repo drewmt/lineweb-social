@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Community\CommunityFeed;
+use App\Community\StoryProjection;
 use App\Enums\PostReactionType;
 use App\Enums\ReportReason;
 use App\Models\User;
@@ -12,7 +13,7 @@ use Inertia\Response;
 
 class FeedController extends Controller
 {
-    public function __invoke(Request $request, CommunityFeed $feed): Response
+    public function __invoke(Request $request, CommunityFeed $feed, StoryProjection $stories): Response
     {
         /** @var User $user */
         $user = $request->user();
@@ -20,6 +21,7 @@ class FeedController extends Controller
         return Inertia::render('feed/index', [
             'spaces' => $feed->spaces($user),
             'posts' => $feed->posts($user),
+            'stories' => $stories->active($user),
             'reportReasons' => ReportReason::options(),
             'reactionTypes' => PostReactionType::options(),
             'selectedSpace' => null,

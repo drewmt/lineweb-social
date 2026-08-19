@@ -21,6 +21,9 @@ The core owns invariants that an extension must not bypass:
 - bounded Space highlights with moderator-only writes, chronological timeline
   isolation, and append-only audit records;
 - chronological posts and comments;
+- fixed-lifetime Space Stories with bounded publishing, current visibility and
+  block checks, normalized private images, no viewer identities, and permanent
+  expiry cleanup;
 - author-only unpublished posts, bounded draft ownership, and explicit
   publication side effects;
 - normalized post topics whose pages, visible counts, and search results reuse
@@ -100,6 +103,14 @@ checksums, and source metadata remain server-side. Feed, permalink, and profile
 views consume this shared projection; the delivery controller rechecks the parent
 post policy on every request. The full contract is documented in
 [`media.md`](media.md).
+
+Community Stories reuse the core Space, block, media, and account-deletion
+boundaries while adding a fixed 24-hour lifecycle. Expiry is enforced on reads
+before the hourly pruning command removes the row and private object. Core does
+not store viewer identities, reactions, or replies for this surface. The
+initial version is web-first and must gain a versioned bearer API projection
+before native clients depend on it. The full contract is documented in
+[`stories.md`](stories.md).
 
 Typed post reactions follow the same boundary. The core stores one allowlisted
 reaction per member and post, serializes changes with the parent post, and emits

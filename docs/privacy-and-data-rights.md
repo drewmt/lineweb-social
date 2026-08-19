@@ -18,6 +18,8 @@ The export currently includes:
 - Space memberships and owned Space metadata;
 - Space events created by the member and the member's own RSVP status, without
   exposing any other attendee identity;
+- currently active Stories authored by the member, including safe media
+  metadata but no viewer identities, storage paths, or checksums;
 - published posts and private drafts, including publication state and safe image
   metadata, plus comments, reactions, saves, follows, and safety relationships;
 - messages authored by the member;
@@ -56,8 +58,8 @@ third-party personal data in the core export.
 Account deletion requires the current password. On successful deletion, the
 member is logged out, their session is invalidated, API tokens and notifications
 are removed, and user-owned records are removed through the database ownership
-rules. Private post media owned by the account is deleted from configured
-storage.
+rules. Private post media and active Story media owned by the account are
+deleted from configured storage.
 
 An account cannot be deleted while it owns a Space that contains another
 member or another person's community activity, including content, moderation
@@ -115,12 +117,12 @@ collection, destinations, retention, consent requirements, and processor terms
 before activation. Asset checksums prove which bytes were published, not that
 their behavior is privacy-safe.
 
-Laravel's scheduler must run for closed direct-message report evidence to be
-pruned and for daily notification digests to be queued. Digest delivery also
-requires a queue worker and a deliberately configured email provider. Deployers
-must document their lawful basis, processor relationship, safety-review process,
-appeal route, retention schedule, and any legally required preservation before
-changing the default.
+Laravel's scheduler must run for expired Stories and closed direct-message
+report evidence to be pruned, and for daily notification digests to be queued.
+Digest delivery also requires a queue worker and a deliberately configured
+email provider. Deployers must document their lawful basis, processor
+relationship, safety-review process, appeal route, retention schedule, and any
+legally required preservation before changing the default.
 
 Before adding analytics, advertising, AI processing, or third-party exports,
 map the new data flow and update both this contract and the deployer's public

@@ -18,6 +18,7 @@ const actionLabels: Record<string, string> = {
     'ownership.transferred': 'transferred ownership',
     'post.highlighted': 'added a post to Space highlights',
     'post.unhighlighted': 'removed a post from Space highlights',
+    'story.removed': 'removed a member Story',
     'event.created': 'published an event',
     'event.cancelled': 'cancelled an event',
     'post_report.review_started': 'started reviewing a post report',

@@ -58,6 +58,7 @@ class PersonalDataExport
             'owned_spaces' => $this->ownedSpaces($userId),
             'created_space_events' => $this->createdSpaceEvents($userId),
             'space_event_rsvps' => $this->spaceEventRsvps($userId),
+            'active_stories' => $this->activeStories($userId),
             'posts' => $this->posts($userId),
             'comments' => $this->comments($userId),
             'post_reactions' => $this->postReactions($userId),
@@ -178,6 +179,51 @@ class PersonalDataExport
 
         foreach ($rows as $row) {
             yield (array) $row;
+        }
+    }
+
+    /** @return Generator<int, array<string, mixed>> */
+    private function activeStories(int $userId): Generator
+    {
+        $rows = DB::table('stories')
+            ->join('spaces', 'spaces.id', '=', 'stories.space_id')
+            ->where('stories.user_id', $userId)
+            ->where('stories.expires_at', '>', now())
+            ->orderBy('stories.id')
+            ->select([
+                'stories.id',
+                'spaces.slug as space_slug',
+                'stories.body',
+                'stories.background',
+                'stories.mime_type as media_mime_type',
+                'stories.width as media_width',
+                'stories.height as media_height',
+                'stories.size_bytes as media_size_bytes',
+                'stories.alt_text as media_alt_text',
+                'stories.expires_at',
+                'stories.created_at',
+            ])
+            ->lazy(500);
+
+        foreach ($rows as $row) {
+            $story = (array) $row;
+            $story['media'] = $row->media_mime_type === null ? null : [
+                'mime_type' => $row->media_mime_type,
+                'width' => $row->media_width,
+                'height' => $row->media_height,
+                'size_bytes' => $row->media_size_bytes,
+                'alt_text' => $row->media_alt_text,
+            ];
+
+            unset(
+                $story['media_mime_type'],
+                $story['media_width'],
+                $story['media_height'],
+                $story['media_size_bytes'],
+                $story['media_alt_text'],
+            );
+
+            yield $story;
         }
     }
 
