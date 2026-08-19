@@ -3,9 +3,12 @@ import { ArrowLeft, Flag, ShieldCheck, UsersRound } from 'lucide-react';
 import { SpaceCover } from '@/components/social/space-cover';
 import { AuditTimeline } from './components/audit-timeline';
 import { InvitationPanel } from './components/invitation-panel';
+import { InviteLinkPanel } from './components/invite-link-panel';
 import { MemberList } from './components/member-list';
 import type {
     AuditEntry,
+    CreatedInviteLink,
+    ManagedInviteLink,
     ManagedMember,
     ManagedSpace,
     PendingInvitation,
@@ -15,6 +18,7 @@ type ManageSpaceProps = {
     space: ManagedSpace;
     members: ManagedMember[];
     invitations: PendingInvitation[];
+    inviteLinks: ManagedInviteLink[];
     audit: AuditEntry[];
     permissions: {
         canInviteModerators: boolean;
@@ -22,16 +26,19 @@ type ManageSpaceProps = {
     };
     openReportsCount: number;
     status?: string;
+    spaceInviteLink?: CreatedInviteLink | null;
 };
 
 export default function ManageSpace({
     space,
     members,
     invitations,
+    inviteLinks,
     audit,
     permissions,
     openReportsCount,
     status,
+    spaceInviteLink,
 }: ManageSpaceProps) {
     return (
         <>
@@ -117,6 +124,11 @@ export default function ManageSpace({
 
                     <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
                         <div className="space-y-5">
+                            <InviteLinkPanel
+                                spaceSlug={space.slug}
+                                inviteLinks={inviteLinks}
+                                createdInviteLink={spaceInviteLink}
+                            />
                             <InvitationPanel
                                 spaceSlug={space.slug}
                                 invitations={invitations}

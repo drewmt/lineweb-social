@@ -13,7 +13,8 @@ The core owns invariants that an extension must not bypass:
   boundaries;
 - author-owned Profile Highlights with a three-post bound and current-viewer
   post visibility;
-- Space visibility, roles, membership, invitations, and ownership;
+- Space visibility, roles, membership, account-specific invitations, bounded
+  shareable invitation links, and ownership;
 - official Space events with owner/moderator creation, private member RSVP
   identities, aggregate attendance, capacity serialization, cancellation, and
   append-only audit records;
@@ -128,6 +129,14 @@ until the event starts, while cancellation and capacity checks are serialized
 server-side. Web and API projections expose aggregate attendance and the
 current viewer's status only. The full contract is documented in
 [`space-events.md`](space-events.md).
+
+Shareable Space invitations are member-onboarding credentials, not public role
+grants. Owners and moderators can create them, but every acceptance assigns the
+regular member role. Plaintext tokens are displayed once and only SHA-256
+digests are persisted. Expiry, usage limits, revocation, active-link quotas,
+row locking, active-account checks, email verification, and append-only Space
+audit records remain core invariants. The full boundary is documented in
+[`space-invite-links.md`](space-invite-links.md).
 
 Post topics are normalized indexes, not independent public content. Topic pages
 and search counts begin from the same policy-filtered post query, so a tag never

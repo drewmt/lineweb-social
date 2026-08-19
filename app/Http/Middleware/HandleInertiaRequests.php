@@ -67,6 +67,7 @@ class HandleInertiaRequests extends Middleware
                     ->count() ?? 0,
             ],
             'status' => fn () => $request->session()->get('status'),
+            'spaceInviteLink' => fn () => $request->session()->get('spaceInviteLink'),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }

@@ -24,6 +24,22 @@ export type PendingInvitation = {
     canCancel: boolean;
 };
 
+export type ManagedInviteLink = {
+    id: number;
+    label: string | null;
+    creator: string | null;
+    usesCount: number;
+    maxUses: number;
+    expiresAt: string;
+    canRevoke: boolean;
+};
+
+export type CreatedInviteLink = {
+    url: string;
+    expiresAt: string;
+    maxUses: number;
+};
+
 export type AuditEntry = {
     id: number;
     action: string;

@@ -229,8 +229,9 @@ swipe navigation with visible position and keyboard-sized controls.
 ### Spaces and community operations
 
 Public, private, and hidden Spaces combine publishing context with explicit
-membership, invitation, role, ownership, moderation, and a bounded highlights
-layer that never reorders the chronological timeline.
+membership, account-specific and shareable invitations, role, ownership,
+moderation, and a bounded highlights layer that never reorders the
+chronological timeline.
 
 <table>
   <tr>
@@ -248,6 +249,29 @@ layer that never reorders the chronological timeline.
     <td align="center"><sub>Searchable community directory</sub></td>
     <td align="center"><sub>Bounded curation without timeline ranking</sub></td>
     <td align="center"><sub>App-first swipe rail</sub></td>
+  </tr>
+</table>
+
+### Invite a real community
+
+Owners and moderators can onboard a cohort with an expiring, limited-use link
+without exposing elevated roles. The full link is shown only once, its token is
+stored as a hash, and every successful membership or revocation becomes part of
+the Space audit history. Guests can preview safe Space details and return to
+the invitation after registration and email verification.
+
+<table>
+  <tr>
+    <td width="68%">
+      <img src="docs/screenshots/space-invite-management-desktop.png" alt="Lineweb Social shareable Space invite link management on desktop" />
+    </td>
+    <td width="32%">
+      <img src="docs/screenshots/space-invite-link-mobile.png" alt="Lineweb Social public Space invitation experience on mobile" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Bounded links, one-time token display, and accountable controls</sub></td>
+    <td align="center"><sub>Focused guest onboarding on mobile</sub></td>
   </tr>
 </table>
 
@@ -486,7 +510,7 @@ makes the final decision.
 | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Accounts            | Verified registration, stable handles, passkeys, two-factor authentication, strong password defaults, active-account enforcement, and one human-reviewed appeal per restriction.                                                                                      |
 | Profiles            | Editable member identity, headlines, author-curated three-post highlights, real chronological activity, public/shared/private visibility, and discovery opt-out.                                                                                                      |
-| Spaces              | Public/private/hidden communities, searchable directory, join/leave rules, restricted invitations, roles, ownership transfer, member removal, bounded curated highlights, and official events with private RSVPs.                                                     |
+| Spaces              | Public/private/hidden communities, searchable directory, join/leave rules, account-specific and limited-use shareable invitations, roles, ownership transfer, member removal, bounded curated highlights, and official events with private RSVPs.                      |
 | Publishing          | Focused composer, author-only drafts, private four-image WebP galleries with per-image alt text and swipe navigation, bounded private-first polls, chronological posts, privacy-safe quote posts and reposts, comments, permanent conversations, and author controls. |
 | Discovery           | Policy-filtered search across posts, Spaces, and People; Unicode hashtags; chronological topic trails; and privacy-aware Following.                                                                                                                                   |
 | Interactions        | Typed Like, Celebrate, and Insightful reactions, private Saved Posts, follows, mentions, one-level direct replies, same-Space quote/repost actions, comments, copy links, and conversation shortcuts.                                                                 |
@@ -654,6 +678,7 @@ only code structure.
 | Post media validation and lifecycle              | [`docs/media.md`](docs/media.md)                                                     |
 | Unicode topics and visibility                    | [`docs/topics.md`](docs/topics.md)                                                   |
 | Official Space events and private RSVP boundary  | [`docs/space-events.md`](docs/space-events.md)                                       |
+| Shareable Space invite links and onboarding      | [`docs/space-invite-links.md`](docs/space-invite-links.md)                           |
 | Platform administration                          | [`docs/platform-administration.md`](docs/platform-administration.md)                 |
 | Account status and human-reviewed appeals        | [`docs/account-appeals.md`](docs/account-appeals.md)                                 |
 | Personal export and account deletion             | [`docs/privacy-and-data-rights.md`](docs/privacy-and-data-rights.md)                 |

@@ -215,6 +215,12 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         return $this->hasMany(SpaceInvitation::class, 'accepted_by');
     }
 
+    /** @return HasMany<SpaceInviteLink, $this> */
+    public function createdSpaceInviteLinks(): HasMany
+    {
+        return $this->hasMany(SpaceInviteLink::class, 'created_by');
+    }
+
     /** @return HasMany<UserRelationship, $this> */
     public function outgoingRelationships(): HasMany
     {

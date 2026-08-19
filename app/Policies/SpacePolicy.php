@@ -6,6 +6,7 @@ use App\Enums\SpaceRole;
 use App\Enums\SpaceVisibility;
 use App\Models\Space;
 use App\Models\SpaceInvitation;
+use App\Models\SpaceInviteLink;
 use App\Models\User;
 
 class SpacePolicy
@@ -48,6 +49,17 @@ class SpacePolicy
 
         return $actorRole === SpaceRole::Owner
             || ($actorRole === SpaceRole::Moderator && $role === SpaceRole::Member);
+    }
+
+    public function createInviteLink(User $user, Space $space): bool
+    {
+        return $this->moderate($user, $space);
+    }
+
+    public function revokeInviteLink(User $user, Space $space, SpaceInviteLink $inviteLink): bool
+    {
+        return $inviteLink->space_id === $space->getKey()
+            && $this->moderate($user, $space);
     }
 
     public function changeMemberRole(User $user, Space $space, User $member): bool

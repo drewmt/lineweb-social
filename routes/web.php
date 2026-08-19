@@ -35,6 +35,8 @@ use App\Http\Controllers\SpaceEventController;
 use App\Http\Controllers\SpaceEventRsvpController;
 use App\Http\Controllers\SpaceInvitationAcceptanceController;
 use App\Http\Controllers\SpaceInvitationController;
+use App\Http\Controllers\SpaceInviteLinkAcceptanceController;
+use App\Http\Controllers\SpaceInviteLinkController;
 use App\Http\Controllers\SpaceManagementController;
 use App\Http\Controllers\SpaceMemberController;
 use App\Http\Controllers\SpaceMembershipController;
@@ -42,9 +44,16 @@ use App\Http\Controllers\SpaceModerationController;
 use App\Http\Controllers\TopicController;
 use App\Http\Controllers\UserFollowController;
 use App\Http\Controllers\UserRelationshipController;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'welcome')->name('home');
+
+Route::get('join/{token}', [SpaceInviteLinkAcceptanceController::class, 'show'])
+    ->where('token', '[A-Za-z0-9]{64}')
+    ->middleware('throttle:space-invite-links')
+    ->name('space-invite-links.show');
 
 Route::get('account-status', AccountStatusController::class)
     ->middleware('auth')
@@ -174,6 +183,13 @@ Route::middleware(['auth', 'account.active', 'verified'])->group(function () {
     Route::delete('spaces/{space:slug}/invitations/{invitation}', [SpaceInvitationController::class, 'destroy'])
         ->middleware('throttle:space-moderation')
         ->name('spaces.invitations.destroy');
+    Route::post('spaces/{space:slug}/invite-links', [SpaceInviteLinkController::class, 'store'])
+        ->middleware('throttle:space-invite-links')
+        ->name('spaces.invite-links.store');
+    Route::delete('spaces/{space:slug}/invite-links/{inviteLink}', [SpaceInviteLinkController::class, 'destroy'])
+        ->scopeBindings()
+        ->middleware('throttle:space-moderation')
+        ->name('spaces.invite-links.destroy');
     Route::patch('spaces/{space:slug}/members/{member}/role', [SpaceMemberController::class, 'update'])
         ->middleware('throttle:space-moderation')
         ->name('spaces.members.roles.update');
@@ -190,6 +206,10 @@ Route::middleware(['auth', 'account.active', 'verified'])->group(function () {
         ->where('token', '[A-Za-z0-9]{64}')
         ->middleware('throttle:space-invitations')
         ->name('space-invitations.accept');
+    Route::post('join/{token}', [SpaceInviteLinkAcceptanceController::class, 'store'])
+        ->where('token', '[A-Za-z0-9]{64}')
+        ->middleware('throttle:space-invite-links')
+        ->name('space-invite-links.accept');
     Route::post('spaces/{space:slug}/posts', [PostController::class, 'store'])
         ->middleware('throttle:post-publishing')
         ->name('spaces.posts.store');
@@ -258,7 +278,15 @@ Route::middleware(['auth', 'account.active', 'verified'])->group(function () {
     Route::post('comments/{comment}/reports', [CommentReportController::class, 'store'])
         ->middleware('throttle:comment-reporting')
         ->name('comments.reports.store');
-    Route::redirect('dashboard', '/feed')->name('dashboard');
+    Route::get('dashboard', function (Request $request): RedirectResponse {
+        $pendingInvite = $request->session()->pull('pending_space_invite');
+
+        if (is_string($pendingInvite) && preg_match('/^[A-Za-z0-9]{64}$/', $pendingInvite) === 1) {
+            return to_route('space-invite-links.show', ['token' => $pendingInvite]);
+        }
+
+        return to_route('feed');
+    })->name('dashboard');
 });
 
 Route::prefix('admin')

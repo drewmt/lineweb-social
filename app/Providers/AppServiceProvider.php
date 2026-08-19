@@ -102,6 +102,9 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('space-invitations', fn (Request $request): Limit => Limit::perHour(20)
             ->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
 
+        RateLimiter::for('space-invite-links', fn (Request $request): Limit => Limit::perMinute(20)
+            ->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
+
         RateLimiter::for('space-moderation', fn (Request $request): Limit => Limit::perMinute(30)
             ->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
 
