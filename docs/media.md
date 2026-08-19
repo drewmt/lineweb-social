@@ -83,6 +83,19 @@ layout space. Feed, permalink, and profile views use a native horizontal
 scroll-snap gallery with touch swiping, keyboard-operable controls, position
 feedback, and the same ordered source contract.
 
+## Story image boundary
+
+Community Stories accept at most one JPEG, PNG, or WebP image up to 8 MiB. They
+reuse the same decoder, pixel limit, metadata removal, WebP normalization,
+private storage, opaque path, and authorized delivery rules as post images.
+
+A Story image is re-authorized against the current Space and mutual block
+policies on every request. It is unavailable immediately after expiry, even
+before scheduled cleanup. Author deletion, account deletion, Space deletion,
+and hourly pruning permanently remove the stored object. Core stores no viewer
+identity and does not issue public or long-lived media URLs. The complete
+lifecycle is documented in [`stories.md`](stories.md).
+
 ## Abuse and operational limits
 
 Publishing rate limits also bound image-processing work. Input bytes, combined

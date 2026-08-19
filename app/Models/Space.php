@@ -37,6 +37,10 @@ class Space extends Model
         });
 
         static::deleting(function (Space $space): void {
+            Story::query()
+                ->where('space_id', $space->getKey())
+                ->eachById(fn (Story $story): bool => $story->delete());
+
             PostMedia::query()
                 ->whereHas('post', fn (Builder $posts) => $posts
                     ->where('space_id', $space->getKey()))
@@ -82,6 +86,12 @@ class Space extends Model
     public function posts(): HasMany
     {
         return $this->hasMany(Post::class);
+    }
+
+    /** @return HasMany<Story, $this> */
+    public function stories(): HasMany
+    {
+        return $this->hasMany(Story::class);
     }
 
     /** @return HasMany<SpaceInvitation, $this> */

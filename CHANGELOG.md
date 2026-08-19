@@ -6,6 +6,11 @@ All notable project changes will be documented here.
 
 ### Added
 
+- Core Community Stories with text or one normalized private image, fixed
+  24-hour expiry, transactional per-member Space limits, current Space and
+  mutual block authorization, author deletion, audited moderator removal,
+  hourly permanent pruning, safe personal-export metadata, no viewer tracking,
+  and responsive feed, composer, and viewer surfaces.
 - Shareable Space invite links with hashed one-time tokens, owner and moderator
   controls, configurable expiry and usage limits, serialized acceptance,
   member-only onboarding, revocation, append-only audit records, personal

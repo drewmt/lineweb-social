@@ -10,6 +10,7 @@ import {
     LockKeyhole,
     MessageCircle,
     Pin,
+    Plus,
     Share2,
     Send,
     UserRoundCheck,
@@ -107,6 +108,7 @@ type FeedTopic = {
 type FeedProps = {
     spaces: Space[];
     posts: FeedPost[];
+    stories?: StorySummary[];
     highlights?: FeedPost[];
     events?: SpaceEventSummary[];
     reportReasons: ReportReason[];
@@ -115,6 +117,24 @@ type FeedProps = {
     viewMode?: 'feed' | 'saved' | 'following' | 'topic';
     topic?: FeedTopic;
     status?: string;
+};
+
+type StorySummary = {
+    id: number;
+    url: string;
+    body: string | null;
+    background: 'ink' | 'ocean' | 'violet' | 'sunset' | 'mint';
+    image: {
+        url: string;
+        alt: string;
+        width: number;
+        height: number;
+    } | null;
+    createdAt: string;
+    expiresAt: string;
+    canDelete: boolean;
+    author: { name: string; handle: string; profileVisible: boolean };
+    space: { name: string; slug: string };
 };
 
 const publishedLabel = (value: string | null) => {
@@ -130,6 +150,100 @@ const publishedLabel = (value: string | null) => {
 
 const FEED_PREVIEW_LENGTH = 280;
 const MAX_SPACE_HIGHLIGHTS = 3;
+
+const storyBackgrounds: Record<StorySummary['background'], string> = {
+    ink: 'from-slate-950 via-slate-800 to-slate-950',
+    ocean: 'from-cyan-500 via-blue-600 to-indigo-800',
+    violet: 'from-fuchsia-500 via-violet-600 to-indigo-800',
+    sunset: 'from-amber-400 via-orange-500 to-rose-600',
+    mint: 'from-emerald-300 via-teal-500 to-cyan-700',
+};
+
+function StoryRail({
+    stories,
+    canCreate,
+}: {
+    stories: StorySummary[];
+    canCreate: boolean;
+}) {
+    if (!canCreate && stories.length === 0) {
+        return null;
+    }
+
+    return (
+        <section className="mb-4 sm:mb-5" aria-labelledby="stories-title">
+            <div className="mb-3 flex items-center justify-between px-1">
+                <div>
+                    <p className="text-[0.68rem] font-extrabold tracking-[0.16em] text-primary uppercase">
+                        Here for 24 hours
+                    </p>
+                    <h2
+                        id="stories-title"
+                        className="mt-0.5 text-lg font-extrabold tracking-tight"
+                    >
+                        Community Stories
+                    </h2>
+                </div>
+                <span className="text-xs font-semibold text-muted-foreground">
+                    No viewer tracking
+                </span>
+            </div>
+            <div className="-mx-3 flex snap-x scroll-px-4 [scrollbar-width:none] gap-2.5 overflow-x-auto px-4 pb-1 sm:mx-0 sm:scroll-px-0 sm:px-0 [&::-webkit-scrollbar]:hidden">
+                {canCreate && (
+                    <Link
+                        href="/stories/create"
+                        className="social-focus group flex w-[5.25rem] shrink-0 snap-start flex-col items-center"
+                    >
+                        <span className="flex h-[7.4rem] w-full items-center justify-center rounded-[1.45rem] border border-dashed border-primary/35 bg-primary/[0.055] text-primary transition-colors group-hover:bg-primary/10">
+                            <span className="flex size-10 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm">
+                                <Plus className="size-5" aria-hidden="true" />
+                            </span>
+                        </span>
+                        <span className="mt-2 max-w-full truncate text-xs font-extrabold">
+                            Your Story
+                        </span>
+                    </Link>
+                )}
+                {stories.map((story) => (
+                    <Link
+                        key={story.id}
+                        href={story.url}
+                        className="social-focus group flex w-[5.25rem] shrink-0 snap-start flex-col items-center"
+                    >
+                        <span
+                            className={`relative h-[7.4rem] w-full overflow-hidden rounded-[1.45rem] bg-gradient-to-br ${storyBackgrounds[story.background]} ring-2 ring-primary/70 ring-offset-2 ring-offset-background`}
+                        >
+                            {story.image ? (
+                                <img
+                                    src={story.image.url}
+                                    alt=""
+                                    className="absolute inset-0 size-full object-cover transition-transform duration-300 group-hover:scale-[1.035]"
+                                />
+                            ) : (
+                                <span className="absolute inset-0 flex items-center px-2.5 text-center text-[0.68rem] leading-4 font-extrabold text-white">
+                                    <span className="line-clamp-4 w-full">
+                                        {story.body}
+                                    </span>
+                                </span>
+                            )}
+                            <span className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/55 to-transparent" />
+                            <AvatarMark
+                                name={story.author.name}
+                                className="absolute bottom-2 left-2 size-6 text-[0.55rem] ring-1 ring-white"
+                            />
+                        </span>
+                        <span className="mt-2 max-w-full truncate text-xs font-extrabold">
+                            {story.author.name}
+                        </span>
+                        <span className="max-w-full truncate text-[0.65rem] font-semibold text-muted-foreground">
+                            {story.space.name}
+                        </span>
+                    </Link>
+                ))}
+            </div>
+        </section>
+    );
+}
 
 function SpacePulse({ spaces }: { spaces: Space[] }) {
     if (spaces.length === 0) {
@@ -1094,6 +1208,7 @@ function TopicHeader({ topic }: { topic: FeedTopic }) {
 export default function Feed({
     spaces,
     posts,
+    stories = [],
     highlights = [],
     events = [],
     reportReasons,
@@ -1261,6 +1376,12 @@ export default function Feed({
                                     )}
                                 />
                             )}
+                        {!savedView && !followingView && !topicView && (
+                            <StoryRail
+                                stories={stories}
+                                canCreate={postingSpaces.length > 0}
+                            />
+                        )}
                         {status && (
                             <div
                                 role="status"

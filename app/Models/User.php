@@ -96,6 +96,12 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         });
 
         static::deleting(function (User $user): void {
+            Story::query()
+                ->where('user_id', $user->getKey())
+                ->orWhereHas('space', fn (Builder $spaces) => $spaces
+                    ->where('owner_id', $user->getKey()))
+                ->eachById(fn (Story $story): bool => $story->delete());
+
             PostMedia::query()
                 ->whereHas('post', fn (Builder $posts) => $posts
                     ->where('user_id', $user->getKey())
@@ -141,6 +147,12 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     public function posts(): HasMany
     {
         return $this->hasMany(Post::class);
+    }
+
+    /** @return HasMany<Story, $this> */
+    public function stories(): HasMany
+    {
+        return $this->hasMany(Story::class);
     }
 
     /** @return HasMany<ProfilePostHighlight, $this> */

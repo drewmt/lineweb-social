@@ -41,6 +41,8 @@ use App\Http\Controllers\SpaceManagementController;
 use App\Http\Controllers\SpaceMemberController;
 use App\Http\Controllers\SpaceMembershipController;
 use App\Http\Controllers\SpaceModerationController;
+use App\Http\Controllers\StoryController;
+use App\Http\Controllers\StoryImageController;
 use App\Http\Controllers\TopicController;
 use App\Http\Controllers\UserFollowController;
 use App\Http\Controllers\UserRelationshipController;
@@ -67,6 +69,15 @@ Route::post('account-status/appeals', [PlatformAppealController::class, 'store']
 
 Route::middleware(['auth', 'account.active', 'verified'])->group(function () {
     Route::get('feed', FeedController::class)->name('feed');
+    Route::get('stories/create', [StoryController::class, 'create'])->name('stories.create');
+    Route::post('spaces/{space:slug}/stories', [StoryController::class, 'store'])
+        ->middleware('throttle:story-publishing')
+        ->name('spaces.stories.store');
+    Route::get('stories/{story}', [StoryController::class, 'show'])->name('stories.show');
+    Route::get('stories/{story}/image', StoryImageController::class)->name('stories.image');
+    Route::delete('stories/{story}', [StoryController::class, 'destroy'])
+        ->middleware('throttle:content-management')
+        ->name('stories.destroy');
     Route::get('following', FollowingFeedController::class)->name('following.index');
     Route::get('saved', [SavedPostController::class, 'index'])->name('saved.index');
     Route::get('compose', [PostDraftController::class, 'create'])->name('posts.compose');

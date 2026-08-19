@@ -107,6 +107,36 @@ instead of treating dark mode as a simple color inversion.
 
 ![Lineweb Social native dark mode across laptop and mobile profile highlights](docs/mockups/readme-dark.webp)
 
+### Timely Stories without surveillance mechanics
+
+Members can share a short thought, one private normalized image, or both inside
+a Space. Every Story expires after 24 hours, keeps the Space and mutual block
+boundaries on every view, and stores no viewer identity. Authors can delete
+their own Story early, Space moderators can remove unsafe content with a
+minimal audit trail, and the scheduler permanently removes expired records and
+media.
+
+![Lineweb Social Community Stories on the chronological desktop feed](docs/screenshots/stories-feed-desktop.jpg)
+
+<table>
+  <tr>
+    <td width="56%">
+      <img src="docs/screenshots/stories-viewer-desktop.jpg" alt="Lineweb Social private Community Story viewer on desktop" />
+    </td>
+    <td width="22%">
+      <img src="docs/screenshots/stories-feed-mobile.jpg" alt="Lineweb Social Community Stories rail in the mobile feed" />
+    </td>
+    <td width="22%">
+      <img src="docs/screenshots/stories-viewer-mobile.jpg" alt="Lineweb Social Community Story viewer in the mobile app layout" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Space-aware viewer and clear retention boundary</sub></td>
+    <td align="center"><sub>Edge-to-edge mobile discovery rail</sub></td>
+    <td align="center"><sub>Immersive mobile Story with no horizontal overflow</sub></td>
+  </tr>
+</table>
+
 ### Threaded conversations without the maze
 
 Members can reply directly to a top-level comment while the conversation stays
@@ -511,7 +541,7 @@ makes the final decision.
 | Accounts            | Verified registration, stable handles, passkeys, two-factor authentication, strong password defaults, active-account enforcement, and one human-reviewed appeal per restriction.                                                                                      |
 | Profiles            | Editable member identity, headlines, author-curated three-post highlights, real chronological activity, public/shared/private visibility, and discovery opt-out.                                                                                                      |
 | Spaces              | Public/private/hidden communities, searchable directory, join/leave rules, account-specific and limited-use shareable invitations, roles, ownership transfer, member removal, bounded curated highlights, and official events with private RSVPs.                      |
-| Publishing          | Focused composer, author-only drafts, private four-image WebP galleries with per-image alt text and swipe navigation, bounded private-first polls, chronological posts, privacy-safe quote posts and reposts, comments, permanent conversations, and author controls. |
+| Publishing          | Focused composer, author-only drafts, private four-image WebP galleries with per-image alt text and swipe navigation, bounded private-first polls, 24-hour Space Stories with no viewer tracking, chronological posts, privacy-safe quote posts and reposts, comments, permanent conversations, and author controls. |
 | Discovery           | Policy-filtered search across posts, Spaces, and People; Unicode hashtags; chronological topic trails; and privacy-aware Following.                                                                                                                                   |
 | Interactions        | Typed Like, Celebrate, and Insightful reactions, private Saved Posts, follows, mentions, one-level direct replies, same-Space quote/repost actions, comments, copy links, and conversation shortcuts.                                                                 |
 | Messaging           | Canonical one-to-one conversations, participant-only history, unread state, block-aware delivery, and responsive inbox/thread views.                                                                                                                                  |
