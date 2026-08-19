@@ -6,6 +6,11 @@ All notable project changes will be documented here.
 
 ### Added
 
+- Shareable Space invite links with hashed one-time tokens, owner and moderator
+  controls, configurable expiry and usage limits, serialized acceptance,
+  member-only onboarding, revocation, append-only audit records, personal
+  export metadata, and a responsive public join experience that preserves the
+  invitation through registration and email verification.
 - An explicit-confirmation, idempotent starter-community command for an
   existing verified and active member, with a private default Space, three
   practical starter posts, one highlight, append-only provenance, and no demo

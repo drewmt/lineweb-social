@@ -8,6 +8,9 @@ enum SpaceAuditAction: string
     case InvitationSent = 'invitation.sent';
     case InvitationAccepted = 'invitation.accepted';
     case InvitationRevoked = 'invitation.revoked';
+    case InviteLinkCreated = 'invite_link.created';
+    case InviteLinkAccepted = 'invite_link.accepted';
+    case InviteLinkRevoked = 'invite_link.revoked';
     case MemberRoleChanged = 'member.role_changed';
     case MemberRemoved = 'member.removed';
     case OwnershipTransferred = 'ownership.transferred';

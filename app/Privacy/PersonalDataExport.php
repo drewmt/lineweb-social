@@ -69,6 +69,7 @@ class PersonalDataExport
             'direct_messages' => $this->directMessages($userId),
             'notifications' => $this->notifications($userId),
             'space_invitation_activity' => $this->spaceInvitationActivity($userId),
+            'created_space_invite_links' => $this->createdSpaceInviteLinks($userId),
             'moderation_actions' => $this->moderationActions($userId),
             'submitted_post_reports' => $this->submittedPostReports($userId),
             'submitted_comment_reports' => $this->submittedCommentReports($userId),
@@ -417,6 +418,29 @@ class PersonalDataExport
                 'revoked_at' => $row->revoked_at,
                 'created_at' => $row->created_at,
             ];
+        }
+    }
+
+    /** @return Generator<int, array<string, mixed>> */
+    private function createdSpaceInviteLinks(int $userId): Generator
+    {
+        $rows = DB::table('space_invite_links')
+            ->join('spaces', 'spaces.id', '=', 'space_invite_links.space_id')
+            ->where('space_invite_links.created_by', $userId)
+            ->orderBy('space_invite_links.id')
+            ->select([
+                'spaces.slug as space_slug',
+                'space_invite_links.label',
+                'space_invite_links.max_uses',
+                'space_invite_links.uses_count',
+                'space_invite_links.expires_at',
+                'space_invite_links.revoked_at',
+                'space_invite_links.created_at',
+            ])
+            ->lazy(500);
+
+        foreach ($rows as $row) {
+            yield (array) $row;
         }
     }
 

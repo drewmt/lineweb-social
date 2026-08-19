@@ -24,7 +24,8 @@ The export currently includes:
 - notification metadata and notification preferences, including the member's
   daily-email choice but not the internal delivery cursor;
 - invitation and moderation activity without recipient addresses or internal
-  audit context;
+  audit context, plus safe metadata for shareable invitation links created by
+  the member;
 - reports submitted by the member, including the exact direct-message snapshot
   they chose to submit;
 - account appeals, including the member statement, state, member-visible
@@ -38,8 +39,8 @@ does not silently receive only the first page of its content.
 The export deliberately excludes:
 
 - password hashes, two-factor secrets and recovery codes;
-- API token digests, passkey credentials, invitation token hashes, and session
-  identifiers or payloads;
+- API token digests, passkey credentials, account-specific or shareable
+  invitation token hashes, and session identifiers or payloads;
 - private storage paths, media checksums, and original filenames;
 - messages authored by another participant unless the member explicitly
   submitted that exact message in a safety report; and

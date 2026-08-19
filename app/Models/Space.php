@@ -90,6 +90,12 @@ class Space extends Model
         return $this->hasMany(SpaceInvitation::class);
     }
 
+    /** @return HasMany<SpaceInviteLink, $this> */
+    public function inviteLinks(): HasMany
+    {
+        return $this->hasMany(SpaceInviteLink::class);
+    }
+
     /** @return HasMany<SpaceAuditLog, $this> */
     public function auditLogs(): HasMany
     {

@@ -7,6 +7,7 @@ use App\Enums\SpaceRole;
 use App\Models\Space;
 use App\Models\SpaceAuditLog;
 use App\Models\SpaceInvitation;
+use App\Models\SpaceInviteLink;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
@@ -70,6 +71,24 @@ class SpaceManagementController extends Controller
             ])
             ->all();
 
+        $inviteLinks = $space->inviteLinks()
+            ->with('creator:id,name')
+            ->whereNull('revoked_at')
+            ->where('expires_at', '>', now())
+            ->whereColumn('uses_count', '<', 'max_uses')
+            ->latest()
+            ->get()
+            ->map(fn (SpaceInviteLink $inviteLink): array => [
+                'id' => $inviteLink->getKey(),
+                'label' => $inviteLink->label,
+                'creator' => $inviteLink->created_by !== null ? $inviteLink->creator->name : null,
+                'usesCount' => $inviteLink->uses_count,
+                'maxUses' => $inviteLink->max_uses,
+                'expiresAt' => $inviteLink->expires_at->toIso8601String(),
+                'canRevoke' => Gate::forUser($actor)->allows('revokeInviteLink', [$space, $inviteLink]),
+            ])
+            ->all();
+
         $audit = $space->auditLogs()
             ->with(['actor:id,name', 'subject:id,name'])
             ->latest('id')
@@ -94,6 +113,7 @@ class SpaceManagementController extends Controller
             ],
             'members' => $members,
             'invitations' => $invitations,
+            'inviteLinks' => $inviteLinks,
             'audit' => $audit,
             'permissions' => [
                 'canInviteModerators' => $actorRole === SpaceRole::Owner,

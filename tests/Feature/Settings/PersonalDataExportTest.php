@@ -16,6 +16,7 @@ use App\Models\Space;
 use App\Models\SpaceEvent;
 use App\Models\SpaceEventRsvp;
 use App\Models\SpaceInvitation;
+use App\Models\SpaceInviteLink;
 use App\Models\User;
 use App\Models\UserFollow;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -137,6 +138,15 @@ class PersonalDataExportTest extends TestCase
             'token_hash' => hash('sha256', 'private-invitation-token'),
             'expires_at' => now()->addWeek(),
         ]);
+        SpaceInviteLink::query()->create([
+            'space_id' => $space->getKey(),
+            'created_by' => $user->getKey(),
+            'label' => 'Private pilot group',
+            'token_hash' => hash('sha256', 'private-shareable-invite-token'),
+            'max_uses' => 20,
+            'uses_count' => 3,
+            'expires_at' => now()->addWeek(),
+        ]);
         DB::table('notifications')->insert([
             'id' => (string) Str::uuid(),
             'type' => 'content.mentioned',
@@ -193,6 +203,8 @@ class PersonalDataExportTest extends TestCase
             $export['notification_preferences']['email_digest_frequency'],
         );
         $this->assertSame('sent', $export['space_invitation_activity'][0]['relationship']);
+        $this->assertSame('Private pilot group', $export['created_space_invite_links'][0]['label']);
+        $this->assertSame(3, $export['created_space_invite_links'][0]['uses_count']);
         $this->assertSame('content.mentioned', $export['notifications'][0]['type']);
 
         $this->assertStringNotContainsString(
@@ -204,6 +216,7 @@ class PersonalDataExportTest extends TestCase
         $this->assertStringNotContainsString('private-reviewer@example.com', $content);
         $this->assertStringNotContainsString('private-recipient@example.com', $content);
         $this->assertStringNotContainsString(hash('sha256', 'private-invitation-token'), $content);
+        $this->assertStringNotContainsString(hash('sha256', 'private-shareable-invite-token'), $content);
         $this->assertStringNotContainsString('private-two-factor-secret', $content);
         $this->assertStringNotContainsString('private-recovery-codes', $content);
         $this->assertStringNotContainsString($user->password, $content);
