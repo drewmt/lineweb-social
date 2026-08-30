@@ -84,7 +84,7 @@ final class CommunityOnboarding
     /** @return list<array{name: string, slug: string, description: string|null, memberCount: int}> */
     private function suggestedSpaces(User $user): array
     {
-        return Space::query()
+        return array_values(Space::query()
             ->discoverableBy($user)
             ->whereDoesntHave('members', fn (Builder $members) => $members
                 ->whereKey($user->getKey()))
@@ -100,13 +100,13 @@ final class CommunityOnboarding
                 'memberCount' => (int) $space->members_count,
             ])
             ->values()
-            ->all();
+            ->all());
     }
 
     /** @return list<array{name: string, handle: string, headline: string|null, sharedSpaceCount: int}> */
     private function suggestedPeople(User $user): array
     {
-        return User::query()
+        return array_values(User::query()
             ->discoverableBy($user)
             ->whereKeyNot($user->getKey())
             ->whereDoesntHave('incomingFollows', fn (Builder $follows) => $follows
@@ -131,6 +131,6 @@ final class CommunityOnboarding
                 'sharedSpaceCount' => (int) $person->shared_space_count,
             ])
             ->values()
-            ->all();
+            ->all());
     }
 }
