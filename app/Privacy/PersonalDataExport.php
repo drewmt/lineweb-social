@@ -49,6 +49,7 @@ class PersonalDataExport
                 'website_url' => $user->website_url,
                 'profile_visibility' => $user->profile_visibility->value,
                 'is_discoverable' => $user->is_discoverable,
+                'onboarding_dismissed_at' => $user->onboarding_dismissed_at?->toIso8601String(),
                 'platform_role' => $user->platform_role->value,
                 'suspended_at' => $user->suspended_at?->toIso8601String(),
                 'created_at' => $user->created_at?->toIso8601String(),

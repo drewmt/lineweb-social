@@ -36,6 +36,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property string|null $website_url
  * @property ProfileVisibility $profile_visibility
  * @property bool $is_discoverable
+ * @property Carbon|null $onboarding_dismissed_at
  * @property PlatformRole $platform_role
  * @property Carbon|null $suspended_at
  * @property string|null $suspension_reference
@@ -436,6 +437,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             'two_factor_confirmed_at' => 'datetime',
             'profile_visibility' => ProfileVisibility::class,
             'is_discoverable' => 'boolean',
+            'onboarding_dismissed_at' => 'datetime',
             'platform_role' => PlatformRole::class,
             'suspended_at' => 'datetime',
         ];

@@ -6,6 +6,11 @@ All notable project changes will be documented here.
 
 ### Added
 
+- A privacy-safe Community Onboarding journey for newly verified members, with
+  four outcome-based steps, existing-policy Space and People suggestions,
+  invitation-aware entry, an optional dismissal preference, personal-export
+  coverage, responsive desktop/mobile UI, and a permanent account-menu return
+  path without behavioral tracking or automatic social actions.
 - Core Community Stories with text or one normalized private image, fixed
   24-hour expiry, transactional per-member Space limits, current Space and
   mutual block authorization, author deletion, audited moderator removal,
