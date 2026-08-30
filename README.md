@@ -91,6 +91,32 @@ context.
   </tr>
 </table>
 
+### A useful first session, not a forced product tour
+
+Newly verified members receive an optional four-step route into the community:
+make the profile recognizable, join a Space, follow one person, and publish a
+first post. Every step reflects real account state, existing invite links keep
+priority, and members can open the feed or hide the guide at any time.
+
+Suggestions reuse the same Space visibility, profile discovery, and mutual
+block policies as the rest of the platform. Lineweb Social does not create a
+behavioral profile, track guide views, or perform social actions automatically.
+
+<table>
+  <tr>
+    <td width="70%">
+      <img src="docs/screenshots/getting-started-desktop.png" alt="Lineweb Social outcome-based Community Onboarding journey on desktop" />
+    </td>
+    <td width="30%">
+      <img src="docs/screenshots/getting-started-mobile.png" alt="Lineweb Social Community Onboarding journey in the mobile app layout" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Four real outcomes with privacy-safe discovery</sub></td>
+    <td align="center"><sub>App-like mobile guidance without a forced tour</sub></td>
+  </tr>
+</table>
+
 ### Community home
 
 A responsive, chronological experience with clear publishing, conversation,
@@ -539,6 +565,7 @@ makes the final decision.
 | Area                | Included today                                                                                                                                                                                                                                                        |
 | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Accounts            | Verified registration, stable handles, passkeys, two-factor authentication, strong password defaults, active-account enforcement, and one human-reviewed appeal per restriction.                                                                                      |
+| Onboarding          | Optional outcome-based first-session guide, invitation-aware entry, privacy-safe Space and People suggestions, real progress, and a dismissal preference without behavioral tracking or automatic actions.                                                           |
 | Profiles            | Editable member identity, headlines, author-curated three-post highlights, real chronological activity, public/shared/private visibility, and discovery opt-out.                                                                                                      |
 | Spaces              | Public/private/hidden communities, searchable directory, join/leave rules, account-specific and limited-use shareable invitations, roles, ownership transfer, member removal, bounded curated highlights, and official events with private RSVPs.                      |
 | Publishing          | Focused composer, author-only drafts, private four-image WebP galleries with per-image alt text and swipe navigation, bounded private-first polls, 24-hour Space Stories with no viewer tracking, chronological posts, privacy-safe quote posts and reposts, comments, permanent conversations, and author controls. |

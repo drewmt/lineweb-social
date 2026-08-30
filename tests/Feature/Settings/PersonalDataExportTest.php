@@ -34,6 +34,7 @@ class PersonalDataExportTest extends TestCase
             'name' => 'Andrew Matia',
             'handle' => 'andrew-matia',
             'email' => 'andrew@example.com',
+            'onboarding_dismissed_at' => now()->subDay(),
             'two_factor_secret' => 'private-two-factor-secret',
             'two_factor_recovery_codes' => 'private-recovery-codes',
         ]);
@@ -171,6 +172,7 @@ class PersonalDataExportTest extends TestCase
 
         $this->assertSame(1, $export['export_version']);
         $this->assertSame('andrew@example.com', $export['account']['email']);
+        $this->assertNotNull($export['account']['onboarding_dismissed_at']);
         $this->assertSame('makers-circle', $export['space_memberships'][0]['space_slug']);
         $this->assertSame('My community event', $export['created_space_events'][0]['title']);
         $this->assertSame('going', $export['space_event_rsvps'][0]['status']);

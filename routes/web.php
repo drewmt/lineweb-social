@@ -1,5 +1,6 @@
 <?php
 
+use App\Community\CommunityOnboarding;
 use App\Http\Controllers\AccountStatusController;
 use App\Http\Controllers\Admin\AdminAuditLogController;
 use App\Http\Controllers\Admin\AdminDashboardController;
@@ -11,6 +12,7 @@ use App\Http\Controllers\Admin\PlatformAppealController as AdminPlatformAppealCo
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\CommentReportController;
 use App\Http\Controllers\CommentReportModerationController;
+use App\Http\Controllers\CommunityOnboardingController;
 use App\Http\Controllers\DirectMessageReportController;
 use App\Http\Controllers\FeedController;
 use App\Http\Controllers\FollowingFeedController;
@@ -46,6 +48,7 @@ use App\Http\Controllers\StoryImageController;
 use App\Http\Controllers\TopicController;
 use App\Http\Controllers\UserFollowController;
 use App\Http\Controllers\UserRelationshipController;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -68,6 +71,11 @@ Route::post('account-status/appeals', [PlatformAppealController::class, 'store']
     ->name('account.appeals.store');
 
 Route::middleware(['auth', 'account.active', 'verified'])->group(function () {
+    Route::get('getting-started', [CommunityOnboardingController::class, 'show'])
+        ->name('onboarding.show');
+    Route::post('getting-started/dismiss', [CommunityOnboardingController::class, 'dismiss'])
+        ->middleware('throttle:content-management')
+        ->name('onboarding.dismiss');
     Route::get('feed', FeedController::class)->name('feed');
     Route::get('stories/create', [StoryController::class, 'create'])->name('stories.create');
     Route::post('spaces/{space:slug}/stories', [StoryController::class, 'store'])
@@ -289,11 +297,21 @@ Route::middleware(['auth', 'account.active', 'verified'])->group(function () {
     Route::post('comments/{comment}/reports', [CommentReportController::class, 'store'])
         ->middleware('throttle:comment-reporting')
         ->name('comments.reports.store');
-    Route::get('dashboard', function (Request $request): RedirectResponse {
+    Route::get('dashboard', function (
+        Request $request,
+        CommunityOnboarding $onboarding,
+    ): RedirectResponse {
         $pendingInvite = $request->session()->pull('pending_space_invite');
 
         if (is_string($pendingInvite) && preg_match('/^[A-Za-z0-9]{64}$/', $pendingInvite) === 1) {
             return to_route('space-invite-links.show', ['token' => $pendingInvite]);
+        }
+
+        /** @var User $user */
+        $user = $request->user();
+
+        if ($onboarding->shouldGuide($user)) {
+            return to_route('onboarding.show');
         }
 
         return to_route('feed');

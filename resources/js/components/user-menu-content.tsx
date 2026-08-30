@@ -1,5 +1,5 @@
 import { Link, router } from '@inertiajs/react';
-import { LogOut, Settings, ShieldCheck, UserRound } from 'lucide-react';
+import { LogOut, Route, Settings, ShieldCheck, UserRound } from 'lucide-react';
 import {
     DropdownMenuGroup,
     DropdownMenuItem,
@@ -53,6 +53,17 @@ export function UserMenuContent({ user }: Props) {
                     >
                         <Settings className="mr-2" />
                         Settings
+                    </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                    <Link
+                        className="block w-full cursor-pointer"
+                        href="/getting-started"
+                        prefetch
+                        onClick={cleanup}
+                    >
+                        <Route className="mr-2" />
+                        Getting started
                     </Link>
                 </DropdownMenuItem>
                 {user.platform_role === 'administrator' && (
