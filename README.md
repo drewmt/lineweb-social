@@ -450,21 +450,6 @@ operations rather than the browser.
 <table>
   <tr>
     <td width="68%">
-      <img src="docs/screenshots/search-desktop.jpg" alt="Lineweb Social policy-filtered global search on desktop" />
-    </td>
-    <td width="32%">
-      <img src="docs/screenshots/search-mobile.jpg" alt="Lineweb Social policy-filtered global search on mobile" />
-    </td>
-  </tr>
-  <tr>
-    <td align="center"><sub>Grouped search across visible community content</sub></td>
-    <td align="center"><sub>Focused mobile discovery</sub></td>
-  </tr>
-</table>
-
-<table>
-  <tr>
-    <td width="68%">
       <img src="docs/screenshots/topic-desktop.jpg" alt="Lineweb Social privacy-aware topic trail on desktop" />
     </td>
     <td width="32%">
