@@ -1,19 +1,21 @@
 import { Head, Link, router } from '@inertiajs/react';
 import {
+    ArrowLeft,
     ArrowRight,
     Compass,
     Globe2,
     Hash,
     LockKeyhole,
+    LoaderCircle,
     MapPin,
     MessageSquareText,
     Search as SearchIcon,
     ShieldCheck,
     UsersRound,
 } from 'lucide-react';
+import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { AvatarMark } from '@/components/social/avatar-mark';
-import { CommunitySignal } from '@/components/social/community-signal';
 import { SpaceCover } from '@/components/social/space-cover';
 import { Button } from '@/components/ui/button';
 
@@ -66,9 +68,29 @@ type SearchResults = {
 
 type SearchProps = {
     query: string;
+    type: SearchType;
     minimumQueryLength: number;
     results: SearchResults;
+    pagination: {
+        currentPage: number;
+        previousUrl: string | null;
+        nextUrl: string | null;
+        limitReached: boolean;
+    } | null;
 };
+
+type SearchType = 'all' | keyof SearchResults;
+
+const searchTypes = [
+    { value: 'all', label: 'All', icon: SearchIcon },
+    { value: 'posts', label: 'Posts', icon: MessageSquareText },
+    { value: 'spaces', label: 'Spaces', icon: Compass },
+    { value: 'people', label: 'People', icon: UsersRound },
+    { value: 'topics', label: 'Topics', icon: Hash },
+] as const;
+
+const searchUrl = (query: string, type: SearchType) =>
+    `/search?${new URLSearchParams({ q: query, type })}`;
 
 const visibilityDetails = {
     public: { label: 'Public', icon: Globe2 },
@@ -447,15 +469,18 @@ function PeopleResults({ people }: { people: SearchPerson[] }) {
 
 export default function Search({
     query,
+    type,
     minimumQueryLength,
     results,
+    pagination,
 }: SearchProps) {
+    const [searching, setSearching] = useState(false);
     const totalResults =
         results.posts.length +
         results.spaces.length +
         results.people.length +
         results.topics.length;
-    const hasSearched = query.length >= minimumQueryLength;
+    const hasSearched = Array.from(query).length >= minimumQueryLength;
 
     const submit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -463,11 +488,12 @@ export default function Search({
 
         router.get(
             '/search',
-            { q: typeof value === 'string' ? value.trim() : '' },
+            { q: typeof value === 'string' ? value.trim() : '', type },
             {
                 preserveScroll: true,
                 preserveState: true,
-                replace: true,
+                onStart: () => setSearching(true),
+                onFinish: () => setSearching(false),
             },
         );
     };
@@ -475,28 +501,24 @@ export default function Search({
     return (
         <>
             <Head title={hasSearched ? `Search: ${query}` : 'Search'} />
-            <main className="social-page max-w-[82rem]">
-                <header className="social-card relative mb-6 overflow-hidden rounded-[1.65rem] bg-foreground px-5 py-7 text-background sm:px-8 sm:py-9">
-                    <div className="absolute top-0 right-0 h-full w-1.5 bg-mint" />
-                    <div className="relative max-w-4xl">
-                        <div className="flex items-center gap-2 text-[0.68rem] font-extrabold tracking-[0.15em] text-mint uppercase">
-                            <CommunitySignal className="text-mint" />
-                            Community search
-                        </div>
-                        <h1 className="mt-3 text-3xl leading-none font-black tracking-[-0.05em] sm:text-5xl">
-                            Find what matters.
+            <main className="social-page max-w-[82rem]" aria-busy={searching}>
+                <header className="social-card mb-5 rounded-[1.5rem] px-4 pt-5 pb-1 sm:px-7 sm:pt-7">
+                    <div className="max-w-4xl">
+                        <p className="social-eyebrow">Community search</p>
+                        <h1 className="mt-2 text-2xl leading-tight font-black tracking-[-0.04em] sm:text-3xl">
+                            Good conversations start here.
                         </h1>
-                        <p className="mt-3 max-w-2xl text-sm leading-6 text-background/65 sm:text-base">
-                            Search conversations, topics, Spaces, and people you
-                            are already allowed to discover.
+                        <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                            Find a post, meet your people, or explore a new
+                            Space.
                         </p>
 
                         <form
                             onSubmit={submit}
                             role="search"
-                            className="mt-6 flex flex-col gap-2 sm:flex-row"
+                            className="mt-5 flex gap-2"
                         >
-                            <label className="flex min-h-14 flex-1 items-center gap-3 rounded-2xl bg-background px-4 text-foreground ring-1 ring-white/18 transition-shadow focus-within:ring-3 focus-within:ring-mint/45">
+                            <label className="flex min-h-12 min-w-0 flex-1 items-center gap-2 rounded-xl border border-border bg-background px-3 text-foreground transition-shadow focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 sm:gap-3 sm:px-4">
                                 <SearchIcon
                                     className="size-5 shrink-0 text-primary"
                                     aria-hidden="true"
@@ -505,33 +527,61 @@ export default function Search({
                                     Search Lineweb Social
                                 </span>
                                 <input
+                                    key={query}
                                     type="search"
                                     name="q"
                                     defaultValue={query}
                                     minLength={minimumQueryLength}
                                     maxLength={100}
                                     autoComplete="off"
-                                    placeholder="Search posts, topics, Spaces, or people"
+                                    placeholder="What are you looking for?"
                                     className="min-w-0 flex-1 bg-transparent text-base font-semibold outline-none placeholder:text-muted-foreground"
                                 />
                             </label>
                             <Button
                                 type="submit"
-                                size="lg"
-                                className="min-h-14 rounded-2xl bg-mint px-6 text-ink hover:bg-mint/90"
+                                disabled={searching}
+                                className="min-h-12 shrink-0 rounded-xl px-4 sm:px-6"
                             >
-                                Search
-                                <ArrowRight
+                                {searching ? (
+                                    <LoaderCircle
+                                        className="size-4 animate-spin motion-reduce:animate-none"
+                                        aria-hidden="true"
+                                    />
+                                ) : null}
+                                {searching ? 'Searching' : 'Search'}
+                            </Button>
+                        </form>
+                        <p className="mt-3 flex items-center gap-1.5 text-xs leading-5 text-muted-foreground">
+                            <LockKeyhole
+                                className="size-3.5 shrink-0"
+                                aria-hidden="true"
+                            />
+                            Results respect your Space access and privacy
+                            settings.
+                        </p>
+                    </div>
+                    <nav
+                        aria-label="Search categories"
+                        className="-mx-4 mt-4 flex gap-1 overflow-x-auto border-t border-border/65 px-4 pt-2 pb-1 sm:-mx-7 sm:px-7"
+                    >
+                        {searchTypes.map((category) => (
+                            <Link
+                                key={category.value}
+                                href={searchUrl(query, category.value)}
+                                aria-current={
+                                    type === category.value ? 'page' : undefined
+                                }
+                                className={`social-focus flex min-h-11 shrink-0 items-center gap-2 rounded-xl px-3 text-sm font-bold transition-colors sm:px-4 ${type === category.value ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'}`}
+                            >
+                                <category.icon
                                     className="size-4"
                                     aria-hidden="true"
                                 />
-                            </Button>
-                        </form>
-                        <p className="mt-3 text-xs font-medium text-background/55">
-                            Private profiles, inaccessible Spaces, hidden posts,
-                            blocks, and mutes remain protected.
-                        </p>
-                    </div>
+                                {category.label}
+                            </Link>
+                        ))}
+                    </nav>
                 </header>
 
                 {!hasSearched ? (
@@ -542,7 +592,9 @@ export default function Search({
                             <SearchIcon className="size-6" aria-hidden="true" />
                         </span>
                         <h2 className="mt-5 text-2xl font-black tracking-tight">
-                            Nothing visible for “{query}”
+                            {pagination && pagination.currentPage > 1
+                                ? 'No results on this page'
+                                : `No ${type === 'all' ? 'results' : type} found for “${query}”`}
                         </h2>
                         <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-muted-foreground">
                             Try a broader phrase or check the Spaces and People
@@ -550,6 +602,26 @@ export default function Search({
                             always applied before results appear.
                         </p>
                         <div className="mt-6 flex flex-wrap justify-center gap-2">
+                            {type !== 'all' && (
+                                <Link
+                                    href={searchUrl(query, 'all')}
+                                    className="social-chip"
+                                >
+                                    <SearchIcon
+                                        className="size-4"
+                                        aria-hidden="true"
+                                    />
+                                    Search all categories
+                                </Link>
+                            )}
+                            {pagination && pagination.currentPage > 1 && (
+                                <Link
+                                    href={searchUrl(query, type)}
+                                    className="social-chip"
+                                >
+                                    Back to first page
+                                </Link>
+                            )}
                             <Link href="/spaces" className="social-chip">
                                 <Compass
                                     className="size-4"
@@ -569,7 +641,7 @@ export default function Search({
                 ) : (
                     <>
                         <div className="mb-4 flex items-center justify-between px-1">
-                            <p className="text-sm font-extrabold">
+                            <p className="text-sm font-extrabold" role="status">
                                 {totalResults.toLocaleString()}{' '}
                                 {totalResults === 1 ? 'result' : 'results'}{' '}
                                 shown for “{query}”
@@ -578,15 +650,171 @@ export default function Search({
                                 Results respect your current access
                             </p>
                         </div>
-                        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(19rem,.8fr)]">
-                            <PostResults posts={results.posts} />
-                            <aside className="space-y-6">
-                                <TopicResults topics={results.topics} />
-                                <SpaceResults spaces={results.spaces} />
-                                <PeopleResults people={results.people} />
-                            </aside>
-                        </div>
+                        {type === 'all' ? (
+                            <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(19rem,.8fr)]">
+                                <div className="space-y-3">
+                                    <PostResults posts={results.posts} />
+                                    {results.posts.length > 0 && (
+                                        <Link
+                                            href={searchUrl(query, 'posts')}
+                                            className="social-chip"
+                                        >
+                                            View all posts{' '}
+                                            <ArrowRight
+                                                className="size-4"
+                                                aria-hidden="true"
+                                            />
+                                        </Link>
+                                    )}
+                                </div>
+                                <aside className="space-y-6">
+                                    <div className="space-y-3">
+                                        <TopicResults topics={results.topics} />
+                                        {results.topics.length > 0 && (
+                                            <Link
+                                                href={searchUrl(
+                                                    query,
+                                                    'topics',
+                                                )}
+                                                className="social-chip"
+                                            >
+                                                View all topics{' '}
+                                                <ArrowRight
+                                                    className="size-4"
+                                                    aria-hidden="true"
+                                                />
+                                            </Link>
+                                        )}
+                                    </div>
+                                    <div className="space-y-3">
+                                        <SpaceResults spaces={results.spaces} />
+                                        {results.spaces.length > 0 && (
+                                            <Link
+                                                href={searchUrl(
+                                                    query,
+                                                    'spaces',
+                                                )}
+                                                className="social-chip"
+                                            >
+                                                View all Spaces{' '}
+                                                <ArrowRight
+                                                    className="size-4"
+                                                    aria-hidden="true"
+                                                />
+                                            </Link>
+                                        )}
+                                    </div>
+                                    <div className="space-y-3">
+                                        <PeopleResults
+                                            people={results.people}
+                                        />
+                                        {results.people.length > 0 && (
+                                            <Link
+                                                href={searchUrl(
+                                                    query,
+                                                    'people',
+                                                )}
+                                                className="social-chip"
+                                            >
+                                                View all people{' '}
+                                                <ArrowRight
+                                                    className="size-4"
+                                                    aria-hidden="true"
+                                                />
+                                            </Link>
+                                        )}
+                                    </div>
+                                </aside>
+                            </div>
+                        ) : (
+                            <div className="max-w-4xl">
+                                {type === 'posts' && (
+                                    <PostResults posts={results.posts} />
+                                )}
+                                {type === 'spaces' && (
+                                    <SpaceResults spaces={results.spaces} />
+                                )}
+                                {type === 'people' && (
+                                    <PeopleResults people={results.people} />
+                                )}
+                                {type === 'topics' && (
+                                    <TopicResults topics={results.topics} />
+                                )}
+                            </div>
+                        )}
                     </>
+                )}
+                {pagination && (
+                    <nav
+                        aria-label="Search result pages"
+                        className="mt-6 max-w-4xl border-t border-border pt-4"
+                    >
+                        <div className="flex items-center justify-between gap-3">
+                            {pagination.previousUrl ? (
+                                <Button
+                                    asChild
+                                    variant="outline"
+                                    className="min-h-11 rounded-xl"
+                                >
+                                    <Link href={pagination.previousUrl}>
+                                        <ArrowLeft
+                                            className="size-4"
+                                            aria-hidden="true"
+                                        />{' '}
+                                        Previous
+                                    </Link>
+                                </Button>
+                            ) : (
+                                <Button
+                                    variant="outline"
+                                    disabled
+                                    className="min-h-11 rounded-xl"
+                                >
+                                    <ArrowLeft
+                                        className="size-4"
+                                        aria-hidden="true"
+                                    />{' '}
+                                    Previous
+                                </Button>
+                            )}
+                            <span className="text-sm font-semibold text-muted-foreground">
+                                Page {pagination.currentPage}
+                            </span>
+                            {pagination.nextUrl ? (
+                                <Button
+                                    asChild
+                                    variant="outline"
+                                    className="min-h-11 rounded-xl"
+                                >
+                                    <Link href={pagination.nextUrl}>
+                                        Next{' '}
+                                        <ArrowRight
+                                            className="size-4"
+                                            aria-hidden="true"
+                                        />
+                                    </Link>
+                                </Button>
+                            ) : (
+                                <Button
+                                    variant="outline"
+                                    disabled
+                                    className="min-h-11 rounded-xl"
+                                >
+                                    Next{' '}
+                                    <ArrowRight
+                                        className="size-4"
+                                        aria-hidden="true"
+                                    />
+                                </Button>
+                            )}
+                        </div>
+                        {pagination.limitReached && (
+                            <p className="mt-3 text-sm text-muted-foreground">
+                                Refine your search to narrow the remaining
+                                results.
+                            </p>
+                        )}
+                    </nav>
                 )}
             </main>
         </>

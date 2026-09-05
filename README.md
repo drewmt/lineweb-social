@@ -133,6 +133,33 @@ instead of treating dark mode as a simple color inversion.
 
 ![Lineweb Social native dark mode across laptop and mobile profile highlights](docs/mockups/readme-dark.webp)
 
+### Find the conversation beyond the first few results
+
+Start with a community-wide overview, then focus on Posts, Spaces, People or
+Topics. Shareable search URLs, previous/next pages and a swipeable mobile
+category rail help members reach older matches. Every page reapplies current
+visibility and safety rules, with no separate search service to configure.
+
+![Community search with focused categories and visible topic counts](docs/screenshots/search-desktop.jpg)
+
+<table>
+  <tr>
+    <td width="72%" valign="top">
+      <img src="docs/screenshots/search-dark-desktop.jpg" alt="Community search in dark mode" />
+    </td>
+    <td width="28%" valign="top">
+      <img src="docs/screenshots/search-mobile.jpg" alt="Focused People search with a swipeable category rail on mobile" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><sub>The same search experience in dark mode</sub></td>
+    <td align="center"><sub>Focused discovery on mobile</sub></td>
+  </tr>
+</table>
+
+See the [community search contract](docs/community-search.md) for ordering,
+privacy and pagination boundaries.
+
 ### Timely Stories without surveillance mechanics
 
 Members can share a short thought, one private normalized image, or both inside
@@ -569,7 +596,7 @@ makes the final decision.
 | Profiles            | Editable member identity, headlines, author-curated three-post highlights, real chronological activity, public/shared/private visibility, and discovery opt-out.                                                                                                      |
 | Spaces              | Public/private/hidden communities, searchable directory, join/leave rules, account-specific and limited-use shareable invitations, roles, ownership transfer, member removal, bounded curated highlights, and official events with private RSVPs.                      |
 | Publishing          | Focused composer, author-only drafts, private four-image WebP galleries with per-image alt text and swipe navigation, bounded private-first polls, 24-hour Space Stories with no viewer tracking, chronological posts, privacy-safe quote posts and reposts, comments, permanent conversations, and author controls. |
-| Discovery           | Policy-filtered search across posts, Spaces, and People; Unicode hashtags; chronological topic trails; and privacy-aware Following.                                                                                                                                   |
+| Discovery           | Policy-filtered search across posts, Spaces, People and Topics, focused category filters, navigable result pages, Unicode hashtags, chronological topic trails and privacy-aware Following. |
 | Interactions        | Typed Like, Celebrate, and Insightful reactions, private Saved Posts, follows, mentions, one-level direct replies, same-Space quote/repost actions, comments, copy links, and conversation shortcuts.                                                                 |
 | Messaging           | Canonical one-to-one conversations, participant-only history, unread state, block-aware delivery, and responsive inbox/thread views.                                                                                                                                  |
 | Trust and safety    | Mute, mutual block, Safety recovery, post/comment reporting, Space moderation queues, Direct Message reporting, and audited decisions.                                                                                                                                |

@@ -15,6 +15,8 @@ final class CommunitySearch
 
     public const int RESULT_LIMIT = 8;
 
+    public const int MAX_PAGE = 1000;
+
     public function __construct(private readonly VisiblePostQuery $visiblePosts) {}
 
     /**
@@ -25,25 +27,28 @@ final class CommunitySearch
      *     topics: list<array{name: string, url: string, visiblePostCount: int}>
      * }
      */
-    public function search(User $viewer, string $query): array
+    public function search(User $viewer, string $query, string $type = 'all', int $page = 1): array
     {
         if (mb_strlen($query) < self::MINIMUM_QUERY_LENGTH) {
             return $this->emptyResults();
         }
 
         $pattern = "%{$query}%";
+        $limit = self::RESULT_LIMIT + ($type === 'all' ? 0 : 1);
+        $offset = $type === 'all' ? 0 : ($page - 1) * self::RESULT_LIMIT;
         $topicQuery = ltrim($query, '#');
         $visiblePostIds = $this->visiblePosts
             ->forSearch($viewer)
             ->select('posts.id');
 
-        $posts = $this->visiblePosts
+        $posts = in_array($type, ['all', 'posts'], true) ? $this->visiblePosts
             ->forSearch($viewer)
             ->whereLike('posts.body', $pattern)
             ->latest('posts.published_at')
             ->latest('posts.id')
-            ->limit(self::RESULT_LIMIT)
-            ->get();
+            ->offset($offset)
+            ->limit($limit)
+            ->get() : collect();
 
         $visibleAuthorIds = User::query()
             ->visibleTo($viewer)
@@ -51,7 +56,7 @@ final class CommunitySearch
             ->pluck('id')
             ->all();
 
-        $spaces = Space::query()
+        $spaces = in_array($type, ['all', 'spaces'], true) ? Space::query()
             ->discoverableBy($viewer)
             ->where(function (Builder $spaces) use ($pattern): void {
                 $spaces
@@ -64,10 +69,12 @@ final class CommunitySearch
             ])
             ->withCount('members')
             ->orderBy('name')
-            ->limit(self::RESULT_LIMIT)
-            ->get();
+            ->orderBy('id')
+            ->offset($offset)
+            ->limit($limit)
+            ->get() : collect();
 
-        $people = User::query()
+        $people = in_array($type, ['all', 'people'], true) ? User::query()
             ->discoverableBy($viewer)
             ->whereKeyNot($viewer->getKey())
             ->where(function (Builder $people) use ($pattern): void {
@@ -88,10 +95,12 @@ final class CommunitySearch
                     ),
             ])
             ->orderBy('name')
-            ->limit(self::RESULT_LIMIT)
-            ->get();
+            ->orderBy('id')
+            ->offset($offset)
+            ->limit($limit)
+            ->get() : collect();
 
-        $topics = mb_strlen($topicQuery) >= self::MINIMUM_QUERY_LENGTH
+        $topics = in_array($type, ['all', 'topics'], true) && mb_strlen($topicQuery) >= self::MINIMUM_QUERY_LENGTH
             ? Topic::query()
                 ->whereLike('topics.name', "%{$topicQuery}%")
                 ->whereHas(
@@ -105,7 +114,9 @@ final class CommunitySearch
                 ])
                 ->orderByDesc('visible_posts_count')
                 ->orderBy('name')
-                ->limit(self::RESULT_LIMIT)
+                ->orderBy('id')
+                ->offset($offset)
+                ->limit($limit)
                 ->get()
             : collect();
 

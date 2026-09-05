@@ -6,6 +6,7 @@ use App\Enums\ProfileVisibility;
 use App\Enums\UserRelationshipType;
 use App\Models\Post;
 use App\Models\Space;
+use App\Models\Topic;
 use App\Models\User;
 use App\Models\UserRelationship;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -162,5 +163,156 @@ class CommunitySearchTest extends TestCase
             ->get('/search?q='.str_repeat('a', 101))
             ->assertRedirect('/search')
             ->assertSessionHasErrors('q');
+    }
+
+    public function test_category_search_reaches_matches_beyond_the_overview(): void
+    {
+        $viewer = User::factory()->create();
+        $space = Space::factory()->create(['name' => 'Orchid circle']);
+        $posts = Post::factory()->count(11)->for($space)->create([
+            'body' => 'Orchid community conversation',
+            'published_at' => now(),
+        ])->sortByDesc('id')->values();
+
+        $this->actingAs($viewer)->get('/search?q=orchid')
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('type', 'all')
+                ->where('pagination', null)
+                ->has('results.posts', 8));
+
+        $this->get('/search?q=orchid&type=posts')
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('type', 'posts')
+                ->has('results.posts', 8)
+                ->where('results.posts.0.id', $posts[0]->id)
+                ->has('results.spaces', 0)
+                ->has('results.people', 0)
+                ->has('results.topics', 0)
+                ->where('pagination.currentPage', 1)
+                ->where('pagination.previousUrl', null)
+                ->where('pagination.nextUrl', route('search', ['q' => 'orchid', 'type' => 'posts', 'page' => 2])));
+
+        $this->get('/search?q=orchid&type=posts&page=2')
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('results.posts', 3)
+                ->where('results.posts.0.id', $posts[8]->id)
+                ->where('pagination.currentPage', 2)
+                ->where('pagination.nextUrl', null)
+                ->where('pagination.previousUrl', route('search', ['q' => 'orchid', 'type' => 'posts', 'page' => 1])));
+    }
+
+    public function test_category_pages_use_deterministic_space_and_people_order(): void
+    {
+        $viewer = User::factory()->create();
+        $spaces = Space::factory()->count(9)->create(['name' => 'Orchid circle']);
+        $people = User::factory()->count(9)->create([
+            'name' => 'Orchid member',
+            'profile_visibility' => ProfileVisibility::Public,
+        ]);
+
+        foreach (['spaces' => $spaces[8]->slug, 'people' => $people[8]->handle] as $type => $identifier) {
+            $field = $type === 'spaces' ? 'slug' : 'handle';
+
+            $this->actingAs($viewer)->get('/search?q=orchid&type='.$type.'&page=2')
+                ->assertInertia(fn (Assert $page) => $page
+                    ->has('results.'.$type, 1)
+                    ->where('results.'.$type.'.0.'.$field, $identifier)
+                    ->has('results.posts', 0)
+                    ->has('results.topics', 0)
+                    ->where('pagination.nextUrl', null));
+        }
+    }
+
+    public function test_focused_topic_search_counts_only_currently_visible_posts(): void
+    {
+        $viewer = User::factory()->create();
+        $visible = Post::factory()->create();
+        $private = Post::factory()->for(Space::factory()->private())->create();
+
+        foreach (range(1, 9) as $number) {
+            $topic = Topic::query()->create(['name' => 'orchid'.$number]);
+            $visible->topics()->attach($topic);
+            $private->topics()->attach($topic);
+        }
+
+        $privateTopic = Topic::query()->create(['name' => 'orchid-secret']);
+        $private->topics()->attach($privateTopic);
+
+        $this->actingAs($viewer)->get('/search?q=%23orchid&type=topics&page=2')
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('results.topics', 1)
+                ->where('results.topics.0.name', 'orchid9')
+                ->where('results.topics.0.visiblePostCount', 1)
+                ->has('results.posts', 0)
+                ->has('results.spaces', 0)
+                ->has('results.people', 0)
+                ->where('pagination.nextUrl', null));
+    }
+
+    public function test_focused_pages_reapply_visibility_before_pagination(): void
+    {
+        $viewer = User::factory()->create();
+        $space = Space::factory()->create();
+        $author = User::factory()->create();
+        Post::factory()->count(9)->for($space)->for($author, 'author')->create(['body' => 'Orchid visible']);
+        Post::factory()->count(9)->create(['body' => 'Orchid draft', 'published_at' => null]);
+        Post::factory()->count(9)->create(['body' => 'Orchid hidden', 'hidden_at' => now()]);
+        Post::factory()->count(9)->for(Space::factory()->private())->create(['body' => 'Orchid private']);
+
+        $this->actingAs($viewer)->get('/search?q=orchid&type=posts&page=2')
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('results.posts', 1)
+                ->where('results.posts.0.body', 'Orchid visible')
+                ->where('pagination.nextUrl', null));
+
+        UserRelationship::query()->create([
+            'actor_id' => $author->id,
+            'target_id' => $viewer->id,
+            'type' => UserRelationshipType::Block,
+        ]);
+
+        $this->get('/search?q=orchid&type=posts&page=2')
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('results.posts', 0)
+                ->where('pagination.nextUrl', null)
+                ->where('pagination.currentPage', 2));
+    }
+
+    public function test_search_rejects_invalid_filters_and_page_numbers(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        foreach (['type' => ['members', ['posts']], 'page' => [0, -1, '2.5', 1001, ['2']]] as $field => $values) {
+            foreach ($values as $value) {
+                $this->getJson('/search?'.http_build_query(['q' => 'orchid', $field => $value]))
+                    ->assertUnprocessable()
+                    ->assertJsonValidationErrors($field);
+            }
+        }
+    }
+
+    public function test_short_focused_queries_do_not_offer_empty_pagination(): void
+    {
+        $this->actingAs(User::factory()->create())->get('/search?q=o&type=posts&page=2')
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('type', 'posts')
+                ->where('pagination', null)
+                ->has('results.posts', 0));
+    }
+
+    public function test_overview_ignores_page_and_pagination_preserves_normalized_queries(): void
+    {
+        $viewer = User::factory()->create();
+        Post::factory()->count(9)->create(['body' => 'Orchid design']);
+
+        $this->actingAs($viewer)->get('/search?q=orchid&page=2')
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('results.posts', 8)
+                ->where('pagination', null));
+
+        $this->get('/search?'.http_build_query(['q' => '  Orchid   design ', 'type' => 'posts']))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('query', 'Orchid design')
+                ->where('pagination.nextUrl', route('search', ['q' => 'Orchid design', 'type' => 'posts', 'page' => 2])));
     }
 }
