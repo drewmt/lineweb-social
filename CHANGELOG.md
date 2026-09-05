@@ -6,6 +6,10 @@ All notable project changes will be documented here.
 
 ### Added
 
+- Focused community search with navigable Posts, Spaces, People and Topics
+  filters, bounded previous/next pagination, deterministic ordering, per-page
+  visibility enforcement, responsive category navigation and recoverable empty
+  states without a new search service or database migration.
 - A privacy-safe Community Onboarding journey for newly verified members, with
   four outcome-based steps, existing-policy Space and People suggestions,
   invitation-aware entry, an optional dismissal preference, personal-export
