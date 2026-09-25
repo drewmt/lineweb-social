@@ -48,6 +48,8 @@ import {
     SharedPostPreview,
 } from '@/components/social/post-share';
 import type { SharedPost } from '@/components/social/post-share';
+import type { PostVideoData } from '@/components/social/post-video';
+import { PostVideo } from '@/components/social/post-video';
 import { SpaceCover } from '@/components/social/space-cover';
 import { SpaceEventsPreview } from '@/components/social/space-event-card';
 import type { SpaceEventSummary } from '@/components/social/space-event-card';
@@ -74,6 +76,7 @@ type FeedPost = {
     topics: ContentTopic[];
     media: PostMedia | null;
     mediaItems: PostMedia[];
+    video: PostVideoData | null;
     publishedAt: string | null;
     editedAt: string | null;
     isHighlighted: boolean;
@@ -979,6 +982,7 @@ function PostCard({
             {item.mediaItems.length > 0 && (
                 <PostGallery media={item.mediaItems} className="mt-4" />
             )}
+            {item.video && <PostVideo video={item.video} className="mt-4" />}
             <SharedPostPreview share={item.share} className="mt-4" />
             <PostPoll postId={item.id} poll={item.poll} />
             <PostReactions

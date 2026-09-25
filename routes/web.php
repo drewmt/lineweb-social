@@ -32,6 +32,7 @@ use App\Http\Controllers\PostReportModerationController;
 use App\Http\Controllers\PostShareController;
 use App\Http\Controllers\PostVideoController;
 use App\Http\Controllers\ProfilePostHighlightController;
+use App\Http\Controllers\ReelsController;
 use App\Http\Controllers\SavedPostController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SpaceController;
@@ -79,6 +80,7 @@ Route::middleware(['auth', 'account.active', 'verified'])->group(function () {
         ->middleware('throttle:content-management')
         ->name('onboarding.dismiss');
     Route::get('feed', FeedController::class)->name('feed');
+    Route::get('reels', ReelsController::class)->name('reels.index');
     Route::get('stories/create', [StoryController::class, 'create'])->name('stories.create');
     Route::post('spaces/{space:slug}/stories', [StoryController::class, 'store'])
         ->middleware('throttle:story-publishing')

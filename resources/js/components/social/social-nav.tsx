@@ -5,6 +5,7 @@ import {
     Compass,
     Feather,
     FileText,
+    Film,
     Home,
     MessageCircle,
     Search,
@@ -27,6 +28,12 @@ import { SocialLogo } from './social-logo';
 
 const navItems = [
     { title: 'Home', subtitle: 'Your timeline', href: '/feed', icon: Home },
+    {
+        title: 'Reels',
+        subtitle: 'Videos from your spaces',
+        href: '/reels',
+        icon: Film,
+    },
     {
         title: 'Following',
         subtitle: 'People you chose',
@@ -301,6 +308,7 @@ export function MobileSocialTabs() {
     const { isCurrentOrParentUrl } = useCurrentUrl();
     const mobileItems = [
         { title: 'Home', href: '/feed', icon: Home },
+        { title: 'Reels', href: '/reels', icon: Film },
         { title: 'Spaces', href: '/spaces', icon: Compass },
         { title: 'Post', href: '/compose', icon: Feather, primary: true },
         {
@@ -321,7 +329,7 @@ export function MobileSocialTabs() {
             className="fixed inset-x-3 bottom-3 z-50 rounded-[1.45rem] border border-border/75 bg-card/94 px-2 pt-2 pb-[max(.5rem,env(safe-area-inset-bottom))] shadow-[0_18px_55px_-22px_rgba(15,23,42,.48)] backdrop-blur-xl lg:hidden"
             aria-label="Mobile navigation"
         >
-            <div className="mx-auto grid max-w-md grid-cols-5">
+            <div className="mx-auto grid max-w-md grid-cols-6">
                 {mobileItems.map((item) => {
                     const active = isCurrentOrParentUrl(
                         item.href.split('#')[0],

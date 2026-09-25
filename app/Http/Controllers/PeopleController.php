@@ -6,6 +6,7 @@ use App\Community\Mentions\MentionProjection;
 use App\Community\Polls\PostPollProjection;
 use App\Community\PostMediaView;
 use App\Community\PostShareProjection;
+use App\Community\PostVideoView;
 use App\Community\VisiblePostQuery;
 use App\Enums\ReportStatus;
 use App\Models\Post;
@@ -61,6 +62,7 @@ class PeopleController extends Controller
         Request $request,
         User $profile,
         PostMediaView $media,
+        PostVideoView $videos,
         MentionProjection $mentions,
         PostShareProjection $shares,
         VisiblePostQuery $visiblePostQuery,
@@ -133,6 +135,7 @@ class PeopleController extends Controller
                 ->values(),
             $viewer,
             $media,
+            $videos,
             $mentions,
             $shares,
             $polls,
@@ -183,6 +186,7 @@ class PeopleController extends Controller
         Collection $postModels,
         User $viewer,
         PostMediaView $media,
+        PostVideoView $videos,
         MentionProjection $mentions,
         PostShareProjection $shares,
         PostPollProjection $polls,
@@ -214,6 +218,7 @@ class PeopleController extends Controller
                     ->all(),
                 'media' => $media->for($post),
                 'mediaItems' => $media->galleryFor($post),
+                'video' => $videos->for($post, $viewer),
                 'share' => $shareProjection[$post->getKey()] ?? null,
                 'poll' => $pollProjection[$post->getKey()] ?? null,
                 'publishedAt' => $post->published_at?->toIso8601String(),
