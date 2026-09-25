@@ -28,6 +28,8 @@ import {
     SharedPostPreview,
 } from '@/components/social/post-share';
 import type { SharedPost } from '@/components/social/post-share';
+import type { PostVideoData } from '@/components/social/post-video';
+import { PostVideo } from '@/components/social/post-video';
 import { SpaceCover } from '@/components/social/space-cover';
 import { Button } from '@/components/ui/button';
 import { ProfileFollowButton } from './profile-follow-button';
@@ -70,6 +72,7 @@ type ProfilePost = {
     topics: ContentTopic[];
     media: PostMedia | null;
     mediaItems: PostMedia[];
+    video: PostVideoData | null;
     poll: PostPollSummary | null;
     publishedAt: string | null;
     editedAt: string | null;
@@ -777,6 +780,12 @@ export default function ShowProfile({
                                             {post.mediaItems.length > 0 && (
                                                 <PostGallery
                                                     media={post.mediaItems}
+                                                    className="mt-4"
+                                                />
+                                            )}
+                                            {post.video && (
+                                                <PostVideo
+                                                    video={post.video}
                                                     className="mt-4"
                                                 />
                                             )}

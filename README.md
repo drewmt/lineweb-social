@@ -269,6 +269,13 @@ through a dedicated draft library, curate retained images without reuploading
 them, move a draft to another Space they can post in, and publish without
 changing its post identity.
 
+An optional video mode adds one short clip per post. Uploads remain private while
+an isolated media worker validates and processes them. A draft cannot publish
+until its video is ready. Reels then shows visible video posts in chronological
+order, with current permissions checked for every playback request. Video is
+disabled by default and requires the [operator preflight](docs/media.md#video-operator-readiness)
+before a deployment enables it.
+
 <table>
   <tr>
     <td width="58%">
@@ -285,6 +292,32 @@ changing its post identity.
     <td align="center"><sub>Focused writing and explicit publication</sub></td>
     <td align="center"><sub>App-first mobile composer</sub></td>
     <td align="center"><sub>Private unfinished work</sub></td>
+  </tr>
+</table>
+
+### Short video, with the same community rules
+
+The optional Reels view is chronological and uses the post's existing Space,
+author, block and moderation rules. The preview below uses synthetic local
+content. Video publishing is a private-draft workflow and remains disabled by
+default until an operator completes the media preflight.
+
+<table>
+  <tr>
+    <td width="68%">
+      <img src="docs/screenshots/reels-desktop.png" alt="Lineweb Social chronological Reels on desktop with a synthetic video" />
+    </td>
+    <td width="16%">
+      <img src="docs/screenshots/reels-mobile.png" alt="Chronological Reels in the light mobile layout" />
+    </td>
+    <td width="16%">
+      <img src="docs/screenshots/reels-dark-mobile.png" alt="Chronological Reels in the dark mobile layout" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Policy-aware desktop discovery</sub></td>
+    <td align="center"><sub>Mobile light</sub></td>
+    <td align="center"><sub>Mobile dark</sub></td>
   </tr>
 </table>
 
@@ -581,6 +614,7 @@ makes the final decision.
 | Profiles            | Editable member identity, headlines, author-curated three-post highlights, real chronological activity, public/shared/private visibility, and discovery opt-out.                                                                                                      |
 | Spaces              | Public/private/hidden communities, searchable directory, join/leave rules, account-specific and limited-use shareable invitations, roles, ownership transfer, member removal, bounded curated highlights, and official events with private RSVPs.                      |
 | Publishing          | Focused composer, author-only drafts, private four-image WebP galleries with per-image alt text and swipe navigation, bounded private-first polls, 24-hour Space Stories with no viewer tracking, chronological posts, privacy-safe quote posts and reposts, comments, permanent conversations, and author controls. |
+| Opt-in video         | Private short-video draft uploads, asynchronous processing, authorized playback, and chronological Reels. Disabled by default until a dedicated media worker and host preflight pass. |
 | Discovery           | Policy-filtered search across posts, Spaces, People and Topics, focused category filters, navigable result pages, Unicode hashtags, chronological topic trails and privacy-aware Following. |
 | Interactions        | Typed Like, Celebrate, and Insightful reactions, private Saved Posts, follows, mentions, one-level direct replies, same-Space quote/repost actions, comments, copy links, and conversation shortcuts.                                                                 |
 | Messaging           | Canonical one-to-one conversations, participant-only history, unread state, block-aware delivery, and responsive inbox/thread views.                                                                                                                                  |
@@ -634,7 +668,9 @@ The following are deliberately still outside the supported core:
 
 - Message attachments, group conversations, realtime presence, and delivery
   receipts.
-- Video, audio, story formats, and direct-to-object-storage uploads.
+- Audio, additional Story formats, long-form video, livestreaming, and
+  direct-to-object-storage uploads. Short post video remains opt-in and is not
+  enabled in the public beta by default.
 - Recurring events, ticket sales, public attendee directories, reminders, and
   external calendar or conferencing synchronization.
 - Web/mobile push delivery, instant email, and custom digest schedules.

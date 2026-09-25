@@ -22,6 +22,7 @@ use App\Http\Controllers\PeopleController;
 use App\Http\Controllers\PlatformAppealController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\PostDraftController;
+use App\Http\Controllers\PostDraftVideoController;
 use App\Http\Controllers\PostHighlightController;
 use App\Http\Controllers\PostImageController;
 use App\Http\Controllers\PostPollVoteController;
@@ -29,7 +30,9 @@ use App\Http\Controllers\PostReactionController;
 use App\Http\Controllers\PostReportController;
 use App\Http\Controllers\PostReportModerationController;
 use App\Http\Controllers\PostShareController;
+use App\Http\Controllers\PostVideoController;
 use App\Http\Controllers\ProfilePostHighlightController;
+use App\Http\Controllers\ReelsController;
 use App\Http\Controllers\SavedPostController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SpaceController;
@@ -77,6 +80,7 @@ Route::middleware(['auth', 'account.active', 'verified'])->group(function () {
         ->middleware('throttle:content-management')
         ->name('onboarding.dismiss');
     Route::get('feed', FeedController::class)->name('feed');
+    Route::get('reels', ReelsController::class)->name('reels.index');
     Route::get('stories/create', [StoryController::class, 'create'])->name('stories.create');
     Route::post('spaces/{space:slug}/stories', [StoryController::class, 'store'])
         ->middleware('throttle:story-publishing')
@@ -104,6 +108,12 @@ Route::middleware(['auth', 'account.active', 'verified'])->group(function () {
     Route::delete('drafts/{post}', [PostDraftController::class, 'destroy'])
         ->middleware('throttle:post-drafts')
         ->name('drafts.destroy');
+    Route::post('drafts/{post}/video', [PostDraftVideoController::class, 'store'])
+        ->middleware('throttle:post-drafts')
+        ->name('drafts.video.store');
+    Route::delete('drafts/{post}/video', [PostDraftVideoController::class, 'destroy'])
+        ->middleware('throttle:post-drafts')
+        ->name('drafts.video.destroy');
     Route::get('search', SearchController::class)
         ->middleware('throttle:community-search')
         ->name('search');
@@ -253,6 +263,10 @@ Route::middleware(['auth', 'account.active', 'verified'])->group(function () {
         ->name('posts.shares.store');
     Route::get('posts/{post}/image', [PostImageController::class, 'primary'])
         ->name('posts.image');
+    Route::get('posts/{post}/video', [PostVideoController::class, 'video'])
+        ->name('posts.video');
+    Route::get('posts/{post}/video/poster', [PostVideoController::class, 'poster'])
+        ->name('posts.video.poster');
     Route::get('posts/{post}/media/{media}', [PostImageController::class, 'show'])
         ->whereNumber('media')
         ->name('posts.media.show');

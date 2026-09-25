@@ -590,6 +590,45 @@
         }
       }
     },
+    "/posts/{post}/video": {
+      "get": {
+        "operationId": "getPostVideo",
+        "summary": "Stream an authorized ready post video with optional single byte range",
+        "tags": ["Posts"],
+        "x-lineweb-status": "available",
+        "x-required-ability": "feed:read",
+        "parameters": [
+          {"$ref": "#/components/parameters/PostId"},
+          {"name": "Range", "in": "header", "required": false, "schema": {"type": "string"}}
+        ],
+        "responses": {
+          "200": {"description": "Private MP4 video"},
+          "206": {"description": "Private partial MP4 video"},
+          "401": {"$ref": "#/components/responses/Unauthenticated"},
+          "403": {"$ref": "#/components/responses/Forbidden"},
+          "404": {"$ref": "#/components/responses/NotFound"},
+          "416": {"description": "Invalid or unsatisfiable byte range"},
+          "429": {"$ref": "#/components/responses/TooManyRequests"}
+        }
+      }
+    },
+    "/posts/{post}/video/poster": {
+      "get": {
+        "operationId": "getPostVideoPoster",
+        "summary": "Return the authorized ready video poster",
+        "tags": ["Posts"],
+        "x-lineweb-status": "available",
+        "x-required-ability": "feed:read",
+        "parameters": [{"$ref": "#/components/parameters/PostId"}],
+        "responses": {
+          "200": {"description": "Private WebP poster"},
+          "401": {"$ref": "#/components/responses/Unauthenticated"},
+          "403": {"$ref": "#/components/responses/Forbidden"},
+          "404": {"$ref": "#/components/responses/NotFound"},
+          "429": {"$ref": "#/components/responses/TooManyRequests"}
+        }
+      }
+    },
     "/profiles/{handle}": {
       "get": {
         "operationId": "getProfile",
@@ -1602,6 +1641,19 @@
           }
         }
       },
+      "Video": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["url", "poster_url", "description", "duration_ms", "width", "height"],
+        "properties": {
+          "url": {"type": "string", "format": "uri-reference"},
+          "poster_url": {"type": "string", "format": "uri-reference"},
+          "description": {"type": "string"},
+          "duration_ms": {"type": "integer", "minimum": 1, "maximum": 90000},
+          "width": {"type": "integer", "minimum": 1},
+          "height": {"type": "integer", "minimum": 1, "maximum": 720}
+        }
+      },
       "ContentMention": {
         "type": "object",
         "additionalProperties": false,
@@ -1763,6 +1815,7 @@
           "share",
           "media",
           "media_items",
+          "video",
           "comments_count",
           "reactions",
           "poll",
@@ -1836,6 +1889,12 @@
             "items": {
               "$ref": "#/components/schemas/MediaItem"
             }
+          },
+          "video": {
+            "anyOf": [
+              {"$ref": "#/components/schemas/Video"},
+              {"type": "null"}
+            ]
           },
           "comments_count": {
             "type": "integer",

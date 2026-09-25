@@ -8,6 +8,7 @@ use App\Http\Requests\SavePostDraftRequest;
 use App\Models\Post;
 use App\Models\PostPoll;
 use App\Models\PostPollOption;
+use App\Models\PostVideo;
 use App\Models\Space;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -26,7 +27,7 @@ class PostDraftController extends Controller
         $drafts = $user->posts()
             ->whereNull('published_at')
             ->whereNull('hidden_at')
-            ->with(['space:id,name,slug,visibility', 'media', 'mediaItems', 'poll.options'])
+            ->with(['space:id,name,slug,visibility', 'media', 'mediaItems', 'poll.options', 'video'])
             ->latest('updated_at')
             ->latest('id')
             ->limit(ManagePostDrafts::MAX_DRAFTS_PER_MEMBER)
@@ -38,6 +39,7 @@ class PostDraftController extends Controller
                 ->values()
                 ->all(),
             'limit' => ManagePostDrafts::MAX_DRAFTS_PER_MEMBER,
+            'videoEnabled' => config('media.video.enabled') === true,
         ]);
     }
 
@@ -55,6 +57,8 @@ class PostDraftController extends Controller
             'spaces' => $this->spaceViews($spaces),
             'selectedSpace' => $selectedSpace,
             'draft' => null,
+            'videoEnabled' => config('media.video.enabled') === true,
+            'suggestedMode' => $request->query('mode') === 'video' ? 'video' : null,
         ]);
     }
 
@@ -74,7 +78,10 @@ class PostDraftController extends Controller
             $request->pollDefinition(),
         );
 
-        return to_route('drafts.edit', $draft)->with('status', 'Draft saved privately.');
+        return to_route('drafts.edit', [
+            'post' => $draft,
+            ...($request->input('intent') === 'video' ? ['mode' => 'video'] : []),
+        ])->with('status', 'Draft saved privately.');
     }
 
     public function edit(
@@ -93,7 +100,9 @@ class PostDraftController extends Controller
         return Inertia::render('compose/index', [
             'spaces' => $this->spaceViews($spaces),
             'selectedSpace' => $selectedSpace,
-            'draft' => $this->draftView($post->load(['media', 'mediaItems', 'poll.options']), $media),
+            'draft' => $this->draftView($post->load(['media', 'mediaItems', 'poll.options', 'video']), $media),
+            'videoEnabled' => config('media.video.enabled') === true,
+            'suggestedMode' => $request->query('mode') === 'video' ? 'video' : null,
         ]);
     }
 
@@ -177,11 +186,13 @@ class PostDraftController extends Controller
     }
 
     /**
-     * @return array{id: int, body: string, updatedAt: string, editUrl: string, space: array{name: string, slug: string}, media: array{url: string, alt: string, width: int, height: int}|null, mediaItems: list<array{id: int, url: string, alt: string, width: int, height: int}>, poll: array{question: string, options: list<string>, duration: int|null}|null}
+     * @return array<string, mixed>
      */
     private function draftView(Post $draft, PostMediaView $media): array
     {
         $poll = $draft->poll;
+        $draft->loadMissing('video');
+        $video = $draft->video;
 
         return [
             'id' => $draft->id,
@@ -194,6 +205,16 @@ class PostDraftController extends Controller
             ],
             'media' => $media->for($draft),
             'mediaItems' => $media->galleryFor($draft),
+            'video' => $video instanceof PostVideo ? [
+                'status' => $video->status,
+                'description' => $video->description,
+                'url' => $video->status === PostVideo::STATUS_READY
+                    ? route('posts.video', $draft)
+                    : null,
+                'posterUrl' => $video->status === PostVideo::STATUS_READY
+                    ? route('posts.video.poster', $draft)
+                    : null,
+            ] : null,
             'poll' => ! $poll instanceof PostPoll ? null : [
                 'question' => $poll->question,
                 'options' => array_values(array_map(

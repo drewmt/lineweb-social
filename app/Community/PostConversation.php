@@ -21,6 +21,7 @@ final class PostConversation
 
     public function __construct(
         private readonly PostMediaView $media,
+        private readonly PostVideoView $videos,
         private readonly PostReactionProjection $reactions,
         private readonly MentionProjection $mentions,
         private readonly VisibleCommentQuery $visibleComments,
@@ -44,6 +45,7 @@ final class PostConversation
             'space:id,name,slug,description,visibility',
             'media',
             'mediaItems',
+            'video',
             'highlight',
             'topics:id,name',
             'sharedPost' => fn ($shared) => $shared->with([
@@ -150,6 +152,7 @@ final class PostConversation
                     ->all(),
                 'media' => $this->media->for($post),
                 'mediaItems' => $this->media->galleryFor($post),
+                'video' => $this->videos->for($post, $viewer),
                 'publishedAt' => $post->published_at?->toIso8601String(),
                 'editedAt' => $post->edited_at?->toIso8601String(),
                 'isHighlighted' => $post->highlight instanceof SpacePostHighlight,

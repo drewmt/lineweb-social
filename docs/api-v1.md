@@ -234,6 +234,10 @@ The first resources expose only allowlisted fields:
   additive ordered `media_items` array contains up to four opaque item
   identifiers, authorized API URLs, alt text, normalized dimensions, and MIME
   type;
+- nullable `video` contains bearer-authenticated playback and poster URLs,
+  description, duration and dimensions for a ready post. Each byte-range or
+  poster request rechecks current post visibility. Source paths and processing
+  failures are never included;
 - notifications are re-resolved at read time and expose a safe structured
   target or `null`, never their stored internal payload.
 

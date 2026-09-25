@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Media\VideoCleanup;
 use Database\Factories\PostFactory;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -28,6 +29,7 @@ use Illuminate\Support\Carbon;
  * @property-read Post|null $sharedPost
  * @property-read PostMedia|null $media
  * @property-read Collection<int, PostMedia> $mediaItems
+ * @property-read PostVideo|null $video
  * @property-read SpacePostHighlight|null $highlight
  * @property-read ProfilePostHighlight|null $profileHighlight
  * @property-read PostPoll|null $poll
@@ -38,14 +40,22 @@ class Post extends Model
     /** @use HasFactory<PostFactory> */
     use HasFactory;
 
+    /** @var list<string> */
+    protected array $videoPathsToDelete = [];
+
     protected static function booted(): void
     {
         static::deleting(function (Post $post): void {
+            $post->videoPathsToDelete = app(VideoCleanup::class)->forPost($post);
             $post->loadMissing('mediaItems');
 
             foreach ($post->mediaItems as $media) {
                 $media->deleteStoredFile();
             }
+        });
+
+        static::deleted(function (Post $post): void {
+            app(VideoCleanup::class)->afterDeletion($post->videoPathsToDelete);
         });
 
         static::updated(function (Post $post): void {
@@ -146,6 +156,12 @@ class Post extends Model
         return $this->hasMany(PostMedia::class)
             ->orderBy('position')
             ->orderBy('id');
+    }
+
+    /** @return HasOne<PostVideo, $this> */
+    public function video(): HasOne
+    {
+        return $this->hasOne(PostVideo::class);
     }
 
     /** @return HasOne<SpacePostHighlight, $this> */

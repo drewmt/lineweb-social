@@ -38,6 +38,8 @@ class ApiContractDocumentationTest extends TestCase
             '/posts/{post}/comments',
             '/posts/{post}/media',
             '/posts/{post}/media/{media}',
+            '/posts/{post}/video',
+            '/posts/{post}/video/poster',
             '/profiles/{handle}',
             '/spaces',
             '/spaces/{slug}',
@@ -53,6 +55,8 @@ class ApiContractDocumentationTest extends TestCase
             '/posts/{post}/comments',
             '/posts/{post}/media',
             '/posts/{post}/media/{media}',
+            '/posts/{post}/video',
+            '/posts/{post}/video/poster',
             '/profiles/{handle}',
             '/spaces',
             '/spaces/{slug}',
@@ -153,6 +157,10 @@ class ApiContractDocumentationTest extends TestCase
             array_keys($schemas['MediaItem']['properties']),
         );
         $this->assertSame(
+            ['url', 'poster_url', 'description', 'duration_ms', 'width', 'height'],
+            array_keys($schemas['Video']['properties']),
+        );
+        $this->assertSame(
             ['id', 'kind', 'title', 'description', 'created_at', 'read_at', 'available', 'target'],
             array_keys($schemas['Notification']['properties']),
         );
@@ -169,7 +177,7 @@ class ApiContractDocumentationTest extends TestCase
             array_keys($schemas['SpaceEvent']['properties']['rsvp']['properties']),
         );
         $this->assertSame(
-            ['id', 'body', 'mentions', 'topics', 'published_at', 'edited_at', 'highlighted_at', 'share', 'media', 'media_items', 'comments_count', 'reactions', 'poll', 'author', 'space', 'viewer'],
+            ['id', 'body', 'mentions', 'topics', 'published_at', 'edited_at', 'highlighted_at', 'share', 'media', 'media_items', 'video', 'comments_count', 'reactions', 'poll', 'author', 'space', 'viewer'],
             array_keys($schemas['Post']['properties']),
         );
         $this->assertSame(

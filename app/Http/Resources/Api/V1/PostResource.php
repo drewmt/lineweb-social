@@ -2,9 +2,11 @@
 
 namespace App\Http\Resources\Api\V1;
 
+use App\Community\PostVideoView;
 use App\Models\Post;
 use App\Models\PostMedia;
 use App\Models\Topic;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -83,6 +85,9 @@ class PostResource extends JsonResource
                 ])
                 ->values()
                 ->all(),
+            'video' => ($request->user() instanceof User)
+                ? $this->apiVideo($post, $request)
+                : null,
             'comments_count' => (int) ($post->getAttribute('comments_count') ?? 0),
             'reactions' => [
                 'total' => array_sum($reactionCounts),
@@ -133,6 +138,27 @@ class PostResource extends JsonResource
                 'reaction_type' => $post->getAttribute('viewer_reaction_type'),
                 'can_share' => (bool) $post->getAttribute('viewer_can_share'),
             ],
+        ];
+    }
+
+    /** @return array<string, int|string>|null */
+    private function apiVideo(Post $post, Request $request): ?array
+    {
+        /** @var User $viewer */
+        $viewer = $request->user();
+        $video = app(PostVideoView::class)->for($post, $viewer, true);
+
+        if ($video === null) {
+            return null;
+        }
+
+        return [
+            'url' => $video['url'],
+            'poster_url' => $video['posterUrl'],
+            'description' => $video['description'],
+            'duration_ms' => $video['durationMs'],
+            'width' => $video['width'],
+            'height' => $video['height'],
         ];
     }
 }

@@ -88,3 +88,15 @@ jobs:
           DB_USERNAME: lineweb
           DB_PASSWORD: lineweb_ci
         run: php artisan migrate:fresh --force --no-interaction
+
+      - name: Verify concurrent video quota reservations
+        env:
+          DB_CONNECTION: mysql
+          DB_URL: ''
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: lineweb_social_test
+          DB_USERNAME: lineweb
+          DB_PASSWORD: lineweb_ci
+          QUEUE_CONNECTION: database
+        run: php artisan test tests/Feature/PostVideoQuotaConcurrencyTest.php --compact
