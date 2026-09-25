@@ -15,3 +15,4 @@ Schedule::command('notifications:dispatch-digests')
     ->dailyAt('08:00')
     ->withoutOverlapping()
     ->onOneServer();
+Schedule::command('media:videos-reconcile --execute')->daily()->withoutOverlapping();

@@ -8,6 +8,7 @@ use App\Models\Space;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -20,6 +21,7 @@ class PostVideoUploadTest extends TestCase
         parent::setUp();
 
         Storage::fake('media');
+        Queue::fake();
         config(['media.disk' => 'media']);
     }
 

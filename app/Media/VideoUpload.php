@@ -2,6 +2,7 @@
 
 namespace App\Media;
 
+use App\Jobs\ProcessPostVideo;
 use App\Models\Post;
 use App\Models\PostVideo;
 use App\Models\Space;
@@ -105,6 +106,7 @@ final class VideoUpload
         }
 
         $this->deletePaths($disk, $oldPaths);
+        ProcessPostVideo::dispatch($video->getKey());
 
         return $video;
     }
