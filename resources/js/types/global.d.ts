@@ -11,6 +11,7 @@ declare module '@inertiajs/core' {
     export interface InertiaConfig {
         sharedPageProps: {
             name: string;
+            videoEnabled: boolean;
             extensionAssets: {
                 version: string;
                 styles: {

@@ -44,6 +44,7 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            'videoEnabled' => config('media.video.enabled') === true,
             'extensionAssets' => app(ExtensionAssetManager::class)->payload(),
             'auth' => [
                 'user' => $request->user(),

@@ -62,6 +62,12 @@ All notable project changes will be documented here.
   mockups, dedicated native dark-mode coverage, and a more focused community
   and platform-operations tour built only from synthetic demo screens.
 
+### Fixed
+
+- Restored a five-item mobile navigation after adding Reels. The video link
+  appears only when video posts are enabled; the account avatar retains profile
+  access when Reels takes the fifth tab.
+
 ### Security
 
 - Updated the locked transitive `js-yaml` and `nanoid` packages to patched
