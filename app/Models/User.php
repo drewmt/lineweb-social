@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\PlatformRole;
 use App\Enums\ProfileVisibility;
 use App\Enums\UserRelationshipType;
+use App\Media\VideoCleanup;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -81,6 +82,9 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
 
+    /** @var list<string> */
+    protected array $videoPathsToDelete = [];
+
     /** @var array<string, mixed> */
     protected $attributes = [
         'profile_visibility' => 'members',
@@ -97,6 +101,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         });
 
         static::deleting(function (User $user): void {
+            $user->videoPathsToDelete = app(VideoCleanup::class)->forUser($user);
             Story::query()
                 ->where('user_id', $user->getKey())
                 ->orWhereHas('space', fn (Builder $spaces) => $spaces
@@ -113,6 +118,10 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
                 });
             $user->notifications()->delete();
             $user->tokens()->delete();
+        });
+
+        static::deleted(function (User $user): void {
+            app(VideoCleanup::class)->afterDeletion($user->videoPathsToDelete);
         });
     }
 

@@ -1,5 +1,6 @@
 <?php
 
+use App\Jobs\MediaWorkerHeartbeat;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -16,3 +17,4 @@ Schedule::command('notifications:dispatch-digests')
     ->withoutOverlapping()
     ->onOneServer();
 Schedule::command('media:videos-reconcile --execute')->daily()->withoutOverlapping();
+Schedule::job(new MediaWorkerHeartbeat)->everyMinute();

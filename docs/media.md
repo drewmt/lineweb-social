@@ -1,4 +1,4 @@
-# Post gallery contract
+# Private post media contract
 
 Lineweb Social treats uploaded media as untrusted content. Core posts and drafts
 may contain a bounded gallery of static images, while storage, authorization,
@@ -17,9 +17,9 @@ accessibility, and deletion remain server-enforced platform contracts.
   longest edge.
 - Draft authors may retain or remove existing items, edit their alternative
   text, and append new items. Retained order is stable and new items append.
-- A published gallery is immutable in this release. Video, audio, animation,
-  drag reordering, remote URL imports, direct-to-cloud uploads, and public CDN
-  URLs remain outside the contract.
+- A published gallery is immutable in this release. Drag reordering, audio,
+  animation, remote URL imports, direct-to-cloud uploads, and public CDN URLs
+  remain outside the contract. Short video is a separate opt-in post format.
 
 The legacy single `image` and `image_alt` request fields remain accepted during
 the legacy gallery transition. A legacy draft upload replaces the previous primary
@@ -105,9 +105,50 @@ Fileinfo. PHP `upload_max_filesize` must allow 8 MiB per file and
 `post_max_size` must leave room for the 20 MiB gallery plus multipart overhead;
 24 MiB or more is a practical baseline.
 
-Operators may point `MEDIA_DISK` at another configured private Laravel disk,
-but the application remains the authorization boundary. Public buckets and
-long-lived signed URLs are not part of this contract. Before adding video,
-direct uploads, or CDN delivery, define per-Space quotas, asynchronous
-processing states, malware handling, retention, object-store access, and
-cleanup for interrupted multipart uploads.
+Operators may point `MEDIA_DISK` at another configured private Laravel disk
+for images, but the video worker requires a private local disk. The application
+remains the authorization boundary. Public buckets and long-lived signed URLs
+are not part of this contract. Direct uploads and CDN delivery would require
+separate retention, object-store access and interrupted-upload cleanup rules.
+
+## Optional short video and Reels
+
+`VIDEO_POSTS_ENABLED=false` is the default. When enabled after operator
+readiness checks, an author can save a private text draft, upload one video of
+at most 64 MiB, provide an accessibility description, and publish only after
+processing reaches `ready`. Video cannot coexist with a gallery or poll.
+The media job probes the untrusted source, rejects unsupported or overlong
+content, normalizes accepted video to H.264/AAC MP4 at up to 720p, creates a
+WebP poster, then removes the source. The limit is 90 seconds. Failed uploads
+remain private and can be replaced; the reconciliation command prunes stale
+failed sources. One GiB per Space is reserved across pending and ready video.
+
+Video and poster files remain on the private local media disk. Authorized
+application routes support bounded byte-range requests and recheck the current
+post, Space, block and moderation policy on every request. Neither a copied
+playback URL nor a cached UI card grants lasting access. Reels uses the same
+posts and current visibility rules as the ordinary feed, in chronological
+order. Playback is paused off screen and autoplay is disabled when the viewer
+prefers reduced motion. There is no recommendation algorithm, tracking,
+public object bucket or long-lived signed link.
+
+Deleting a post, draft, Space or account removes its owned video after the
+database commit. A stale queued job cannot restore a deleted or replaced
+video. Operators should still back up and monitor the private media disk and
+run `php artisan media:videos-reconcile` to inspect stale work without changes.
+
+### Video operator readiness
+
+Video is deliberately not enabled by a code deploy. On the exact target
+subscription, install FFmpeg with `libx264`, FFprobe and PHP GD with WebP;
+provide a writable private local media disk with spare capacity. Set both PHP
+CLI and PHP-FPM upload/post limits above the 64 MiB input plus multipart
+overhead. Configure a persistent shared cache, an asynchronous database/Redis
+queue, the Laravel scheduler, and a dedicated worker for the `media` queue.
+The scheduler sends a heartbeat job each minute. Then run the read-only
+`php artisan media:video-preflight` as the application user. A passing result
+checks the worker heartbeat, binaries, disk, cache, queue and CLI limits;
+PHP-FPM limits must be checked separately. Only then explicitly set
+`VIDEO_POSTS_ENABLED=true` and reload the application configuration. Do not
+run the media worker in a shared Plesk subscription without verifying the
+subscription user, process limits, disk quota, backup and rollback boundary.

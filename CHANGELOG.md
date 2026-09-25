@@ -6,6 +6,12 @@ All notable project changes will be documented here.
 
 ### Added
 
+- An opt-in short-video draft and chronological Reels foundation, with private
+  64 MiB uploads, 90-second duration validation, asynchronous 720p processing,
+  authored descriptions, per-Space storage reservations, authorized range
+  streaming, current-visibility playback checks, reduced-motion-aware UI,
+  deletion cleanup and a read-only operator preflight. Disabled by default
+  until a dedicated media worker and host prerequisites are verified.
 - Focused community search with navigable Posts, Spaces, People and Topics
   filters, bounded previous/next pagination, deterministic ordering, per-page
   visibility enforcement, responsive category navigation and recoverable empty

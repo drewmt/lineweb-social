@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Media\VideoCleanup;
 use Database\Factories\PostFactory;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -39,14 +40,22 @@ class Post extends Model
     /** @use HasFactory<PostFactory> */
     use HasFactory;
 
+    /** @var list<string> */
+    protected array $videoPathsToDelete = [];
+
     protected static function booted(): void
     {
         static::deleting(function (Post $post): void {
+            $post->videoPathsToDelete = app(VideoCleanup::class)->forPost($post);
             $post->loadMissing('mediaItems');
 
             foreach ($post->mediaItems as $media) {
                 $media->deleteStoredFile();
             }
+        });
+
+        static::deleted(function (Post $post): void {
+            app(VideoCleanup::class)->afterDeletion($post->videoPathsToDelete);
         });
 
         static::updated(function (Post $post): void {

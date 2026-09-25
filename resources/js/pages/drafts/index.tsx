@@ -3,6 +3,7 @@ import {
     ArrowRight,
     BarChart3,
     FileText,
+    Film,
     Image as ImageIcon,
     LockKeyhole,
     Plus,
@@ -29,6 +30,12 @@ type Draft = {
     space: { name: string; slug: string };
     media: PostMedia | null;
     mediaItems: PostMedia[];
+    video: {
+        status: 'pending' | 'processing' | 'ready' | 'failed';
+        description: string;
+        url: string | null;
+        posterUrl: string | null;
+    } | null;
     poll: {
         question: string;
         options: string[];
@@ -138,8 +145,26 @@ export default function Drafts({ drafts, limit, status }: DraftsProps) {
                                 key={draft.id}
                                 className="social-card social-card-interactive group flex min-w-0 flex-col overflow-hidden rounded-[1.5rem]"
                             >
-                                {draft.mediaItems.length > 0 &&
-                                draft.mediaItems[0] ? (
+                                {draft.video?.posterUrl ? (
+                                    <Link
+                                        href={draft.editUrl}
+                                        className="relative block aspect-[16/8] overflow-hidden bg-secondary"
+                                    >
+                                        <img
+                                            src={draft.video.posterUrl}
+                                            alt={draft.video.description}
+                                            className="size-full object-cover"
+                                        />
+                                        <span className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-foreground/80 px-3 py-1.5 text-[0.68rem] font-extrabold text-background backdrop-blur">
+                                            <Film
+                                                className="size-3.5"
+                                                aria-hidden="true"
+                                            />
+                                            Video draft
+                                        </span>
+                                    </Link>
+                                ) : draft.mediaItems.length > 0 &&
+                                  draft.mediaItems[0] ? (
                                     <Link
                                         href={draft.editUrl}
                                         className="relative block aspect-[16/8] overflow-hidden bg-secondary"
@@ -213,6 +238,18 @@ export default function Drafts({ drafts, limit, status }: DraftsProps) {
                                             </span>
                                         </Link>
                                     )}
+                                    {draft.video && (
+                                        <p className="mt-4 inline-flex items-center gap-2 text-xs font-bold text-muted-foreground">
+                                            <Film
+                                                className="size-4 text-primary"
+                                                aria-hidden="true"
+                                            />
+                                            Video{' '}
+                                            {draft.video.status === 'ready'
+                                                ? 'ready to publish'
+                                                : draft.video.status}
+                                        </p>
+                                    )}
                                     <div className="mt-auto flex items-center justify-between gap-3 pt-5">
                                         <Button
                                             type="button"
@@ -255,7 +292,7 @@ export default function Drafts({ drafts, limit, status }: DraftsProps) {
                     <DialogHeader>
                         <DialogTitle>Delete this draft?</DialogTitle>
                         <DialogDescription>
-                            Its text and private image will be permanently
+                            Its text and private media will be permanently
                             removed. This cannot be undone.
                         </DialogDescription>
                     </DialogHeader>

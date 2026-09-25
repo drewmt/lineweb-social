@@ -1,11 +1,14 @@
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import {
     ArrowLeft,
     ChevronDown,
     FileText,
+    Film,
     LockKeyhole,
     Send,
     ShieldCheck,
+    Trash2,
+    Upload,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
@@ -34,6 +37,12 @@ type Draft = {
     editUrl: string;
     space: { name: string; slug: string };
     mediaItems: ExistingGalleryImage[];
+    video: {
+        status: 'pending' | 'processing' | 'ready' | 'failed';
+        description: string;
+        url: string | null;
+        posterUrl: string | null;
+    } | null;
     poll: {
         question: string;
         options: string[];
@@ -45,6 +54,8 @@ type ComposeProps = {
     spaces: PostingSpace[];
     selectedSpace: string | null;
     draft: Draft | null;
+    videoEnabled: boolean;
+    suggestedMode?: 'video' | null;
     status?: string;
 };
 
@@ -61,6 +72,11 @@ type ComposerData = {
     poll_duration: string;
 };
 
+type VideoUploadData = {
+    video: File | null;
+    description: string;
+};
+
 const visibilityLabel = (value: PostingSpace['visibility']) =>
     value === 'public'
         ? 'Public Space'
@@ -72,6 +88,8 @@ export default function Compose({
     spaces,
     selectedSpace,
     draft,
+    videoEnabled,
+    suggestedMode,
     status,
 }: ComposeProps) {
     const { auth, draftSummary } = usePage<{
@@ -82,6 +100,15 @@ export default function Compose({
         draft?.mediaItems ?? [],
     );
     const [pendingMedia, setPendingMedia] = useState<PendingGalleryImage[]>([]);
+    const [composerMode, setComposerMode] = useState<'post' | 'video'>(
+        draft?.video || (videoEnabled && suggestedMode === 'video')
+            ? 'video'
+            : 'post',
+    );
+    const videoForm = useForm<VideoUploadData>({
+        video: null,
+        description: draft?.video?.description ?? '',
+    });
     const previewUrls = useRef(new Set<string>());
     const form = useForm<ComposerData>({
         body: draft?.body ?? '',
@@ -108,6 +135,21 @@ export default function Compose({
         },
         [],
     );
+
+    useEffect(() => {
+        if (
+            !draft?.video ||
+            !['pending', 'processing'].includes(draft.video.status)
+        ) {
+            return;
+        }
+
+        const timer = window.setInterval(() => {
+            router.reload({ only: ['draft'] });
+        }, 5000);
+
+        return () => window.clearInterval(timer);
+    }, [draft?.video, draft?.id]);
 
     const syncExistingMedia = (items: ExistingGalleryImage[]) => {
         setExistingMedia(items);
@@ -209,7 +251,12 @@ export default function Compose({
 
     const saveDraft = () => {
         form.transform((data) =>
-            draft ? { ...data, _method: 'patch' } : data,
+            draft
+                ? { ...data, _method: 'patch' }
+                : {
+                      ...data,
+                      intent: composerMode === 'video' ? 'video' : 'post',
+                  },
         );
         form.post(draft ? `/drafts/${draft.id}` : '/drafts', {
             forceFormData: true,
@@ -219,6 +266,11 @@ export default function Compose({
 
     const publish = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+
+        if (!canPublish) {
+            return;
+        }
+
         form.transform((data) => data);
         form.post(
             draft
@@ -271,6 +323,33 @@ export default function Compose({
         form.data.space !== '' &&
         existingMedia.every((item) => item.alt.trim() !== '') &&
         pendingMedia.every((item) => item.alt.trim() !== '');
+    const canSave =
+        canSubmit && (composerMode !== 'video' || form.data.body.trim() !== '');
+    const canPublish =
+        canSave &&
+        (composerMode !== 'video' || draft?.video?.status === 'ready');
+    const hasOtherAttachments =
+        existingMedia.length > 0 || pendingMedia.length > 0 || poll !== null;
+
+    const uploadVideo = () => {
+        if (!draft || !videoForm.data.video || hasOtherAttachments) {
+            return;
+        }
+
+        videoForm.post(`/drafts/${draft.id}/video`, {
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: () => videoForm.setData('video', null),
+        });
+    };
+
+    const removeVideo = () => {
+        if (!draft) {
+            return;
+        }
+
+        router.delete(`/drafts/${draft.id}/video`, { preserveScroll: true });
+    };
 
     return (
         <>
@@ -429,7 +508,7 @@ export default function Compose({
                                     maxLength={2000}
                                     rows={5}
                                     placeholder="What is worth sharing with this community?"
-                                    className="min-h-52 w-full resize-none bg-transparent py-6 text-[1.12rem] leading-8 font-medium tracking-[-0.01em] outline-none placeholder:text-muted-foreground/55 sm:min-h-56 sm:resize-y sm:text-xl sm:leading-9"
+                                    className={`${composerMode === 'video' ? 'min-h-28 py-4 sm:min-h-36' : 'min-h-52 py-6 sm:min-h-56'} w-full resize-none bg-transparent text-[1.12rem] leading-8 font-medium tracking-[-0.01em] outline-none placeholder:text-muted-foreground/55 sm:resize-y sm:text-xl sm:leading-9`}
                                 />
                                 <InputError
                                     className="pb-3"
@@ -437,24 +516,249 @@ export default function Compose({
                                 />
                             </div>
 
-                            <PostGalleryEditor
-                                existing={existingMedia}
-                                pending={pendingMedia}
-                                onFiles={addFiles}
-                                onExistingAlt={updateExistingAlt}
-                                onPendingAlt={updatePendingAlt}
-                                onRemoveExisting={removeExisting}
-                                onRemovePending={removePending}
-                                imageError={imageError}
-                                altError={altError}
-                            />
-                            <PostPollEditor
-                                value={poll}
-                                onChange={updatePoll}
-                                errors={galleryErrors}
-                            />
+                            {(videoEnabled || draft?.video) && (
+                                <div
+                                    className="mx-4 mb-5 flex gap-1 rounded-2xl border border-border/70 bg-secondary/55 p-1 sm:mx-6"
+                                    aria-label="Post format"
+                                >
+                                    <button
+                                        type="button"
+                                        onClick={() => setComposerMode('post')}
+                                        disabled={Boolean(draft?.video)}
+                                        aria-pressed={composerMode === 'post'}
+                                        className="social-focus flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl px-3 text-sm font-bold transition-colors disabled:opacity-45 aria-pressed:bg-card aria-pressed:text-foreground aria-pressed:shadow-sm"
+                                    >
+                                        <FileText
+                                            className="size-4"
+                                            aria-hidden="true"
+                                        />
+                                        Post
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setComposerMode('video')}
+                                        disabled={
+                                            hasOtherAttachments && !draft?.video
+                                        }
+                                        aria-pressed={composerMode === 'video'}
+                                        className="social-focus flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl px-3 text-sm font-bold transition-colors disabled:opacity-45 aria-pressed:bg-card aria-pressed:text-foreground aria-pressed:shadow-sm"
+                                    >
+                                        <Film
+                                            className="size-4"
+                                            aria-hidden="true"
+                                        />
+                                        Video
+                                    </button>
+                                </div>
+                            )}
 
-                            <div className="sticky bottom-[5.75rem] z-20 flex items-center justify-between gap-3 border-t border-border/70 bg-card/94 px-4 py-3 backdrop-blur-xl sm:static sm:px-6 sm:py-4">
+                            {composerMode === 'post' ? (
+                                <>
+                                    <PostGalleryEditor
+                                        existing={existingMedia}
+                                        pending={pendingMedia}
+                                        onFiles={addFiles}
+                                        onExistingAlt={updateExistingAlt}
+                                        onPendingAlt={updatePendingAlt}
+                                        onRemoveExisting={removeExisting}
+                                        onRemovePending={removePending}
+                                        imageError={imageError}
+                                        altError={altError}
+                                    />
+                                    <PostPollEditor
+                                        value={poll}
+                                        onChange={updatePoll}
+                                        errors={galleryErrors}
+                                    />
+                                </>
+                            ) : (
+                                <section
+                                    className="mx-4 mb-6 rounded-[1.4rem] border border-border/75 bg-secondary/35 p-4 sm:mx-6 sm:p-5"
+                                    aria-labelledby="video-composer-title"
+                                >
+                                    <div className="flex items-start gap-3">
+                                        <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                                            <Film
+                                                className="size-5"
+                                                aria-hidden="true"
+                                            />
+                                        </span>
+                                        <div>
+                                            <h2
+                                                id="video-composer-title"
+                                                className="text-base font-black"
+                                            >
+                                                Share a video
+                                            </h2>
+                                            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                                                Save a private draft, upload one
+                                                video, then publish when
+                                                processing is complete. Up to 64
+                                                MB and 90 seconds.
+                                            </p>
+                                        </div>
+                                    </div>
+                                    {!draft ? (
+                                        <p className="mt-5 rounded-xl border border-primary/15 bg-card px-4 py-3 text-sm font-semibold">
+                                            Add your caption and save the draft
+                                            to unlock private video upload.
+                                        </p>
+                                    ) : (
+                                        <div className="mt-5 space-y-4">
+                                            {draft.video?.status === 'ready' &&
+                                                draft.video.url && (
+                                                    <video
+                                                        controls
+                                                        preload="metadata"
+                                                        playsInline
+                                                        poster={
+                                                            draft.video
+                                                                .posterUrl ??
+                                                            undefined
+                                                        }
+                                                        className="aspect-video w-full rounded-xl bg-black object-contain"
+                                                        aria-label={
+                                                            draft.video
+                                                                .description
+                                                        }
+                                                    >
+                                                        <source
+                                                            src={
+                                                                draft.video.url
+                                                            }
+                                                            type="video/mp4"
+                                                        />
+                                                    </video>
+                                                )}
+                                            {draft.video &&
+                                                draft.video.status !==
+                                                    'ready' && (
+                                                    <p
+                                                        role="status"
+                                                        className="rounded-xl border border-border/75 bg-card px-4 py-3 text-sm font-semibold"
+                                                    >
+                                                        {draft.video.status ===
+                                                        'failed'
+                                                            ? 'Processing failed. You can upload a different video.'
+                                                            : draft.video
+                                                                    .status ===
+                                                                'processing'
+                                                              ? 'Processing your private video. This page updates automatically.'
+                                                              : 'Video queued for processing. This page updates automatically.'}
+                                                    </p>
+                                                )}
+                                            <label
+                                                className="block text-sm font-bold"
+                                                htmlFor="draft-video-file"
+                                            >
+                                                {draft.video
+                                                    ? 'Replace video'
+                                                    : 'Choose video'}
+                                            </label>
+                                            <input
+                                                id="draft-video-file"
+                                                type="file"
+                                                accept="video/mp4,video/quicktime,video/webm"
+                                                onChange={(event) =>
+                                                    videoForm.setData(
+                                                        'video',
+                                                        event.target
+                                                            .files?.[0] ?? null,
+                                                    )
+                                                }
+                                                className="social-focus block w-full rounded-xl border border-border/75 bg-card p-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary/10 file:px-3 file:py-2 file:font-bold file:text-primary"
+                                            />
+                                            <InputError
+                                                message={videoForm.errors.video}
+                                            />
+                                            <label
+                                                className="block text-sm font-bold"
+                                                htmlFor="draft-video-description"
+                                            >
+                                                Video description for
+                                                accessibility
+                                            </label>
+                                            <textarea
+                                                id="draft-video-description"
+                                                rows={2}
+                                                maxLength={2000}
+                                                value={
+                                                    videoForm.data.description
+                                                }
+                                                onChange={(event) =>
+                                                    videoForm.setData(
+                                                        'description',
+                                                        event.target.value,
+                                                    )
+                                                }
+                                                className="social-input-surface social-focus w-full px-4 py-3 text-sm"
+                                                placeholder="Describe what happens in the video"
+                                            />
+                                            <InputError
+                                                message={
+                                                    videoForm.errors.description
+                                                }
+                                            />
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <Button
+                                                    type="button"
+                                                    onClick={uploadVideo}
+                                                    disabled={
+                                                        videoForm.processing ||
+                                                        !videoForm.data.video ||
+                                                        !videoForm.data.description.trim()
+                                                    }
+                                                    className="min-h-11 rounded-xl"
+                                                >
+                                                    <Upload
+                                                        className="size-4"
+                                                        aria-hidden="true"
+                                                    />
+                                                    {videoForm.processing
+                                                        ? 'Uploading…'
+                                                        : draft.video
+                                                          ? 'Replace video'
+                                                          : 'Upload video'}
+                                                </Button>
+                                                {draft.video && (
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        onClick={removeVideo}
+                                                        disabled={
+                                                            videoForm.processing
+                                                        }
+                                                        className="min-h-11 rounded-xl"
+                                                    >
+                                                        <Trash2
+                                                            className="size-4"
+                                                            aria-hidden="true"
+                                                        />
+                                                        Remove video
+                                                    </Button>
+                                                )}
+                                            </div>
+                                            {videoForm.progress && (
+                                                <p
+                                                    role="status"
+                                                    className="text-xs font-bold text-muted-foreground"
+                                                >
+                                                    Uploading{' '}
+                                                    {
+                                                        videoForm.progress
+                                                            .percentage
+                                                    }
+                                                    %
+                                                </p>
+                                            )}
+                                        </div>
+                                    )}
+                                </section>
+                            )}
+
+                            <div
+                                className={`${composerMode === 'video' ? 'relative' : 'sticky bottom-[5.75rem] z-20'} flex items-center justify-between gap-3 border-t border-border/70 bg-card/94 px-4 py-3 backdrop-blur-xl sm:static sm:px-6 sm:py-4`}
+                            >
                                 <div className="flex min-w-0 items-center gap-2">
                                     <span className="text-xs font-bold text-muted-foreground">
                                         {form.data.body.length.toLocaleString()}{' '}
@@ -475,7 +779,7 @@ export default function Compose({
                                     <Button
                                         type="button"
                                         variant="outline"
-                                        disabled={form.processing || !canSubmit}
+                                        disabled={form.processing || !canSave}
                                         onClick={saveDraft}
                                         className="h-11 rounded-xl px-3 sm:px-4"
                                     >
@@ -487,7 +791,9 @@ export default function Compose({
                                     </Button>
                                     <Button
                                         type="submit"
-                                        disabled={form.processing || !canSubmit}
+                                        disabled={
+                                            form.processing || !canPublish
+                                        }
                                         className="h-11 rounded-xl px-4 sm:px-5"
                                     >
                                         <Send
@@ -510,7 +816,7 @@ export default function Compose({
                                     Private by default
                                 </p>
                                 <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                                    Draft text and images are visible only to
+                                    Draft text and media are visible only to
                                     you. Mentions, topics, and notifications are
                                     created only when you publish.
                                 </p>
@@ -521,8 +827,8 @@ export default function Compose({
                                 </p>
                                 <p className="mt-3 text-sm leading-6 text-background/68">
                                     Take your time. The selected Space can be
-                                    changed before publication, and every image
-                                    keeps its accessible description.
+                                    changed before publication, and every
+                                    attachment keeps its accessible description.
                                 </p>
                             </div>
                         </aside>

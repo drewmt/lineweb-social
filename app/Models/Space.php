@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\SpaceRole;
 use App\Enums\SpaceVisibility;
+use App\Media\VideoCleanup;
 use Database\Factories\SpaceFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -28,6 +29,9 @@ class Space extends Model
     /** @use HasFactory<SpaceFactory> */
     use HasFactory;
 
+    /** @var list<string> */
+    protected array $videoPathsToDelete = [];
+
     protected static function booted(): void
     {
         static::created(function (Space $space): void {
@@ -37,6 +41,7 @@ class Space extends Model
         });
 
         static::deleting(function (Space $space): void {
+            $space->videoPathsToDelete = app(VideoCleanup::class)->forSpace($space);
             Story::query()
                 ->where('space_id', $space->getKey())
                 ->eachById(fn (Story $story): bool => $story->delete());
@@ -47,6 +52,10 @@ class Space extends Model
                 ->eachById(function (PostMedia $media): void {
                     $media->deleteStoredFile();
                 });
+        });
+
+        static::deleted(function (Space $space): void {
+            app(VideoCleanup::class)->afterDeletion($space->videoPathsToDelete);
         });
     }
 
