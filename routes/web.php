@@ -22,6 +22,7 @@ use App\Http\Controllers\PeopleController;
 use App\Http\Controllers\PlatformAppealController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\PostDraftController;
+use App\Http\Controllers\PostDraftVideoController;
 use App\Http\Controllers\PostHighlightController;
 use App\Http\Controllers\PostImageController;
 use App\Http\Controllers\PostPollVoteController;
@@ -104,6 +105,12 @@ Route::middleware(['auth', 'account.active', 'verified'])->group(function () {
     Route::delete('drafts/{post}', [PostDraftController::class, 'destroy'])
         ->middleware('throttle:post-drafts')
         ->name('drafts.destroy');
+    Route::post('drafts/{post}/video', [PostDraftVideoController::class, 'store'])
+        ->middleware('throttle:post-drafts')
+        ->name('drafts.video.store');
+    Route::delete('drafts/{post}/video', [PostDraftVideoController::class, 'destroy'])
+        ->middleware('throttle:post-drafts')
+        ->name('drafts.video.destroy');
     Route::get('search', SearchController::class)
         ->middleware('throttle:community-search')
         ->name('search');

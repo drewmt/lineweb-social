@@ -10,6 +10,7 @@ use App\Media\ImageNormalizer;
 use App\Media\NormalizedImage;
 use App\Models\Post;
 use App\Models\PostMedia;
+use App\Models\PostVideo;
 use App\Models\Space;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
@@ -165,15 +166,28 @@ final class ManagePostDrafts
 
     public function delete(User $author, Post $draft): void
     {
-        DB::transaction(function () use ($author, $draft): void {
+        $videoPaths = DB::transaction(function () use ($author, $draft): array {
             $lockedDraft = Post::query()
+                ->with('video')
                 ->whereKey($draft->getKey())
                 ->lockForUpdate()
                 ->firstOrFail();
 
             Gate::forUser($author)->authorize('manageDraft', $lockedDraft);
+            $video = $lockedDraft->video;
+            $paths = $video instanceof PostVideo
+                ? array_values(array_filter([
+                    $video->source_path,
+                    $video->output_path,
+                    $video->poster_path,
+                ], 'is_string'))
+                : [];
             $lockedDraft->delete();
+
+            return $paths;
         });
+
+        $this->deleteFiles($this->mediaDisk(), $videoPaths);
     }
 
     /**
@@ -219,13 +233,57 @@ final class ManagePostDrafts
                 &$obsoleteFiles,
             ): Post {
                 $lockedDraft = Post::query()
-                    ->with('mediaItems')
+                    ->with(['mediaItems', 'video'])
                     ->whereKey($draft->getKey())
                     ->lockForUpdate()
                     ->firstOrFail();
 
                 Gate::forUser($author)->authorize('manageDraft', $lockedDraft);
                 Gate::forUser($author)->authorize('createPost', $space);
+
+                $video = $lockedDraft->video;
+
+                if ($video instanceof PostVideo) {
+                    if ($normalized !== [] || $retainedMediaAltTexts !== [] || $poll !== null) {
+                        throw ValidationException::withMessages([
+                            'video' => 'A video cannot be combined with a gallery or poll.',
+                        ]);
+                    }
+
+                    if ($publish && $video->status !== PostVideo::STATUS_READY) {
+                        throw ValidationException::withMessages([
+                            'video' => 'Wait for the video to finish processing before publishing.',
+                        ]);
+                    }
+
+                    if ($lockedDraft->space_id !== $space->getKey()) {
+                        Space::query()
+                            ->whereKey([$lockedDraft->space_id, $space->getKey()])
+                            ->orderBy('id')
+                            ->lockForUpdate()
+                            ->get();
+
+                        $usage = (int) PostVideo::query()
+                            ->where('space_id', $space->getKey())
+                            ->sum('reserved_bytes')
+                            + (int) PostVideo::query()
+                                ->where('space_id', $space->getKey())
+                                ->sum('output_bytes');
+                        $bytes = (int) $video->reserved_bytes + (int) $video->output_bytes;
+                        $limit = min(
+                            1024 * 1024 * 1024,
+                            max(1, (int) config('media.video.space_quota_bytes', 1024 * 1024 * 1024)),
+                        );
+
+                        if ($usage + $bytes > $limit) {
+                            throw ValidationException::withMessages([
+                                'video' => 'The destination Space has reached its video storage limit.',
+                            ]);
+                        }
+
+                        $video->update(['space_id' => $space->getKey()]);
+                    }
+                }
 
                 $lockedDraft->update([
                     'space_id' => $space->getKey(),
