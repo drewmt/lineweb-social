@@ -23,6 +23,21 @@ class ReelsTest extends TestCase
         $this->withoutVite();
     }
 
+    public function test_shared_navigation_respects_the_video_feature_flag(): void
+    {
+        $viewer = User::factory()->create();
+
+        config()->set('media.video.enabled', false);
+        $this->actingAs($viewer)->get(route('feed'))
+            ->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('videoEnabled', false));
+
+        config()->set('media.video.enabled', true);
+        $this->actingAs($viewer)->get(route('feed'))
+            ->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('videoEnabled', true));
+    }
+
     public function test_reels_pages_ready_visible_posts_in_stable_chronological_order(): void
     {
         $viewer = User::factory()->create();

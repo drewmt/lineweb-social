@@ -146,9 +146,17 @@ function UserButton({
 }
 
 export function DesktopSocialNav() {
-    const { auth, draftSummary, messageSummary, notificationSummary } =
-        usePage().props;
+    const {
+        auth,
+        draftSummary,
+        messageSummary,
+        notificationSummary,
+        videoEnabled,
+    } = usePage().props;
     const { isCurrentOrParentUrl } = useCurrentUrl();
+    const visibleNavItems = videoEnabled
+        ? navItems
+        : navItems.filter((item) => item.href !== '/reels');
 
     return (
         <aside className="fixed inset-y-0 left-0 z-40 hidden w-[18.5rem] border-r border-border/75 bg-card/92 p-4 backdrop-blur-xl lg:flex lg:flex-col">
@@ -159,7 +167,7 @@ export function DesktopSocialNav() {
                     Explore
                 </div>
                 <nav className="mt-2 space-y-1" aria-label="Primary navigation">
-                    {navItems.map((item) => {
+                    {visibleNavItems.map((item) => {
                         const active = isCurrentOrParentUrl(item.href);
                         const Icon = item.icon;
                         const badgeCount =
@@ -304,11 +312,13 @@ export function MobileSocialHeader() {
 }
 
 export function MobileSocialTabs() {
-    const { auth, messageSummary } = usePage().props;
+    const { auth, messageSummary, videoEnabled } = usePage().props;
     const { isCurrentOrParentUrl } = useCurrentUrl();
     const mobileItems = [
         { title: 'Home', href: '/feed', icon: Home },
-        { title: 'Reels', href: '/reels', icon: Film },
+        ...(videoEnabled
+            ? [{ title: 'Reels', href: '/reels', icon: Film }]
+            : []),
         { title: 'Spaces', href: '/spaces', icon: Compass },
         { title: 'Post', href: '/compose', icon: Feather, primary: true },
         {
@@ -317,11 +327,17 @@ export function MobileSocialTabs() {
             icon: MessageCircle,
             unread: messageSummary.unreadCount,
         },
-        {
-            title: 'Profile',
-            href: auth.user ? `/people/${auth.user.handle}` : '/login',
-            icon: UserRound,
-        },
+        ...(!videoEnabled
+            ? [
+                  {
+                      title: 'Profile',
+                      href: auth.user
+                          ? `/people/${auth.user.handle}`
+                          : '/login',
+                      icon: UserRound,
+                  },
+              ]
+            : []),
     ] as const;
 
     return (
@@ -329,7 +345,7 @@ export function MobileSocialTabs() {
             className="fixed inset-x-3 bottom-3 z-50 rounded-[1.45rem] border border-border/75 bg-card/94 px-2 pt-2 pb-[max(.5rem,env(safe-area-inset-bottom))] shadow-[0_18px_55px_-22px_rgba(15,23,42,.48)] backdrop-blur-xl lg:hidden"
             aria-label="Mobile navigation"
         >
-            <div className="mx-auto grid max-w-md grid-cols-6">
+            <div className="mx-auto grid max-w-md grid-cols-5">
                 {mobileItems.map((item) => {
                     const active = isCurrentOrParentUrl(
                         item.href.split('#')[0],
@@ -360,9 +376,11 @@ export function MobileSocialTabs() {
                                     className={primary ? 'size-5' : 'size-4.5'}
                                     strokeWidth={2.2}
                                 />
-                                {'unread' in item && item.unread > 0 && (
-                                    <span className="absolute top-0 right-0 size-2.5 rounded-full bg-coral ring-2 ring-card" />
-                                )}
+                                {'unread' in item &&
+                                    typeof item.unread === 'number' &&
+                                    item.unread > 0 && (
+                                        <span className="absolute top-0 right-0 size-2.5 rounded-full bg-coral ring-2 ring-card" />
+                                    )}
                             </span>
                             {item.title}
                         </Link>
