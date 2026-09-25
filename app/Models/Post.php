@@ -28,6 +28,7 @@ use Illuminate\Support\Carbon;
  * @property-read Post|null $sharedPost
  * @property-read PostMedia|null $media
  * @property-read Collection<int, PostMedia> $mediaItems
+ * @property-read PostVideo|null $video
  * @property-read SpacePostHighlight|null $highlight
  * @property-read ProfilePostHighlight|null $profileHighlight
  * @property-read PostPoll|null $poll
@@ -146,6 +147,12 @@ class Post extends Model
         return $this->hasMany(PostMedia::class)
             ->orderBy('position')
             ->orderBy('id');
+    }
+
+    /** @return HasOne<PostVideo, $this> */
+    public function video(): HasOne
+    {
+        return $this->hasOne(PostVideo::class);
     }
 
     /** @return HasOne<SpacePostHighlight, $this> */
