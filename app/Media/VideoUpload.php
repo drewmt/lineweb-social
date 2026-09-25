@@ -64,14 +64,10 @@ final class VideoUpload
 
                 Space::query()->whereKey($lockedDraft->space_id)->lockForUpdate()->firstOrFail();
                 $oldVideo = $lockedDraft->video;
-                $usage = (int) PostVideo::query()
-                    ->where('space_id', $lockedDraft->space_id)
-                    ->when($oldVideo, fn ($query) => $query->whereKeyNot($oldVideo->getKey()))
-                    ->sum('reserved_bytes')
-                    + (int) PostVideo::query()
-                        ->where('space_id', $lockedDraft->space_id)
-                        ->when($oldVideo, fn ($query) => $query->whereKeyNot($oldVideo->getKey()))
-                        ->sum('output_bytes');
+                $usage = app(VideoQuota::class)->usedBytes(
+                    $lockedDraft->space_id,
+                    $oldVideo?->getKey(),
+                );
                 $limit = min(1024 * 1024 * 1024, max(1, (int) config('media.video.space_quota_bytes', 1024 * 1024 * 1024)));
 
                 if ($usage + $size > $limit) {

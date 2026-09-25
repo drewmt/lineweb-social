@@ -8,6 +8,7 @@ use App\Community\Topics\SyncPostTopics;
 use App\Events\PostPublished;
 use App\Media\ImageNormalizer;
 use App\Media\NormalizedImage;
+use App\Media\VideoQuota;
 use App\Models\Post;
 use App\Models\PostMedia;
 use App\Models\PostVideo;
@@ -263,12 +264,7 @@ final class ManagePostDrafts
                             ->lockForUpdate()
                             ->get();
 
-                        $usage = (int) PostVideo::query()
-                            ->where('space_id', $space->getKey())
-                            ->sum('reserved_bytes')
-                            + (int) PostVideo::query()
-                                ->where('space_id', $space->getKey())
-                                ->sum('output_bytes');
+                        $usage = app(VideoQuota::class)->usedBytes($space->getKey());
                         $bytes = (int) $video->reserved_bytes + (int) $video->output_bytes;
                         $limit = min(
                             1024 * 1024 * 1024,

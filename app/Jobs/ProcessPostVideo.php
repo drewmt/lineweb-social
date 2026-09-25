@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Media\VideoEncoder;
 use App\Media\VideoProbe;
 use App\Media\VideoProcessingException;
+use App\Media\VideoQuota;
 use App\Media\VideoStorage;
 use App\Models\Post;
 use App\Models\PostVideo;
@@ -138,14 +139,7 @@ class ProcessPostVideo implements ShouldBeUnique, ShouldQueue
                     return false;
                 }
 
-                $usage = (int) PostVideo::query()
-                    ->where('space_id', $post->space_id)
-                    ->whereKeyNot($current->getKey())
-                    ->sum('reserved_bytes')
-                    + (int) PostVideo::query()
-                        ->where('space_id', $post->space_id)
-                        ->whereKeyNot($current->getKey())
-                        ->sum('output_bytes');
+                $usage = app(VideoQuota::class)->usedBytes($post->space_id, $current->getKey());
                 $limit = min(1024 * 1024 * 1024, max(1, (int) config('media.video.space_quota_bytes', 1024 * 1024 * 1024)));
 
                 if ($usage + $outputBytes > $limit) {

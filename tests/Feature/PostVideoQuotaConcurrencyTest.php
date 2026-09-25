@@ -75,7 +75,11 @@ PHP;
             DB::commit();
 
             $process->wait();
-            $this->assertSame(0, $process->getExitCode(), $process->getErrorOutput());
+            $this->assertSame(
+                0,
+                $process->getExitCode(),
+                'Child output: '.$process->getOutput().' '.$process->getErrorOutput(),
+            );
             $this->assertSame('QUOTA_REJECTED', $process->getOutput());
             $this->assertDatabaseCount('post_videos', 1);
             $this->assertNull($second->fresh()?->video);
