@@ -64,9 +64,9 @@ All notable project changes will be documented here.
 
 ### Fixed
 
-- Restored a five-item mobile navigation after adding Reels. The video link
-  appears only when video posts are enabled; the account avatar retains profile
-  access when Reels takes the fifth tab.
+- Restored a five-item mobile navigation after adding Reels, keeping the Post
+  action centered. The video link appears only when video posts are enabled;
+  the account avatar retains profile access when Reels replaces the Profile tab.
 
 ### Security
 

@@ -316,11 +316,11 @@ export function MobileSocialTabs() {
     const { isCurrentOrParentUrl } = useCurrentUrl();
     const mobileItems = [
         { title: 'Home', href: '/feed', icon: Home },
+        { title: 'Spaces', href: '/spaces', icon: Compass },
+        { title: 'Post', href: '/compose', icon: Feather, primary: true },
         ...(videoEnabled
             ? [{ title: 'Reels', href: '/reels', icon: Film }]
             : []),
-        { title: 'Spaces', href: '/spaces', icon: Compass },
-        { title: 'Post', href: '/compose', icon: Feather, primary: true },
         {
             title: 'Messages',
             href: '/messages',
