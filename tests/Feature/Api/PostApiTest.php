@@ -10,6 +10,7 @@ use App\Models\CommentReport;
 use App\Models\Post;
 use App\Models\PostReaction;
 use App\Models\PostReport;
+use App\Models\PostVideo;
 use App\Models\Space;
 use App\Models\SpacePostHighlight;
 use App\Models\Topic;
@@ -153,13 +154,54 @@ class PostApiTest extends TestCase
             ->assertContent($secondMediaContents);
 
         $this->assertSame(
-            ['id', 'body', 'mentions', 'topics', 'published_at', 'edited_at', 'highlighted_at', 'share', 'media', 'media_items', 'comments_count', 'reactions', 'poll', 'author', 'space', 'viewer'],
+            ['id', 'body', 'mentions', 'topics', 'published_at', 'edited_at', 'highlighted_at', 'share', 'media', 'media_items', 'video', 'comments_count', 'reactions', 'poll', 'author', 'space', 'viewer'],
             array_keys($response->json('data')),
         );
+        $response->assertJsonPath('data.video', null);
         $this->assertSame(
             ['handle', 'name', 'headline', 'profile_visible'],
             array_keys($response->json('data.author')),
         );
+    }
+
+    public function test_ready_video_has_token_bound_api_urls_without_private_storage_fields(): void
+    {
+        Storage::fake('media');
+        config(['media.disk' => 'media']);
+        $author = User::factory()->create();
+        $viewer = User::factory()->create();
+        $space = Space::factory()->for($author, 'owner')->create();
+        $post = Post::factory()->for($space)->for($author, 'author')->create();
+        $video = $post->video()->create([
+            'space_id' => $space->getKey(),
+            'status' => PostVideo::STATUS_READY,
+            'description' => 'Short clip',
+            'duration_ms' => 1000,
+            'width' => 640,
+            'height' => 360,
+            'reserved_bytes' => 0,
+        ]);
+        $video->update([
+            'output_path' => "videos/ready/{$video->getKey()}/00000000-0000-0000-0000-000000000001.mp4",
+            'poster_path' => "videos/ready/{$video->getKey()}/00000000-0000-0000-0000-000000000001.webp",
+            'output_bytes' => 4,
+        ]);
+        Storage::disk('media')->put($video->output_path, 'clip');
+        Storage::disk('media')->put($video->poster_path, 'poster');
+
+        $this->get(route('api.v1.posts.video', $post))->assertUnauthorized();
+
+        $this->getWithToken($viewer)->getJson(route('api.v1.posts.show', $post))
+            ->assertOk()
+            ->assertJsonPath('data.video.url', route('api.v1.posts.video', $post))
+            ->assertJsonPath('data.video.poster_url', route('api.v1.posts.video.poster', $post))
+            ->assertJsonPath('data.video.description', 'Short clip')
+            ->assertJsonMissingPath('data.video.output_path');
+
+        $this->getWithToken($viewer)->get(route('api.v1.posts.video', $post))
+            ->assertOk()->assertStreamedContent('clip');
+        $this->getWithToken($viewer)->get(route('api.v1.posts.video.poster', $post))
+            ->assertOk()->assertStreamedContent('poster');
     }
 
     public function test_post_endpoints_require_scope_and_visibility_boundaries(): void

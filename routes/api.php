@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\V1\SpaceController;
 use App\Http\Controllers\Api\V1\SpaceEventController;
 use App\Http\Controllers\Api\V1\SpaceEventIndexController;
 use App\Http\Controllers\Api\V1\SpaceIndexController;
+use App\Http\Controllers\PostVideoController;
 use App\Http\Middleware\AssignApiRequestId;
 use App\Http\Middleware\RequireBearerAccessToken;
 use Illuminate\Support\Facades\Route;
@@ -49,6 +50,12 @@ Route::prefix('v1')
         Route::get('posts/{post}/media', [PostMediaController::class, 'primary'])
             ->middleware('abilities:feed:read')
             ->name('api.v1.posts.media');
+        Route::get('posts/{post}/video', [PostVideoController::class, 'video'])
+            ->middleware('abilities:feed:read')
+            ->name('api.v1.posts.video');
+        Route::get('posts/{post}/video/poster', [PostVideoController::class, 'poster'])
+            ->middleware('abilities:feed:read')
+            ->name('api.v1.posts.video.poster');
         Route::get('posts/{post}/media/{media}', [PostMediaController::class, 'show'])
             ->whereNumber('media')
             ->middleware('abilities:feed:read')

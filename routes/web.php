@@ -30,6 +30,7 @@ use App\Http\Controllers\PostReactionController;
 use App\Http\Controllers\PostReportController;
 use App\Http\Controllers\PostReportModerationController;
 use App\Http\Controllers\PostShareController;
+use App\Http\Controllers\PostVideoController;
 use App\Http\Controllers\ProfilePostHighlightController;
 use App\Http\Controllers\SavedPostController;
 use App\Http\Controllers\SearchController;
@@ -260,6 +261,10 @@ Route::middleware(['auth', 'account.active', 'verified'])->group(function () {
         ->name('posts.shares.store');
     Route::get('posts/{post}/image', [PostImageController::class, 'primary'])
         ->name('posts.image');
+    Route::get('posts/{post}/video', [PostVideoController::class, 'video'])
+        ->name('posts.video');
+    Route::get('posts/{post}/video/poster', [PostVideoController::class, 'poster'])
+        ->name('posts.video.poster');
     Route::get('posts/{post}/media/{media}', [PostImageController::class, 'show'])
         ->whereNumber('media')
         ->name('posts.media.show');
