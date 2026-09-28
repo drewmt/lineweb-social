@@ -47,6 +47,8 @@ All notable project changes will be documented here.
 
 ### Changed
 
+- Reels now loads the next chronological video page in place on request,
+  preserving the current viewing position instead of replacing the screen.
 - Refocused the public onboarding around Lineweb Social as the open-source
   Laravel community foundation, with a live-beta path, clearer pilot boundary,
   structured community-pilot intake, Docker-first quick start, and current

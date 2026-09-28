@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, InfiniteScroll, Link } from '@inertiajs/react';
 import { ArrowLeft, ArrowRight, Film, MessageCircle } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { AvatarMark } from '@/components/social/avatar-mark';
@@ -16,13 +16,8 @@ type Reel = {
     commentsCount: number;
 };
 
-export default function Reels({
-    items,
-    nextCursor,
-}: {
-    items: Reel[];
-    nextCursor: string | null;
-}) {
+export default function Reels({ reels }: { reels: { data: Reel[] } }) {
+    const items = reels.data;
     const [activeId, setActiveId] = useState<number | null>(
         items[0]?.id ?? null,
     );
@@ -114,7 +109,33 @@ export default function Reels({
                         </Link>
                     </section>
                 ) : (
-                    <div className="mx-auto max-w-[42rem] space-y-8 md:space-y-12">
+                    <InfiniteScroll
+                        data="reels"
+                        manual
+                        onlyNext
+                        preserveUrl
+                        className="mx-auto max-w-[42rem] space-y-8 md:space-y-12"
+                        next={({ loading, fetch, hasMore }) =>
+                            hasMore ? (
+                                <button
+                                    type="button"
+                                    onClick={fetch}
+                                    disabled={loading}
+                                    className="social-focus mx-auto mt-8 flex min-h-12 w-full max-w-[42rem] items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 text-sm font-extrabold hover:bg-secondary disabled:cursor-wait disabled:opacity-60"
+                                >
+                                    {loading
+                                        ? 'Loading videos...'
+                                        : 'Load more videos'}
+                                    {!loading && (
+                                        <ArrowRight
+                                            className="size-4"
+                                            aria-hidden="true"
+                                        />
+                                    )}
+                                </button>
+                            ) : null
+                        }
+                    >
                         {items.map((item) => (
                             <article
                                 key={item.id}
@@ -187,19 +208,7 @@ export default function Reels({
                                 </div>
                             </article>
                         ))}
-                        {nextCursor && (
-                            <Link
-                                href={`/reels?cursor=${encodeURIComponent(nextCursor)}`}
-                                className="social-focus flex min-h-12 items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 text-sm font-extrabold hover:bg-secondary"
-                            >
-                                More videos
-                                <ArrowRight
-                                    className="size-4"
-                                    aria-hidden="true"
-                                />
-                            </Link>
-                        )}
-                    </div>
+                    </InfiniteScroll>
                 )}
             </main>
         </>
