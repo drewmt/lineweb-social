@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Inertia\ScrollMetadata;
 
 class ReelsController extends Controller
 {
@@ -21,6 +22,12 @@ class ReelsController extends Controller
         }
         $page = $feed->page($viewer, is_string($cursor) ? $cursor : null);
 
-        return Inertia::render('reels/index', $page);
+        return Inertia::render('reels/index', [
+            'reels' => Inertia::scroll(
+                fn (): array => ['data' => $page['items']],
+                'data',
+                new ScrollMetadata('cursor', null, $page['nextCursor'], $cursor ?? 1),
+            ),
+        ]);
     }
 }

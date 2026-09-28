@@ -95,8 +95,8 @@ class ReelsTest extends TestCase
         $this->actingAs($viewer)->get(route('reels.index'))
             ->assertOk()->assertInertia(fn (Assert $page) => $page
             ->component('reels/index')
-            ->has('items', 12)
-            ->where('items.0.video.url', route('posts.video', Post::query()->latest('published_at')->first())));
+            ->has('reels.data', 12)
+            ->where('reels.data.0.video.url', route('posts.video', Post::query()->latest('published_at')->first())));
 
         $cursor = app(ReelsFeed::class)->page($viewer, null)['nextCursor'];
         $this->actingAs($other)->get(route('reels.index', ['cursor' => $cursor]))
@@ -105,6 +105,47 @@ class ReelsTest extends TestCase
             ->assertSessionHasErrors('cursor');
         $this->actingAs($viewer)->get(route('reels.index', ['cursor' => ['invalid']]))
             ->assertSessionHasErrors('cursor');
+    }
+
+    public function test_reels_response_exposes_cursor_pages_for_in_place_loading(): void
+    {
+        $viewer = User::factory()->create();
+        $space = Space::factory()->create();
+
+        for ($i = 0; $i < 13; $i++) {
+            $this->videoPost($space, $space->owner, now()->subMinutes($i));
+        }
+
+        $first = $this->actingAs($viewer)->get(route('reels.index'));
+        $first->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->component('reels/index')
+            ->has('reels.data', 12));
+
+        $firstPage = $first->viewData('page');
+        $cursor = $firstPage['scrollProps']['reels']['nextPage'] ?? null;
+        $this->assertIsString($cursor);
+        $this->assertSame('cursor', $firstPage['scrollProps']['reels']['pageName']);
+
+        $second = $this->actingAs($viewer)->get(route('reels.index', ['cursor' => $cursor]));
+        $second->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->component('reels/index')
+            ->has('reels.data', 1));
+
+        $secondPage = $second->viewData('page');
+        $this->assertNull($secondPage['scrollProps']['reels']['nextPage']);
+        $this->assertSame($cursor, $secondPage['scrollProps']['reels']['currentPage']);
+
+        $partial = $this->actingAs($viewer)->withHeaders([
+            'X-Inertia' => 'true',
+            'X-Inertia-Version' => $firstPage['version'],
+            'X-Inertia-Partial-Component' => 'reels/index',
+            'X-Inertia-Partial-Data' => 'reels',
+            'X-Inertia-Infinite-Scroll-Merge-Intent' => 'append',
+        ])->get(route('reels.index', ['cursor' => $cursor]));
+        $partial->assertOk()
+            ->assertJsonCount(1, 'props.reels.data')
+            ->assertJsonPath('mergeProps.0', 'reels.data')
+            ->assertJsonPath('scrollProps.reels.nextPage', null);
     }
 
     public function test_ready_video_appears_on_profile_and_post_permalinks(): void
