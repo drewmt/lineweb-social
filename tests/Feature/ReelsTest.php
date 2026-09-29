@@ -148,6 +148,37 @@ class ReelsTest extends TestCase
             ->assertJsonPath('scrollProps.reels.nextPage', null);
     }
 
+    public function test_reels_expose_only_the_current_viewers_save_state(): void
+    {
+        $viewer = User::factory()->create();
+        $other = User::factory()->create();
+        $space = Space::factory()->create();
+        $post = $this->videoPost($space, $space->owner, now());
+
+        $this->actingAs($viewer)->get(route('reels.index'))
+            ->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('reels.data.0.id', $post->getKey())
+            ->where('reels.data.0.isSaved', false));
+
+        $this->actingAs($viewer)->from(route('reels.index'))
+            ->put(route('posts.saves.store', $post))
+            ->assertRedirect(route('reels.index'));
+
+        $this->actingAs($viewer)->get(route('reels.index'))
+            ->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('reels.data.0.isSaved', true));
+        $this->actingAs($other)->get(route('reels.index'))
+            ->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('reels.data.0.isSaved', false));
+
+        $this->actingAs($viewer)->from(route('reels.index'))
+            ->delete(route('posts.saves.destroy', $post))
+            ->assertRedirect(route('reels.index'));
+        $this->actingAs($viewer)->get(route('reels.index'))
+            ->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('reels.data.0.isSaved', false));
+    }
+
     public function test_ready_video_appears_on_profile_and_post_permalinks(): void
     {
         $author = User::factory()->create();

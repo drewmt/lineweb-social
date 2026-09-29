@@ -27,7 +27,11 @@ final class ReelsFeed
         $position = $cursor === null ? null : $this->decodeCursor($viewer, $cursor);
         $query = $this->visiblePosts->forFeed($viewer)
             ->whereHas('video', fn (Builder $videos): Builder => $videos
-                ->where('status', PostVideo::STATUS_READY));
+                ->where('status', PostVideo::STATUS_READY))
+            ->withExists([
+                'saves as is_saved' => fn ($saves) => $saves
+                    ->where('user_id', $viewer->getKey()),
+            ]);
 
         if ($position !== null) {
             $query->where(function (Builder $posts) use ($position): void {
@@ -64,6 +68,7 @@ final class ReelsFeed
                     'slug' => $post->space->slug,
                 ],
                 'commentsCount' => (int) $post->comments_count,
+                'isSaved' => (bool) $post->is_saved,
                 'canReport' => $viewer->can('report', $post),
             ])->all()),
             'nextCursor' => $hasMore && $last instanceof Post
