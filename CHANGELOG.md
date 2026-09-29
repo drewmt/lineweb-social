@@ -47,6 +47,8 @@ All notable project changes will be documented here.
 
 ### Changed
 
+- Reels can now be saved or unsaved directly in the video view, using the
+  existing private Saved Posts list without discarding videos loaded in place.
 - Reels now loads the next chronological video page in place on request,
   preserving the current viewing position instead of replacing the screen.
 - Refocused the public onboarding around Lineweb Social as the open-source

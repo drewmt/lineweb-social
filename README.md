@@ -299,8 +299,10 @@ before a deployment enables it.
 
 The optional Reels view is chronological and uses the post's existing Space,
 author, block and moderation rules. The preview below uses synthetic local
-content. Older videos load into the same view only when a member chooses to
-continue, without losing their place. Video publishing is a private-draft
+content. Members can save or unsave a Reel directly from this view using the
+same private Saved Posts list as other posts. Older videos load into the same
+view only when a member chooses to continue, without losing their place.
+Video publishing is a private-draft
 workflow and remains disabled by default until an operator completes the media
 preflight.
 
