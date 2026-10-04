@@ -299,29 +299,35 @@ before a deployment enables it.
 
 The optional Reels view is chronological and uses the post's existing Space,
 author, block and moderation rules. The preview below uses synthetic local
-content. Members can save or unsave a Reel directly from this view using the
-same private Saved Posts list as other posts. Older videos load into the same
-view only when a member chooses to continue, without losing their place.
+content. Members can like, celebrate or mark a Reel insightful, save it to
+their private Saved Posts list, and share its post link from this view.
+Sharing never grants access to a restricted Space or exposes a video file.
+Actions preserve the loaded videos and viewing position. Older videos load
+into the same view only when a member chooses to continue.
 Video publishing is a private-draft
 workflow and remains disabled by default until an operator completes the media
 preflight.
 
 <table>
   <tr>
-    <td width="68%">
+    <td width="62%">
       <img src="docs/screenshots/reels-desktop.png" alt="Lineweb Social chronological Reels on desktop with a synthetic video" />
     </td>
-    <td width="16%">
+    <td width="13%">
       <img src="docs/screenshots/reels-mobile.png" alt="Chronological Reels in the light mobile layout" />
     </td>
-    <td width="16%">
+    <td width="13%">
       <img src="docs/screenshots/reels-dark-mobile.png" alt="Chronological Reels in the dark mobile layout" />
+    </td>
+    <td width="12%">
+      <img src="docs/screenshots/reels-share-mobile.png" alt="Share a Reel using its post link, without exposing the video file" />
     </td>
   </tr>
   <tr>
     <td align="center"><sub>Policy-aware desktop discovery</sub></td>
     <td align="center"><sub>Mobile light</sub></td>
     <td align="center"><sub>Mobile dark</sub></td>
+    <td align="center"><sub>Post-link sharing</sub></td>
   </tr>
 </table>
 

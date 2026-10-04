@@ -19,6 +19,7 @@ final class ReelsFeed
     public function __construct(
         private readonly VisiblePostQuery $visiblePosts,
         private readonly PostVideoView $videos,
+        private readonly PostReactionProjection $reactions,
     ) {}
 
     /** @return array{items: list<array<string, mixed>>, nextCursor: string|null} */
@@ -50,6 +51,7 @@ final class ReelsFeed
             ->get();
         $hasMore = $rows->count() > self::PAGE_SIZE;
         $page = $rows->take(self::PAGE_SIZE);
+        $reactions = $this->reactions->forPosts($page, $viewer);
         $last = $page->last();
 
         return [
@@ -69,6 +71,7 @@ final class ReelsFeed
                 ],
                 'commentsCount' => (int) $post->comments_count,
                 'isSaved' => (bool) $post->is_saved,
+                'reactions' => $reactions[$post->getKey()],
                 'canReport' => $viewer->can('report', $post),
             ])->all()),
             'nextCursor' => $hasMore && $last instanceof Post

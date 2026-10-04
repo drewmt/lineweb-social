@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Community\ReelsFeed;
+use App\Enums\PostReactionType;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -23,6 +24,7 @@ class ReelsController extends Controller
         $page = $feed->page($viewer, is_string($cursor) ? $cursor : null);
 
         return Inertia::render('reels/index', [
+            'reactionTypes' => PostReactionType::options(),
             'reels' => Inertia::scroll(
                 fn (): array => ['data' => $page['items']],
                 'data',
