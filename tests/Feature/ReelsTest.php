@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Community\ReelsFeed;
 use App\Models\Post;
+use App\Models\PostReaction;
 use App\Models\PostVideo;
 use App\Models\Space;
 use App\Models\User;
@@ -177,6 +178,71 @@ class ReelsTest extends TestCase
         $this->actingAs($viewer)->get(route('reels.index'))
             ->assertOk()->assertInertia(fn (Assert $page) => $page
             ->where('reels.data.0.isSaved', false));
+    }
+
+    public function test_reel_mutations_can_return_status_without_replacing_loaded_pages(): void
+    {
+        $viewer = User::factory()->create();
+        $space = Space::factory()->create();
+        $post = $this->videoPost($space, $space->owner, now());
+        $first = $this->actingAs($viewer)->get(route('reels.index'));
+
+        $this->from(route('reels.index'))->put(route('posts.reactions.store', $post), ['type' => 'like'])
+            ->assertRedirect(route('reels.index'));
+
+        $this->withHeaders([
+            'X-Inertia' => 'true',
+            'X-Inertia-Version' => $first->viewData('page')['version'],
+            'X-Inertia-Partial-Component' => 'reels/index',
+            'X-Inertia-Partial-Data' => 'status',
+        ])->get(route('reels.index'))->assertOk()
+            ->assertJsonPath('props.status', 'Reaction added.')
+            ->assertJsonMissingPath('props.reels');
+
+        $this->assertDatabaseHas('post_reactions', ['post_id' => $post->id, 'user_id' => $viewer->id, 'type' => 'like']);
+    }
+
+    public function test_reel_reactions_follow_the_viewer_and_can_be_changed_and_removed(): void
+    {
+        $viewer = User::factory()->create();
+        $other = User::factory()->create();
+        $space = Space::factory()->create();
+        $post = $this->videoPost($space, $space->owner, now());
+        PostReaction::create(['post_id' => $post->id, 'user_id' => $other->id, 'type' => 'celebrate']);
+
+        $this->actingAs($viewer)->get(route('reels.index'))
+            ->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('reels.data.0.reactions.total', 1)
+            ->where('reels.data.0.reactions.viewerType', null)
+            ->where('reels.data.0.reactions.canReact', true)
+            ->where('reactionTypes.0.value', 'like'));
+
+        $this->actingAs($viewer)->from(route('reels.index'))
+            ->put(route('posts.reactions.store', $post), ['type' => 'like'])
+            ->assertRedirect(route('reels.index'));
+        $this->get(route('reels.index'))->assertInertia(fn (Assert $page) => $page
+            ->where('reels.data.0.reactions.viewerType', 'like')
+            ->where('reels.data.0.reactions.counts.like', 1)
+            ->where('reels.data.0.reactions.counts.celebrate', 1)
+            ->where('reels.data.0.reactions.total', 2));
+        $this->actingAs($other)->get(route('reels.index'))->assertInertia(fn (Assert $page) => $page
+            ->where('reels.data.0.reactions.viewerType', 'celebrate'));
+
+        $this->actingAs($viewer)->from(route('reels.index'))
+            ->put(route('posts.reactions.store', $post), ['type' => 'insightful'])
+            ->assertRedirect(route('reels.index'));
+        $this->get(route('reels.index'))->assertInertia(fn (Assert $page) => $page
+            ->where('reels.data.0.reactions.counts.like', 0)
+            ->where('reels.data.0.reactions.counts.insightful', 1)
+            ->where('reels.data.0.reactions.viewerType', 'insightful')
+            ->where('reels.data.0.reactions.total', 2));
+
+        $this->from(route('reels.index'))->delete(route('posts.reactions.destroy', $post))
+            ->assertRedirect(route('reels.index'));
+        $this->get(route('reels.index'))->assertInertia(fn (Assert $page) => $page
+            ->where('reels.data.0.reactions.viewerType', null)
+            ->where('reels.data.0.reactions.counts.insightful', 0)
+            ->where('reels.data.0.reactions.total', 1));
     }
 
     public function test_ready_video_appears_on_profile_and_post_permalinks(): void

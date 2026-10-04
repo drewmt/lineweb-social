@@ -132,6 +132,14 @@ order. Playback is paused off screen and autoplay is disabled when the viewer
 prefers reduced motion. There is no recommendation algorithm, tracking,
 public object bucket or long-lived signed link.
 
+Reels supports the existing Like, Celebrate and Insightful reactions and the
+private Saved Posts list. Successful actions update their controls in place
+without replacing loaded cursor pages or the current video element. Sharing
+copies the post permalink, not a playback URL; it never changes Space access.
+If clipboard access is unavailable, the link remains selectable for manual
+copying. Reaction counts are a viewing snapshot, refreshed on a new page visit,
+not a live subscription to other members' activity.
+
 Deleting a post, draft, Space or account removes its owned video after the
 database commit. A stale queued job cannot restore a deleted or replaced
 video. Operators should still back up and monitor the private media disk and

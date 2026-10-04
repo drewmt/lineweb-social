@@ -47,6 +47,10 @@ All notable project changes will be documented here.
 
 ### Changed
 
+- Reels now supports in-place reactions and post-link sharing, with clear
+  mobile action controls, accessible touch targets and a clipboard fallback.
+  Reaction and save actions retain loaded pages and scroll position; sharing
+  preserves the existing post and Space access rules.
 - Reels can now be saved or unsaved directly in the video view, using the
   existing private Saved Posts list without discarding videos loaded in place.
 - Reels now loads the next chronological video page in place on request,

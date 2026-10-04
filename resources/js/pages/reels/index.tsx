@@ -1,15 +1,14 @@
-import { Head, InfiniteScroll, Link, router } from '@inertiajs/react';
-import {
-    ArrowLeft,
-    ArrowRight,
-    Bookmark,
-    Film,
-    MessageCircle,
-} from 'lucide-react';
+import { Head, InfiniteScroll, Link } from '@inertiajs/react';
+import { ArrowLeft, ArrowRight, Film } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { AvatarMark } from '@/components/social/avatar-mark';
+import type {
+    ReactionSummary,
+    ReactionType,
+} from '@/components/social/post-reactions';
 import { PostVideo } from '@/components/social/post-video';
 import type { PostVideoData } from '@/components/social/post-video';
+import { ReelActions } from '@/components/social/reel-actions';
 
 type Reel = {
     id: number;
@@ -21,46 +20,25 @@ type Reel = {
     space: { name: string; slug: string };
     commentsCount: number;
     isSaved: boolean;
+    reactions: ReactionSummary;
 };
 
-export default function Reels({ reels }: { reels: { data: Reel[] } }) {
+export default function Reels({
+    reels,
+    reactionTypes,
+}: {
+    reels: { data: Reel[] };
+    reactionTypes: ReactionType[];
+}) {
     const items = reels.data;
     const [activeId, setActiveId] = useState<number | null>(
         items[0]?.id ?? null,
     );
-    const [savedOverrides, setSavedOverrides] = useState<
-        Record<number, boolean>
-    >({});
-    const [savingId, setSavingId] = useState<number | null>(null);
     const cards = useRef(new Map<number, HTMLElement>());
     const currentActiveId =
         activeId === null || items.some((item) => item.id === activeId)
             ? activeId
             : (items[0]?.id ?? null);
-
-    const toggleSaved = (item: Reel) => {
-        const isSaved = savedOverrides[item.id] ?? item.isSaved;
-        const options = {
-            only: ['status'],
-            preserveScroll: true,
-            preserveState: true,
-            onStart: () => setSavingId(item.id),
-            onSuccess: () =>
-                setSavedOverrides((current) => ({
-                    ...current,
-                    [item.id]: !isSaved,
-                })),
-            onFinish: () => setSavingId(null),
-        };
-
-        if (isSaved) {
-            router.delete(`/posts/${item.id}/save`, options);
-
-            return;
-        }
-
-        router.put(`/posts/${item.id}/save`, {}, options);
-    };
 
     useEffect(() => {
         if (!('IntersectionObserver' in window)) {
@@ -101,8 +79,8 @@ export default function Reels({ reels }: { reels: { data: Reel[] } }) {
         <>
             <Head title="Reels" />
             <main className="social-page max-w-6xl">
-                <header className="mb-6 flex flex-wrap items-end justify-between gap-4 px-1">
-                    <div>
+                <header className="mb-6 flex items-start justify-between gap-4 px-1">
+                    <div className="min-w-0 flex-1">
                         <p className="text-xs font-extrabold tracking-[0.12em] text-primary uppercase">
                             Your community, in motion
                         </p>
@@ -116,10 +94,11 @@ export default function Reels({ reels }: { reels: { data: Reel[] } }) {
                     </div>
                     <Link
                         href="/feed"
-                        className="social-focus inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-4 text-sm font-bold hover:bg-secondary"
+                        aria-label="Back to feed"
+                        className="social-focus inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl border border-border px-3 text-sm font-bold hover:bg-secondary sm:px-4"
                     >
                         <ArrowLeft className="size-4" aria-hidden="true" />
-                        Back to feed
+                        <span className="hidden sm:inline">Back to feed</span>
                     </Link>
                 </header>
 
@@ -225,42 +204,14 @@ export default function Reels({ reels }: { reels: { data: Reel[] } }) {
                                             {item.video.description}
                                         </p>
                                     </details>
-                                    <div className="mt-3 flex flex-wrap gap-2">
-                                        <Link
-                                            href={item.url}
-                                            className="social-focus inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-4 text-sm font-bold hover:bg-secondary"
-                                        >
-                                            <MessageCircle
-                                                className="size-4"
-                                                aria-hidden="true"
-                                            />
-                                            View post and conversation
-                                            {item.commentsCount > 0 && (
-                                                <span className="text-muted-foreground">
-                                                    {item.commentsCount}
-                                                </span>
-                                            )}
-                                        </Link>
-                                        <button
-                                            type="button"
-                                            onClick={() => toggleSaved(item)}
-                                            disabled={savingId === item.id}
-                                            aria-pressed={
-                                                savedOverrides[item.id] ??
-                                                item.isSaved
-                                            }
-                                            className="social-focus inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-4 text-sm font-bold hover:bg-secondary disabled:opacity-60"
-                                        >
-                                            <Bookmark
-                                                className={`size-4 ${(savedOverrides[item.id] ?? item.isSaved) ? 'fill-current' : ''}`}
-                                                aria-hidden="true"
-                                            />
-                                            {(savedOverrides[item.id] ??
-                                            item.isSaved)
-                                                ? 'Saved'
-                                                : 'Save Reel'}
-                                        </button>
-                                    </div>
+                                    <ReelActions
+                                        postId={item.id}
+                                        url={item.url}
+                                        commentsCount={item.commentsCount}
+                                        isSaved={item.isSaved}
+                                        reactions={item.reactions}
+                                        reactionTypes={reactionTypes}
+                                    />
                                 </div>
                             </article>
                         ))}
