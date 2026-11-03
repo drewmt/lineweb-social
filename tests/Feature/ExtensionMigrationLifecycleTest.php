@@ -77,6 +77,18 @@ class ExtensionMigrationLifecycleTest extends TestCase
         $this->assertDatabaseCount('platform_extension_migrations', 0);
     }
 
+    public function test_migrate_rejects_a_non_text_id_without_running_valid_migrations(): void
+    {
+        $this->assertSame(1, Artisan::call('platform:extensions:migrate', [
+            'extension' => ['migration-polls', ['invalid']],
+            '--backup-confirmed' => true,
+        ]));
+
+        $this->assertStringContainsString('Extension IDs must be text.', Artisan::output());
+        $this->assertFalse(Schema::hasTable('extension_poll_options'));
+        $this->assertDatabaseCount('platform_extension_migrations', 0);
+    }
+
     public function test_changed_applied_source_blocks_rollback_and_activation(): void
     {
         $this->assertSame(0, $this->migrate());

@@ -26,8 +26,14 @@ class PublishPlatformExtensionAssets extends Command
             return self::FAILURE;
         }
 
-        /** @var list<string> $ids */
-        $ids = array_values($this->argument('extension'));
+        $extensions = $this->argument('extension');
+        $ids = is_array($extensions) ? array_values(array_filter($extensions, is_string(...))) : [];
+        if (! is_array($extensions) || count($ids) !== count($extensions)) {
+            $this->components->error('Extension IDs must be text.');
+
+            return self::FAILURE;
+        }
+
         $lock = Cache::lock('platform-extension-assets', 600);
 
         if (! $lock->get()) {

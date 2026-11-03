@@ -19,7 +19,14 @@ class ManagePlatformAdministrator extends Command
 
     public function handle(PlatformAdministration $administration): int
     {
-        $email = Str::lower(trim((string) $this->argument('email')));
+        $email = $this->argument('email');
+        if (! is_string($email)) {
+            $this->error('The member email address must be text.');
+
+            return CommandStatus::FAILURE;
+        }
+
+        $email = Str::lower(trim($email));
         $member = User::query()->where('email', $email)->first();
 
         if (! $member instanceof User) {

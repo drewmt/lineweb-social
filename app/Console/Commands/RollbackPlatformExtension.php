@@ -32,7 +32,13 @@ class RollbackPlatformExtension extends Command
             return self::FAILURE;
         }
 
-        $id = (string) $this->argument('extension');
+        $id = $this->argument('extension');
+        if (! is_string($id)) {
+            $this->components->error('The extension ID must be text.');
+
+            return self::FAILURE;
+        }
+
         $lock = Cache::lock('platform-extension-migrations', 600);
 
         if (! $lock->get()) {
