@@ -28,7 +28,14 @@ class ProvisionStarterCommunity extends Command
             return CommandStatus::FAILURE;
         }
 
-        $email = Str::lower(trim((string) $this->argument('email')));
+        $email = $this->argument('email');
+        if (! is_string($email)) {
+            $this->error('The member email address must be text.');
+
+            return CommandStatus::FAILURE;
+        }
+
+        $email = Str::lower(trim($email));
         $member = User::query()->where('email', $email)->first();
 
         if (! $member instanceof User) {
@@ -37,9 +44,10 @@ class ProvisionStarterCommunity extends Command
             return CommandStatus::FAILURE;
         }
 
-        $visibility = SpaceVisibility::tryFrom(
-            Str::lower(trim((string) $this->option('visibility'))),
-        );
+        $visibilityOption = $this->option('visibility');
+        $visibility = is_string($visibilityOption)
+            ? SpaceVisibility::tryFrom(Str::lower(trim($visibilityOption)))
+            : null;
 
         if (! $visibility instanceof SpaceVisibility) {
             $this->error('Visibility must be public, private, or hidden.');
@@ -47,10 +55,17 @@ class ProvisionStarterCommunity extends Command
             return CommandStatus::FAILURE;
         }
 
+        $name = $this->option('name') ?? '';
+        if (! is_string($name)) {
+            $this->error('The community name must be text.');
+
+            return CommandStatus::FAILURE;
+        }
+
         try {
             $result = $provisioner->handle(
                 $member,
-                (string) $this->option('name'),
+                $name,
                 $visibility,
             );
         } catch (ValidationException $exception) {

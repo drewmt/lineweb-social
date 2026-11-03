@@ -133,4 +133,18 @@ class StarterCommunityCommandTest extends TestCase
 
         $this->assertDatabaseEmpty('spaces');
     }
+
+    public function test_command_rejects_an_array_name_without_writes(): void
+    {
+        $member = User::factory()->create();
+
+        $this->artisan('platform:starter-community', [
+            'email' => $member->email,
+            '--name' => ['Not a name'],
+            '--confirm' => true,
+        ])->assertFailed()
+            ->expectsOutputToContain('The community name must be text.');
+
+        $this->assertDatabaseEmpty('spaces');
+    }
 }
