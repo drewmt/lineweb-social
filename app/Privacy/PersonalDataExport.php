@@ -64,6 +64,8 @@ class PersonalDataExport
             'comments' => $this->comments($userId),
             'post_reactions' => $this->postReactions($userId),
             'saved_posts' => $this->savedPosts($userId),
+            'saved_collections' => $this->savedCollections($userId),
+            'saved_collection_posts' => $this->savedCollectionPosts($userId),
             'favorite_profiles' => $this->favoriteReferences('profile_favorites', 'profile_id', $userId),
             'favorite_spaces' => $this->favoriteReferences('space_favorites', 'space_id', $userId),
             'profile_highlights' => $this->profileHighlights($userId),
@@ -314,6 +316,35 @@ class PersonalDataExport
     private function savedPosts(int $userId): Generator
     {
         yield from $this->postReferences('post_saves', $userId);
+    }
+
+    /** @return Generator<int, array<string, mixed>> */
+    private function savedCollections(int $userId): Generator
+    {
+        $rows = DB::table('saved_collections')
+            ->where('user_id', $userId)
+            ->orderBy('id')
+            ->select(['id', 'name', 'created_at', 'updated_at'])
+            ->lazy(500);
+
+        foreach ($rows as $row) {
+            yield (array) $row;
+        }
+    }
+
+    /** @return Generator<int, array<string, mixed>> */
+    private function savedCollectionPosts(int $userId): Generator
+    {
+        $rows = DB::table('saved_collection_posts')
+            ->where('user_id', $userId)
+            ->orderBy('collection_id')
+            ->orderBy('post_id')
+            ->select(['collection_id', 'post_id', 'created_at'])
+            ->lazy(500);
+
+        foreach ($rows as $row) {
+            yield (array) $row;
+        }
     }
 
     /** @return Generator<int, array<string, mixed>> */

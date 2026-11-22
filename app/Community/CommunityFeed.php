@@ -16,8 +16,10 @@ use App\Models\SpacePostHighlight;
 use App\Models\Topic;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
+/** @phpstan-type FeedPost array<string, mixed>&array{id: int, url: string} */
 final class CommunityFeed
 {
     public function __construct(
@@ -67,17 +69,80 @@ final class CommunityFeed
     }
 
     /**
-     * @return list<array{id: int, url: string, body: string, media: array{url: string, alt: string, width: int, height: int}|null, mediaItems: list<array{id: int, url: string, alt: string, width: int, height: int}>, publishedAt: string|null, editedAt: string|null, isHighlighted: bool, highlightedAt: string|null, isSaved: bool, canComment: bool, canReport: bool, canEdit: bool, canDelete: bool, hasReported: bool, commentsCount: int, comments: list<array{id: int, body: string, publishedAt: string, editedAt: string|null, isReply: bool, replyTo: array{id: int, author: array{name: string, handle: string, profileVisible: bool}}|null, canReport: bool, canEdit: bool, canDelete: bool, hasReported: bool, author: array{name: string, handle: string, profileVisible: bool}}>, author: array{name: string, handle: string, profileVisible: bool}, space: array{name: string, slug: string}}>
+     * @return list<FeedPost>
      */
     public function posts(
         User $user,
         ?Space $space = null,
-        bool $savedOnly = false,
         bool $followingOnly = false,
         ?Topic $topic = null,
         bool $highlightedOnly = false,
         bool $favoritesOnly = false,
     ): array {
+        $query = $this->postQuery($user, $space, $followingOnly, $favoritesOnly);
+
+        if ($highlightedOnly) {
+            $query
+                ->join('space_post_highlights', 'space_post_highlights.post_id', '=', 'posts.id')
+                ->addSelect('posts.*')
+                ->orderByDesc('space_post_highlights.created_at')
+                ->orderByDesc('space_post_highlights.id');
+        } else {
+            $query->latest('posts.published_at')->latest('posts.id');
+        }
+
+        if ($topic instanceof Topic) {
+            $query->whereHas(
+                'topics',
+                fn (Builder $topics): Builder => $topics->whereKey($topic->getKey()),
+            );
+        }
+
+        return $this->project($user, $query->limit($highlightedOnly ? 3 : 30)->get());
+    }
+
+    /**
+     * @return array{posts: list<FeedPost>, pagination: array{page: int, previous: ?string, next: ?string}}
+     */
+    public function savedPage(User $user, ?int $collectionId): array
+    {
+        $query = $this->postQuery($user)
+            ->join('post_saves', function ($join) use ($user): void {
+                $join
+                    ->on('post_saves.post_id', '=', 'posts.id')
+                    ->where('post_saves.user_id', $user->getKey());
+            })
+            ->addSelect('posts.*');
+
+        if ($collectionId !== null) {
+            $query->whereIn('posts.id', DB::table('saved_collection_posts')
+                ->where('user_id', $user->getKey())
+                ->where('collection_id', $collectionId)
+                ->select('post_id'));
+        }
+
+        $saved = $query
+            ->orderByDesc('post_saves.created_at')
+            ->orderByDesc('post_saves.id')
+            ->simplePaginate(30);
+
+        return [
+            'posts' => $this->project($user, $saved->getCollection()),
+            'pagination' => [
+                'page' => $saved->currentPage(),
+                'previous' => $saved->previousPageUrl(),
+                'next' => $saved->nextPageUrl(),
+            ],
+        ];
+    }
+
+    /** @return Builder<Post> */
+    private function postQuery(
+        User $user,
+        ?Space $space = null,
+        bool $followingOnly = false,
+        bool $favoritesOnly = false,
+    ): Builder {
         $hiddenCommentActorIds = DB::table('user_relationships')
             ->select('target_id')
             ->where('actor_id', $user->getKey())
@@ -95,7 +160,7 @@ final class CommunityFeed
             ->whereNotIn('user_id', clone $hiddenCommentActorIds)
             ->whereNotIn('user_id', clone $blockingCommentActorIds);
 
-        $query = $this->visiblePosts
+        return $this->visiblePosts
             ->forFeed($user, $space, $followingOnly, $favoritesOnly)
             ->with([
                 'comments' => fn ($comments) => $visibleComments($comments)
@@ -109,45 +174,14 @@ final class CommunityFeed
                 'saves as is_saved' => fn ($saves) => $saves
                     ->where('user_id', $user->getKey()),
             ]);
+    }
 
-        if ($savedOnly) {
-            $query
-                ->join('post_saves', function ($join) use ($user): void {
-                    $join
-                        ->on('post_saves.post_id', '=', 'posts.id')
-                        ->where('post_saves.user_id', $user->getKey());
-                })
-                ->addSelect('posts.*');
-        }
-
-        if ($highlightedOnly) {
-            $query
-                ->join('space_post_highlights', 'space_post_highlights.post_id', '=', 'posts.id')
-                ->addSelect('posts.*');
-        }
-
-        if ($topic instanceof Topic) {
-            $query->whereHas(
-                'topics',
-                fn (Builder $topics): Builder => $topics->whereKey($topic->getKey()),
-            );
-        }
-
-        if ($highlightedOnly) {
-            $query
-                ->orderByDesc('space_post_highlights.created_at')
-                ->orderByDesc('space_post_highlights.id');
-        } elseif ($savedOnly) {
-            $query
-                ->orderByDesc('post_saves.created_at')
-                ->orderByDesc('post_saves.id');
-        } else {
-            $query
-                ->latest('posts.published_at')
-                ->latest('posts.id');
-        }
-
-        $posts = $query->limit($highlightedOnly ? 3 : 30)->get();
+    /**
+     * @param  Collection<int, Post>  $posts
+     * @return list<FeedPost>
+     */
+    private function project(User $user, Collection $posts): array
+    {
         $reactionProjection = $this->reactions->forPosts($posts, $user);
         $shareProjection = $this->shares->forPosts($posts, $user);
         $pollProjection = $this->polls->forPosts($posts, $user);
