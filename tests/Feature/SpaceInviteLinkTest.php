@@ -4,11 +4,14 @@ namespace Tests\Feature;
 
 use App\Enums\SpaceAuditAction;
 use App\Enums\SpaceRole;
+use App\Models\Post;
 use App\Models\Space;
 use App\Models\SpaceInviteLink;
+use App\Models\SpacePostHighlight;
 use App\Models\User;
 use Carbon\CarbonInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
@@ -153,6 +156,92 @@ class SpaceInviteLinkTest extends TestCase
                 ->where('viewer.signedIn', false));
 
         $this->assertNotSame($token, $inviteLink->token_hash);
+    }
+
+    public function test_unverified_invitee_can_open_verification_and_return_to_the_private_invite(): void
+    {
+        $owner = User::factory()->create();
+        $invitee = User::factory()->unverified()->create();
+        $space = Space::factory()->private()->for($owner, 'owner')->create();
+        $token = Str::random(64);
+        $inviteLink = $this->createInviteLink($space, $owner, $token);
+        $preview = route('space-invite-links.show', ['token' => $token]);
+        $notice = route('verification.notice');
+
+        $this->actingAs($invitee)->get($preview)
+            ->assertOk()
+            ->assertSessionHas('pending_space_invite', $token)
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('space-invite-links/show')
+                ->where('viewer.verified', false)
+                ->where('verificationUrl', $notice));
+
+        $this->get($notice)
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->component('auth/verify-email'));
+
+        $verificationLink = URL::temporarySignedRoute('verification.verify', now()->addMinutes(60), [
+            'id' => $invitee->getKey(),
+            'hash' => sha1($invitee->email),
+        ]);
+
+        $this->get($verificationLink)->assertRedirect(route('dashboard', absolute: false).'?verified=1');
+        $this->get(route('dashboard'))->assertRedirect($preview);
+        $this->assertSame(0, $inviteLink->refresh()->uses_count);
+
+        $this->post(route('space-invite-links.accept', ['token' => $token]))
+            ->assertRedirect(route('spaces.show', $space));
+        $this->assertSame(SpaceRole::Member, $space->roleFor($invitee));
+        $this->assertSame(1, $inviteLink->refresh()->uses_count);
+    }
+
+    public function test_new_member_is_welcomed_with_the_first_visible_highlight_only_once(): void
+    {
+        $owner = User::factory()->create();
+        $invitee = User::factory()->create();
+        $space = Space::factory()->private()->for($owner, 'owner')->create();
+        $visible = Post::factory()->for($space)->for($owner, 'author')->create();
+        $hidden = Post::factory()->for($space)->for($owner, 'author')->create(['hidden_at' => now()]);
+
+        foreach ([$visible, $hidden] as $index => $post) {
+            SpacePostHighlight::query()->create([
+                'space_id' => $space->getKey(),
+                'post_id' => $post->getKey(),
+                'highlighted_by' => $owner->getKey(),
+                'created_at' => now()->subMinutes(2 - $index),
+            ]);
+        }
+
+        $token = Str::random(64);
+        $this->createInviteLink($space, $owner, $token);
+        $acceptUrl = route('space-invite-links.accept', ['token' => $token]);
+        $spaceUrl = route('spaces.show', $space);
+
+        $this->actingAs($invitee)->get($spaceUrl)->assertForbidden();
+        $this->post($acceptUrl)->assertRedirect($spaceUrl);
+        $this->get($spaceUrl)->assertInertia(fn (Assert $page) => $page
+            ->hasFlash('spaceWelcome.action', 'highlight')
+            ->hasFlash('spaceWelcome.url', route('posts.show', $visible)));
+
+        $this->get($spaceUrl)->assertInertia(fn (Assert $page) => $page->missingFlash('spaceWelcome'));
+        $this->post($acceptUrl)->assertRedirect($spaceUrl);
+        $this->get($spaceUrl)->assertInertia(fn (Assert $page) => $page->missingFlash('spaceWelcome'));
+    }
+
+    public function test_join_welcome_does_not_appear_on_another_space(): void
+    {
+        $owner = User::factory()->create();
+        $invitee = User::factory()->create();
+        $space = Space::factory()->private()->for($owner, 'owner')->create();
+        $otherSpace = Space::factory()->for($owner, 'owner')->create();
+        $token = Str::random(64);
+        $this->createInviteLink($space, $owner, $token);
+
+        $this->actingAs($invitee)->post(route('space-invite-links.accept', ['token' => $token]))
+            ->assertRedirect(route('spaces.show', $space));
+
+        $this->get(route('spaces.show', $otherSpace))
+            ->assertInertia(fn (Assert $page) => $page->missingFlash('spaceWelcome'));
     }
 
     public function test_acceptance_is_idempotent_and_never_exceeds_the_usage_limit(): void

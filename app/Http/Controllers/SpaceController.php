@@ -61,14 +61,12 @@ class SpaceController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        return Inertia::render('feed/index', [
+        $highlights = $feed->posts(user: $user, space: $space, highlightedOnly: true);
+
+        $response = Inertia::render('feed/index', [
             'spaces' => $feed->spaces($user),
             'posts' => $feed->posts($user, $space),
-            'highlights' => $feed->posts(
-                user: $user,
-                space: $space,
-                highlightedOnly: true,
-            ),
+            'highlights' => $highlights,
             'events' => $events->upcoming($user, $space, 3),
             'stories' => $stories->active($user, $space),
             'reportReasons' => ReportReason::options(),
@@ -76,5 +74,14 @@ class SpaceController extends Controller
             'selectedSpace' => $space->slug,
             'selectedSpaceIsFavorite' => $favorites->spaces($user)->where('space_id', $space->getKey())->exists(),
         ]);
+
+        if ($request->session()->pull('joined_space_id') === $space->getKey()
+            && Gate::allows('createPost', $space)) {
+            $response->flash('spaceWelcome', isset($highlights[0])
+                ? ['action' => 'highlight', 'url' => $highlights[0]['url']]
+                : ['action' => 'compose', 'url' => route('posts.compose', ['space' => $space->slug])]);
+        }
+
+        return $response;
     }
 }

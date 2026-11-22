@@ -80,9 +80,10 @@ final class SpaceInviteLinks
         return new SpaceInviteLinkResult($inviteLink, $token);
     }
 
-    public function accept(string $token, User $user): Space
+    /** @return array{space: Space, joined: bool} */
+    public function accept(string $token, User $user): array
     {
-        return DB::transaction(function () use ($token, $user): Space {
+        return DB::transaction(function () use ($token, $user): array {
             $inviteLinkReference = SpaceInviteLink::query()
                 ->select(['id', 'space_id'])
                 ->where('token_hash', hash('sha256', $token))
@@ -103,7 +104,7 @@ final class SpaceInviteLinks
                 ->firstOrFail();
 
             if ($space->hasMember($user)) {
-                return $space;
+                return ['space' => $space, 'joined' => false];
             }
 
             if (! $inviteLink->isAvailable()) {
@@ -125,7 +126,7 @@ final class SpaceInviteLinks
                 context: ['invite_link_id' => $inviteLink->getKey()],
             );
 
-            return $space;
+            return ['space' => $space, 'joined' => true];
         });
     }
 

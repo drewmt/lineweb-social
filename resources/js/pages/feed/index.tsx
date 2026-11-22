@@ -1255,6 +1255,7 @@ export default function Feed({
     topic,
     status,
 }: FeedProps) {
+    const { spaceWelcome } = usePage().flash;
     const savedView = viewMode === 'saved';
     const followingView = viewMode === 'following';
     const favoritesView = viewMode === 'favorites';
@@ -1413,6 +1414,37 @@ export default function Feed({
                                 stories={stories}
                                 canCreate={postingSpaces.length > 0}
                             />
+                        )}
+                        {selected && spaceWelcome && (
+                            <section
+                                aria-labelledby="space-welcome-title"
+                                className="social-card mb-4 flex flex-col items-start gap-4 rounded-[1.35rem] border-primary/20 bg-primary/8 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5"
+                            >
+                                <div className="min-w-0">
+                                    <h2
+                                        id="space-welcome-title"
+                                        className="text-lg font-extrabold break-words"
+                                    >
+                                        Welcome to {selected.name}
+                                    </h2>
+                                    <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                                        {spaceWelcome.action === 'highlight'
+                                            ? 'Get to know the Space through a post highlighted by its team.'
+                                            : 'Introduce yourself when you’re ready, or explore the Space below.'}
+                                    </p>
+                                </div>
+                                <Button asChild className="w-full sm:w-auto">
+                                    <Link href={spaceWelcome.url}>
+                                        {spaceWelcome.action === 'highlight'
+                                            ? 'Read the highlighted post'
+                                            : 'Write your first post'}
+                                        <ArrowRight
+                                            className="size-4"
+                                            aria-hidden="true"
+                                        />
+                                    </Link>
+                                </Button>
+                            </section>
                         )}
                         {status && (
                             <div
