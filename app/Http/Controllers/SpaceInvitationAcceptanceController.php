@@ -62,6 +62,6 @@ class SpaceInvitationAcceptanceController extends Controller
         $space = $memberships->accept($token, $user);
 
         return to_route('spaces.show', $space)
-            ->with('status', "Welcome to {$space->name}.");
+            ->with('joined_space_id', $space->getKey());
     }
 }

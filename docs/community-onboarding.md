@@ -15,6 +15,14 @@ post.
   does not create content, alter privacy settings, or join or follow anything.
 - The guide remains available from the account menu after dismissal.
 
+## First visit after accepting an invitation
+
+The destination Space welcomes a new member after they accept a shareable
+invite link or an email invitation. The welcome links to the first highlighted
+post they can see, or opens the composer for that Space when there is no
+visible highlight. The member can browse normally instead; nothing is posted
+automatically. The welcome is transient and does not appear on repeat visits.
+
 ## Recommendations and privacy
 
 Space suggestions use the existing discovery boundary and exclude Spaces the

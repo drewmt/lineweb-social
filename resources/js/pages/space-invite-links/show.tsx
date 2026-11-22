@@ -32,6 +32,7 @@ type InviteLinkProps = {
     };
     loginUrl: string;
     registerUrl: string;
+    verificationUrl: string;
     acceptUrl: string;
     spaceUrl: string | null;
 };
@@ -47,10 +48,12 @@ export default function SpaceInviteLink({
     viewer,
     loginUrl,
     registerUrl,
+    verificationUrl,
     acceptUrl,
     spaceUrl,
 }: InviteLinkProps) {
     const { post, processing, errors } = useForm({ invite_link: '' });
+    const unavailable = !inviteLink.available && !inviteLink.alreadyMember;
 
     return (
         <main className="relative min-h-svh overflow-hidden bg-[#f4f7fb] text-[#13213a] dark:bg-[#09111f] dark:text-white">
@@ -67,26 +70,32 @@ export default function SpaceInviteLink({
                             Private community invitation
                         </p>
                         <h1 className="mt-4 max-w-2xl text-[clamp(2.65rem,7vw,5.4rem)] leading-[0.9] font-black tracking-[-0.065em] text-balance">
-                            Your seat in {inviteLink.space.name} is ready.
+                            {unavailable
+                                ? 'This invitation is no longer available.'
+                                : `Your seat in ${inviteLink.space.name} is ready.`}
                         </h1>
                         <p className="mt-6 max-w-xl text-base leading-7 text-slate-600 sm:text-lg dark:text-white/62">
                             {inviteLink.space.description ||
-                                'Join the people, conversations, and shared work inside this community Space.'}
+                                (unavailable
+                                    ? `You need a new invitation to join ${inviteLink.space.name}.`
+                                    : 'Join the people, conversations, and shared work inside this community Space.')}
                         </p>
 
-                        <div className="mt-7 flex flex-wrap gap-2.5 text-xs font-extrabold text-slate-600 dark:text-white/65">
-                            <span className="inline-flex min-h-10 items-center gap-2 rounded-full border border-slate-200 bg-white/75 px-3.5 shadow-sm dark:border-white/10 dark:bg-white/6">
-                                <CalendarClock className="size-4 text-primary" />
-                                Expires {expiryLabel(inviteLink.expiresAt)}
-                            </span>
-                            <span className="inline-flex min-h-10 items-center gap-2 rounded-full border border-slate-200 bg-white/75 px-3.5 shadow-sm dark:border-white/10 dark:bg-white/6">
-                                <UsersRound className="size-4 text-primary" />
-                                {inviteLink.remainingUses}{' '}
-                                {inviteLink.remainingUses === 1
-                                    ? 'place remains'
-                                    : 'places remain'}
-                            </span>
-                        </div>
+                        {inviteLink.available && !inviteLink.alreadyMember && (
+                            <div className="mt-7 flex flex-wrap gap-2.5 text-xs font-extrabold text-slate-600 dark:text-white/65">
+                                <span className="inline-flex min-h-10 items-center gap-2 rounded-full border border-slate-200 bg-white/75 px-3.5 shadow-sm dark:border-white/10 dark:bg-white/6">
+                                    <CalendarClock className="size-4 text-primary" />
+                                    Expires {expiryLabel(inviteLink.expiresAt)}
+                                </span>
+                                <span className="inline-flex min-h-10 items-center gap-2 rounded-full border border-slate-200 bg-white/75 px-3.5 shadow-sm dark:border-white/10 dark:bg-white/6">
+                                    <UsersRound className="size-4 text-primary" />
+                                    {inviteLink.remainingUses}{' '}
+                                    {inviteLink.remainingUses === 1
+                                        ? 'place remains'
+                                        : 'places remain'}
+                                </span>
+                            </div>
+                        )}
                     </section>
 
                     <section className="overflow-hidden rounded-[2rem] border border-white/70 bg-white shadow-[0_30px_90px_-42px_rgba(20,43,82,.55)] dark:border-white/10 dark:bg-[#111c2d]">
@@ -108,8 +117,7 @@ export default function SpaceInviteLink({
                         </div>
 
                         <div className="p-5 sm:p-6">
-                            {!inviteLink.available &&
-                            !inviteLink.alreadyMember ? (
+                            {unavailable ? (
                                 <div className="rounded-2xl bg-secondary p-4">
                                     <LockKeyhole className="size-6 text-muted-foreground" />
                                     <h3 className="mt-3 font-extrabold">
@@ -182,15 +190,17 @@ export default function SpaceInviteLink({
                             ) : !viewer.verified ? (
                                 <>
                                     <p className="text-sm leading-6 text-muted-foreground">
-                                        Verify your email first. Your invitation
-                                        will remain ready for you.
+                                        Check your inbox for the verification
+                                        link, or open email verification to
+                                        resend it. After verifying, you can
+                                        return to this invitation.
                                     </p>
                                     <Button
                                         asChild
                                         size="lg"
                                         className="mt-4 w-full"
                                     >
-                                        <Link href="/verify-email">
+                                        <Link href={verificationUrl}>
                                             Verify email
                                         </Link>
                                     </Button>

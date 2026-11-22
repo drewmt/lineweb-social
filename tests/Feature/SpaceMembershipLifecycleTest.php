@@ -111,6 +111,11 @@ class SpaceMembershipLifecycleTest extends TestCase
             ->post(route('space-invitations.accept', ['token' => $token]))
             ->assertRedirect(route('spaces.show', $space));
 
+        $this->get(route('spaces.show', $space))
+            ->assertInertia(fn (Assert $page) => $page
+                ->hasFlash('spaceWelcome.action', 'compose')
+                ->hasFlash('spaceWelcome.url', route('posts.compose', ['space' => $space->slug])));
+
         $this->assertDatabaseHas('space_members', [
             'space_id' => $space->getKey(),
             'user_id' => $invitee->getKey(),

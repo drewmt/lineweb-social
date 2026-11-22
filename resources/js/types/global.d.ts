@@ -9,6 +9,13 @@ declare module 'react' {
 
 declare module '@inertiajs/core' {
     export interface InertiaConfig {
+        flashDataType: {
+            spaceWelcome?: {
+                action: 'highlight' | 'compose';
+                url: string;
+            };
+            [key: string]: unknown;
+        };
         sharedPageProps: {
             name: string;
             videoEnabled: boolean;

@@ -59,6 +59,7 @@ class SpaceInviteLinkAcceptanceController extends Controller
             ],
             'loginUrl' => route('login'),
             'registerUrl' => route('register'),
+            'verificationUrl' => route('verification.notice'),
             'acceptUrl' => route('space-invite-links.accept', ['token' => $token]),
             'spaceUrl' => $alreadyMember ? route('spaces.show', $inviteLink->space) : null,
         ]);
@@ -71,10 +72,11 @@ class SpaceInviteLinkAcceptanceController extends Controller
     ): RedirectResponse {
         /** @var User $user */
         $user = $request->user();
-        $space = $inviteLinks->accept($token, $user);
+        ['space' => $space, 'joined' => $joined] = $inviteLinks->accept($token, $user);
         $request->session()->forget('pending_space_invite');
 
-        return to_route('spaces.show', $space)
-            ->with('status', "You're now a member of {$space->name}.");
+        $response = to_route('spaces.show', $space);
+
+        return $joined ? $response->with('joined_space_id', $space->getKey()) : $response;
     }
 }

@@ -6,6 +6,8 @@ All notable project changes will be documented here.
 
 ### Added
 
+- A first-visit welcome after joining a Space by invitation, with a shortcut to
+  a visible highlighted post or the composer for that Space.
 - An opt-in short-video draft and chronological Reels foundation, with private
   64 MiB uploads, 90-second duration validation, asynchronous 720p processing,
   authored descriptions, per-Space storage reservations, authorized range
@@ -72,6 +74,10 @@ All notable project changes will be documented here.
 
 ### Fixed
 
+- Fixed the email verification button on Space invite links so unverified
+  members can reach the verification screen and return to their invitation.
+- Stopped expired, revoked, and fully used Space invite links from promising a
+  seat that is no longer available.
 - Restored a five-item mobile navigation after adding Reels, keeping the Post
   action centered. The video link appears only when video posts are enabled;
   the account avatar retains profile access when Reels replaces the Profile tab.
