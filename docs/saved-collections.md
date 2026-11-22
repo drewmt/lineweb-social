@@ -14,10 +14,11 @@ posts by bookmark time, newest first, with bookmark ID breaking ties; adding
 a saved post to a folder does not change this order.
 
 Collection data is not part of the public API. The password-confirmed personal
-data export includes the member's `saved_collections` and their currently
-visible assignment references in `saved_collection_posts`. No post body or
-another member's collection is included in those sections. Existing
-`saved_posts` export behavior is unchanged.
+data export includes the member's `saved_collections` and their assignment
+references in `saved_collection_posts`, even if a bookmarked post is no longer
+visible. References include IDs and assignment time only; no post content or
+another member's collection is included. Existing `saved_posts` export
+behavior is unchanged.
 
 Run the standard database migrations before serving the updated application.
 The migration adds two tables without rewriting existing bookmarks. Rolling

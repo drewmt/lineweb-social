@@ -166,7 +166,7 @@ class SavedCollectionTest extends TestCase
         }
     }
 
-    public function test_export_contains_only_owned_collections_and_currently_visible_post_references(): void
+    public function test_export_keeps_owned_assignment_references_without_exposing_post_content(): void
     {
         $member = User::factory()->create();
         $other = User::factory()->create();
@@ -193,8 +193,9 @@ class SavedCollectionTest extends TestCase
         $export = json_decode($response->streamedContent(), true, flags: JSON_THROW_ON_ERROR);
 
         $this->assertSame(['Member notes'], array_column($export['saved_collections'], 'name'));
-        $this->assertSame([(int) basename($collection)], array_column($export['saved_collection_posts'], 'collection_id'));
-        $this->assertSame([$visible->id], array_column($export['saved_collection_posts'], 'post_id'));
+        $this->assertSame(array_fill(0, 2, (int) basename($collection)), array_column($export['saved_collection_posts'], 'collection_id'));
+        $this->assertSame([$visible->id, $hidden->id], array_column($export['saved_collection_posts'], 'post_id'));
+        $this->assertSame(['collection_id', 'post_id', 'created_at'], array_keys($export['saved_collection_posts'][1]));
     }
 
     private function createCollection(string $name): string

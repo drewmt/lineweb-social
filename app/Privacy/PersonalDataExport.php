@@ -2,15 +2,12 @@
 
 namespace App\Privacy;
 
-use App\Community\VisiblePostQuery;
 use App\Models\User;
 use Generator;
 use Illuminate\Support\Facades\DB;
 
 class PersonalDataExport
 {
-    public function __construct(private readonly VisiblePostQuery $visiblePosts) {}
-
     /**
      * Build the export structure. Large user-owned collections remain lazy so
      * the HTTP response can stream them without loading the full export.
@@ -68,7 +65,7 @@ class PersonalDataExport
             'post_reactions' => $this->postReactions($userId),
             'saved_posts' => $this->savedPosts($userId),
             'saved_collections' => $this->savedCollections($userId),
-            'saved_collection_posts' => $this->savedCollectionPosts($user),
+            'saved_collection_posts' => $this->savedCollectionPosts($userId),
             'favorite_profiles' => $this->favoriteReferences('profile_favorites', 'profile_id', $userId),
             'favorite_spaces' => $this->favoriteReferences('space_favorites', 'space_id', $userId),
             'profile_highlights' => $this->profileHighlights($userId),
@@ -336,11 +333,10 @@ class PersonalDataExport
     }
 
     /** @return Generator<int, array<string, mixed>> */
-    private function savedCollectionPosts(User $user): Generator
+    private function savedCollectionPosts(int $userId): Generator
     {
         $rows = DB::table('saved_collection_posts')
-            ->where('user_id', $user->getKey())
-            ->whereIn('post_id', $this->visiblePosts->forSearch($user)->select('posts.id'))
+            ->where('user_id', $userId)
             ->orderBy('collection_id')
             ->orderBy('post_id')
             ->select(['collection_id', 'post_id', 'created_at'])
