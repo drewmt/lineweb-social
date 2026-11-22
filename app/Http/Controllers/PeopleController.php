@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Community\FavoriteSources;
 use App\Community\Mentions\MentionProjection;
 use App\Community\Polls\PostPollProjection;
 use App\Community\PostMediaView;
@@ -67,6 +68,7 @@ class PeopleController extends Controller
         PostShareProjection $shares,
         VisiblePostQuery $visiblePostQuery,
         PostPollProjection $polls,
+        FavoriteSources $favorites,
     ): Response {
         Gate::authorize('view', $profile);
 
@@ -162,6 +164,7 @@ class PeopleController extends Controller
                 'isSelf' => $profile->is($viewer),
                 'isMuted' => $viewer->hasMuted($profile),
                 'isFollowing' => $viewer->isFollowing($profile),
+                'isFavorite' => $favorites->profiles($viewer)->where('profile_id', $profile->getKey())->exists(),
                 'canFollow' => Gate::forUser($viewer)->allows('follow', $profile),
                 'canMessage' => Gate::forUser($viewer)->allows('message', $profile),
             ],

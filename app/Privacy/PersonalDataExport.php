@@ -64,6 +64,8 @@ class PersonalDataExport
             'comments' => $this->comments($userId),
             'post_reactions' => $this->postReactions($userId),
             'saved_posts' => $this->savedPosts($userId),
+            'favorite_profiles' => $this->favoriteReferences('profile_favorites', 'profile_id', $userId),
+            'favorite_spaces' => $this->favoriteReferences('space_favorites', 'space_id', $userId),
             'profile_highlights' => $this->profileHighlights($userId),
             'following' => $this->following($userId),
             'followers' => $this->followers($userId),
@@ -312,6 +314,20 @@ class PersonalDataExport
     private function savedPosts(int $userId): Generator
     {
         yield from $this->postReferences('post_saves', $userId);
+    }
+
+    /** @return Generator<int, array<string, mixed>> */
+    private function favoriteReferences(string $table, string $targetColumn, int $userId): Generator
+    {
+        $rows = DB::table($table)
+            ->where('user_id', $userId)
+            ->orderBy($targetColumn)
+            ->select([$targetColumn, 'created_at'])
+            ->lazy(500);
+
+        foreach ($rows as $row) {
+            yield (array) $row;
+        }
     }
 
     /** @return Generator<int, array<string, mixed>> */

@@ -76,6 +76,7 @@ final class CommunityFeed
         bool $followingOnly = false,
         ?Topic $topic = null,
         bool $highlightedOnly = false,
+        bool $favoritesOnly = false,
     ): array {
         $hiddenCommentActorIds = DB::table('user_relationships')
             ->select('target_id')
@@ -95,7 +96,7 @@ final class CommunityFeed
             ->whereNotIn('user_id', clone $blockingCommentActorIds);
 
         $query = $this->visiblePosts
-            ->forFeed($user, $space, $followingOnly)
+            ->forFeed($user, $space, $followingOnly, $favoritesOnly)
             ->with([
                 'comments' => fn ($comments) => $visibleComments($comments)
                     ->with('author:id,name,handle')

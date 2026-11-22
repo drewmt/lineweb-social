@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Community\CommunityFeed;
 use App\Community\CreateSpace;
+use App\Community\FavoriteSources;
 use App\Community\SpaceEventProjection;
 use App\Community\StoryProjection;
 use App\Enums\PostReactionType;
@@ -53,6 +54,7 @@ class SpaceController extends Controller
         CommunityFeed $feed,
         SpaceEventProjection $events,
         StoryProjection $stories,
+        FavoriteSources $favorites,
     ): Response {
         Gate::authorize('view', $space);
 
@@ -72,6 +74,7 @@ class SpaceController extends Controller
             'reportReasons' => ReportReason::options(),
             'reactionTypes' => PostReactionType::options(),
             'selectedSpace' => $space->slug,
+            'selectedSpaceIsFavorite' => $favorites->spaces($user)->where('space_id', $space->getKey())->exists(),
         ]);
     }
 }

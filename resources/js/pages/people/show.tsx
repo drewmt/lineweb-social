@@ -14,6 +14,7 @@ import {
 import { useState } from 'react';
 import { AuthoredContentMenu } from '@/components/social/authored-content-menu';
 import { AvatarMark } from '@/components/social/avatar-mark';
+import { FavoriteButton } from '@/components/social/favorite-button';
 import { MentionText } from '@/components/social/mention-text';
 import type {
     ContentMention,
@@ -46,6 +47,7 @@ type Profile = {
     isSelf: boolean;
     isMuted: boolean;
     isFollowing: boolean;
+    isFavorite: boolean;
     canFollow: boolean;
     canMessage: boolean;
 };
@@ -318,6 +320,10 @@ export default function ShowProfile({
                                                 }
                                             />
                                         )}
+                                        <FavoriteButton
+                                            endpoint={`/people/${encodeURIComponent(profile.handle)}/favorite`}
+                                            isFavorite={profile.isFavorite}
+                                        />
                                         {profile.canMessage && (
                                             <Button
                                                 asChild
