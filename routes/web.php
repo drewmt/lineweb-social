@@ -34,6 +34,7 @@ use App\Http\Controllers\PostShareController;
 use App\Http\Controllers\PostVideoController;
 use App\Http\Controllers\ProfilePostHighlightController;
 use App\Http\Controllers\ReelsController;
+use App\Http\Controllers\SavedCollectionController;
 use App\Http\Controllers\SavedPostController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SpaceController;
@@ -94,6 +95,20 @@ Route::middleware(['auth', 'account.active', 'verified'])->group(function () {
     Route::get('following', FollowingFeedController::class)->name('following.index');
     Route::get('favorites', [FavoritesController::class, 'index'])->name('favorites.index');
     Route::get('saved', [SavedPostController::class, 'index'])->name('saved.index');
+    Route::prefix('saved/collections')->name('saved.collections.')->group(function () {
+        Route::get('{collection}', [SavedPostController::class, 'showCollection'])
+            ->whereNumber('collection')->name('show');
+        Route::post('/', [SavedCollectionController::class, 'store'])
+            ->middleware('throttle:content-management')->name('store');
+        Route::patch('{collection}', [SavedCollectionController::class, 'update'])
+            ->whereNumber('collection')->middleware('throttle:content-management')->name('update');
+        Route::delete('{collection}', [SavedCollectionController::class, 'destroy'])
+            ->whereNumber('collection')->middleware('throttle:content-management')->name('destroy');
+        Route::put('{collection}/posts/{post}', [SavedCollectionController::class, 'addPost'])
+            ->whereNumber(['collection', 'post'])->middleware('throttle:post-saving')->name('posts.store');
+        Route::delete('{collection}/posts/{post}', [SavedCollectionController::class, 'removePost'])
+            ->whereNumber(['collection', 'post'])->middleware('throttle:post-saving')->name('posts.destroy');
+    });
     Route::get('compose', [PostDraftController::class, 'create'])->name('posts.compose');
     Route::get('drafts', [PostDraftController::class, 'index'])->name('drafts.index');
     Route::post('drafts', [PostDraftController::class, 'store'])

@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Community\CommunityFeed;
+use App\Community\SavedCollections;
 use App\Enums\PostReactionType;
 use App\Enums\ReportReason;
 use App\Models\Post;
+use App\Models\SavedCollection;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,18 +18,43 @@ use Inertia\Response;
 
 class SavedPostController extends Controller
 {
-    public function index(Request $request, CommunityFeed $feed): Response
+    public function index(Request $request, CommunityFeed $feed, SavedCollections $collections): Response
     {
         /** @var User $user */
         $user = $request->user();
 
+        return $this->library($user, $feed, $collections);
+    }
+
+    public function showCollection(Request $request, string $collection, CommunityFeed $feed, SavedCollections $collections): Response
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        return $this->library($user, $feed, $collections, $collections->find($user, $collection));
+    }
+
+    private function library(User $user, CommunityFeed $feed, SavedCollections $collections, ?SavedCollection $collection = null): Response
+    {
+        $saved = $feed->savedPage($user, $collection?->id);
+        $memberships = $collections->memberships($user, array_column($saved['posts'], 'id'));
+
         return Inertia::render('feed/index', [
             'spaces' => $feed->spaces($user),
-            'posts' => $feed->posts($user, savedOnly: true),
+            'posts' => array_map(
+                fn (array $post): array => $post + ['savedCollectionIds' => $memberships[$post['id']] ?? []],
+                $saved['posts'],
+            ),
             'reportReasons' => ReportReason::options(),
             'reactionTypes' => PostReactionType::options(),
             'selectedSpace' => null,
             'viewMode' => 'saved',
+            'savedLibrary' => [
+                'collections' => $collections->ownedBy($user)->orderBy('name')->orderBy('id')->get(['id', 'name']),
+                'collectionLimit' => SavedCollections::LIMIT,
+                'activeCollection' => $collection === null ? null : ['id' => $collection->id, 'name' => $collection->name],
+                'pagination' => $saved['pagination'],
+            ],
         ]);
     }
 

@@ -52,6 +52,12 @@ import {
 import type { SharedPost } from '@/components/social/post-share';
 import type { PostVideoData } from '@/components/social/post-video';
 import { PostVideo } from '@/components/social/post-video';
+import {
+    SavedCollectionAssignment,
+    SavedLibraryControls,
+    SavedLibraryPagination,
+} from '@/components/social/saved-collections';
+import type { SavedLibrary } from '@/components/social/saved-collections';
 import { SpaceCover } from '@/components/social/space-cover';
 import { SpaceEventsPreview } from '@/components/social/space-event-card';
 import type { SpaceEventSummary } from '@/components/social/space-event-card';
@@ -90,6 +96,7 @@ type FeedPost = {
     canDelete: boolean;
     hasReported: boolean;
     isSaved: boolean;
+    savedCollectionIds?: number[];
     reactions: ReactionSummary;
     share: SharedPost | null;
     poll: PostPollSummary | null;
@@ -121,6 +128,7 @@ type FeedProps = {
     selectedSpace: string | null;
     selectedSpaceIsFavorite?: boolean;
     viewMode?: 'feed' | 'saved' | 'following' | 'favorites' | 'topic';
+    savedLibrary?: SavedLibrary;
     topic?: FeedTopic;
     status?: string;
 };
@@ -736,11 +744,13 @@ function PostCard({
     item,
     reportReasons,
     reactionTypes,
+    savedLibrary,
     highlightControls,
 }: {
     item: FeedPost;
     reportReasons: ReportReason[];
     reactionTypes: ReactionType[];
+    savedLibrary?: SavedLibrary;
     highlightControls?: {
         spaceSlug: string;
         limitReached: boolean;
@@ -950,6 +960,13 @@ function PostCard({
                         />
                         {item.isSaved ? 'Saved' : 'Save'}
                     </button>
+                    {item.isSaved && savedLibrary && (
+                        <SavedCollectionAssignment
+                            library={savedLibrary}
+                            postId={item.id}
+                            selectedIds={item.savedCollectionIds ?? []}
+                        />
+                    )}
                     <button
                         type="button"
                         onClick={handleCopy}
@@ -1252,6 +1269,7 @@ export default function Feed({
     selectedSpace,
     selectedSpaceIsFavorite = false,
     viewMode = 'feed',
+    savedLibrary,
     topic,
     status,
 }: FeedProps) {
@@ -1316,7 +1334,7 @@ export default function Feed({
                                         </h1>
                                         <p className="mt-1 max-w-xl text-sm leading-6 text-muted-foreground">
                                             {savedView
-                                                ? 'A private reading list of conversations you want to revisit.'
+                                                ? 'A private reading list of posts you want to revisit. Group them into collections when you’re ready.'
                                                 : (sourceTimeline?.description ??
                                                   selected?.description ??
                                                   'Fresh conversations from the communities you chose — always chronological.')}
@@ -1370,6 +1388,10 @@ export default function Feed({
                                     )}
                                 </div>
                             </header>
+                        )}
+
+                        {savedView && savedLibrary && (
+                            <SavedLibraryControls {...savedLibrary} />
                         )}
 
                         {!selected && !savedView && !topicView && (
@@ -1485,7 +1507,11 @@ export default function Feed({
                                     </div>
                                     <h2 className="mt-4 text-lg font-extrabold">
                                         {savedView
-                                            ? 'Nothing saved yet.'
+                                            ? savedLibrary?.pagination.previous
+                                                ? 'No posts on this page.'
+                                                : savedLibrary?.activeCollection
+                                                  ? 'No posts in this collection yet.'
+                                                  : 'Nothing saved yet.'
                                             : (sourceTimeline?.emptyTitle ??
                                               (topicView
                                                   ? `No visible posts for #${topic.name}.`
@@ -1493,7 +1519,11 @@ export default function Feed({
                                     </h2>
                                     <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
                                         {savedView
-                                            ? 'Use Save on any post to keep it here for later.'
+                                            ? savedLibrary?.pagination.previous
+                                                ? 'Go to the previous page to see more saved posts.'
+                                                : savedLibrary?.activeCollection
+                                                  ? 'In All saved, choose Collections on a post to add it here.'
+                                                  : 'Use Save on any post to keep it here for later.'
                                             : (sourceTimeline?.emptyDescription ??
                                               (topicView
                                                   ? 'Posts may have been removed, moderated, or moved outside your current community access.'
@@ -1540,6 +1570,7 @@ export default function Feed({
                                         item={item}
                                         reportReasons={reportReasons}
                                         reactionTypes={reactionTypes}
+                                        savedLibrary={savedLibrary}
                                         highlightControls={
                                             selected?.canManage
                                                 ? {
@@ -1554,6 +1585,11 @@ export default function Feed({
                                 ))
                             )}
                         </section>
+                        {savedView && savedLibrary && (
+                            <SavedLibraryPagination
+                                pagination={savedLibrary.pagination}
+                            />
+                        )}
                     </div>
                     <FeedRail spaces={spaces} selectedSpace={selectedSpace} />
                 </div>
