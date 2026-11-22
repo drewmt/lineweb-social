@@ -76,7 +76,7 @@ type Space = {
     canManage: boolean;
 };
 
-type FeedPost = {
+export type FeedPost = {
     id: number;
     url: string;
     body: string;
@@ -106,7 +106,7 @@ type FeedPost = {
     space: { name: string; slug: string };
 };
 
-type ReportReason = {
+export type ReportReason = {
     value: string;
     label: string;
 };
@@ -137,6 +137,7 @@ const timelineTabs = [
     { mode: 'feed', href: '/feed', label: 'Community' },
     { mode: 'following', href: '/following', label: 'Following' },
     { mode: 'favorites', href: '/favorites', label: 'Favorites' },
+    { mode: 'my-feeds', href: '/my-feeds', label: 'My feeds' },
 ] as const;
 
 const sourceTimelines = {
@@ -740,7 +741,7 @@ function SpaceHighlights({
     );
 }
 
-function PostCard({
+export function PostCard({
     item,
     reportReasons,
     reactionTypes,

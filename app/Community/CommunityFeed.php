@@ -69,6 +69,7 @@ final class CommunityFeed
     }
 
     /**
+     * @param  array{people: list<int>, spaces: list<int>, topics: list<int>}|null  $personalSources
      * @return list<FeedPost>
      */
     public function posts(
@@ -78,6 +79,7 @@ final class CommunityFeed
         ?Topic $topic = null,
         bool $highlightedOnly = false,
         bool $favoritesOnly = false,
+        ?array $personalSources = null,
     ): array {
         $query = $this->postQuery($user, $space, $followingOnly, $favoritesOnly);
 
@@ -96,6 +98,10 @@ final class CommunityFeed
                 'topics',
                 fn (Builder $topics): Builder => $topics->whereKey($topic->getKey()),
             );
+        }
+
+        if ($personalSources !== null) {
+            PersonalFeedSources::restrictPosts($query, $user, $personalSources);
         }
 
         return $this->project($user, $query->limit($highlightedOnly ? 3 : 30)->get());
