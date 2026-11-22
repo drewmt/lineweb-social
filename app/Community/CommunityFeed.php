@@ -19,7 +19,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
-/** @phpstan-type FeedPost array<string, mixed>&array{id: int} */
+/** @phpstan-type FeedPost array<string, mixed>&array{id: int, url: string} */
 final class CommunityFeed
 {
     public function __construct(
