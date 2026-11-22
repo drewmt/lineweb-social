@@ -12,11 +12,14 @@ use Illuminate\Support\Facades\DB;
 
 final class VisiblePostQuery
 {
+    public function __construct(private readonly FavoriteSources $favorites) {}
+
     /** @return Builder<Post> */
     public function forFeed(
         User $viewer,
         ?Space $space = null,
         bool $followingOnly = false,
+        bool $favoritesOnly = false,
     ): Builder {
         $hiddenActorIds = $this->hiddenActorIds($viewer);
         $blockingActorIds = $this->blockingActorIds($viewer);
@@ -63,6 +66,17 @@ final class VisiblePostQuery
                     ->select('followed_id')
                     ->where('follower_id', $viewer->getKey()),
             );
+        }
+
+        if ($favoritesOnly) {
+            $visibleFavoriteProfiles = User::query()
+                ->visibleTo($viewer)
+                ->whereIn('users.id', $this->favorites->profiles($viewer)->select('profile_id'))
+                ->select('users.id');
+
+            $query->where(fn (Builder $posts): Builder => $posts
+                ->whereIn('posts.user_id', $visibleFavoriteProfiles)
+                ->orWhereIn('posts.space_id', $this->favorites->spaces($viewer)->select('space_id')));
         }
 
         return $query;

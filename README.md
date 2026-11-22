@@ -625,7 +625,7 @@ makes the final decision.
 | Spaces              | Public/private/hidden communities, searchable directory, join/leave rules, account-specific and limited-use shareable invitations, roles, ownership transfer, member removal, bounded curated highlights, and official events with private RSVPs.                      |
 | Publishing          | Focused composer, author-only drafts, private four-image WebP galleries with per-image alt text and swipe navigation, bounded private-first polls, 24-hour Space Stories with no viewer tracking, chronological posts, privacy-safe quote posts and reposts, comments, permanent conversations, and author controls. |
 | Opt-in video         | Private short-video draft uploads, asynchronous processing, authorized playback, and chronological Reels. Disabled by default until a dedicated media worker and host preflight pass. |
-| Discovery           | Policy-filtered search across posts, Spaces, People and Topics, focused category filters, navigable result pages, Unicode hashtags, chronological topic trails and privacy-aware Following. |
+| Discovery           | Policy-filtered search across posts, Spaces, People and Topics, focused category filters, navigable result pages, Unicode hashtags, chronological topic trails, privacy-aware Following, and private Favorites for accounts and Spaces. |
 | Interactions        | Typed Like, Celebrate, and Insightful reactions, private Saved Posts, follows, mentions, one-level direct replies, same-Space quote/repost actions, comments, copy links, and conversation shortcuts.                                                                 |
 | Messaging           | Canonical one-to-one conversations, participant-only history, unread state, block-aware delivery, and responsive inbox/thread views.                                                                                                                                  |
 | Trust and safety    | Mute, mutual block, Safety recovery, post/comment reporting, Space moderation queues, Direct Message reporting, and audited decisions.                                                                                                                                |
@@ -638,9 +638,10 @@ makes the final decision.
 
 ### Chronological before algorithmic
 
-The core does not rank a member's home or Following feed. Products can add a
-different discovery layer later without making the shared social graph depend
-on opaque engagement scoring.
+The core does not rank a member's Home, Following, or Favorites feed. Select
+**Favorite** on a profile or Space to add its visible posts to a private
+chronological timeline. A post matching both sources appears once. Favorites
+do not follow an account, join a Space, or grant access to its content.
 
 ### Safety belongs in the core
 

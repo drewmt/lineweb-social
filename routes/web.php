@@ -14,6 +14,7 @@ use App\Http\Controllers\CommentReportController;
 use App\Http\Controllers\CommentReportModerationController;
 use App\Http\Controllers\CommunityOnboardingController;
 use App\Http\Controllers\DirectMessageReportController;
+use App\Http\Controllers\FavoritesController;
 use App\Http\Controllers\FeedController;
 use App\Http\Controllers\FollowingFeedController;
 use App\Http\Controllers\MessageController;
@@ -91,6 +92,7 @@ Route::middleware(['auth', 'account.active', 'verified'])->group(function () {
         ->middleware('throttle:content-management')
         ->name('stories.destroy');
     Route::get('following', FollowingFeedController::class)->name('following.index');
+    Route::get('favorites', [FavoritesController::class, 'index'])->name('favorites.index');
     Route::get('saved', [SavedPostController::class, 'index'])->name('saved.index');
     Route::get('compose', [PostDraftController::class, 'create'])->name('posts.compose');
     Route::get('drafts', [PostDraftController::class, 'index'])->name('drafts.index');
@@ -135,6 +137,9 @@ Route::middleware(['auth', 'account.active', 'verified'])->group(function () {
         ->name('notifications.read-all');
     Route::get('people', [PeopleController::class, 'index'])->name('people.index');
     Route::get('people/{profile:handle}', [PeopleController::class, 'show'])->name('people.show');
+    Route::match(['put', 'delete'], 'people/{profile:handle}/favorite', [FavoritesController::class, 'profile'])
+        ->middleware('throttle:content-management')
+        ->name('people.favorite');
     Route::put('people/{profile:handle}/posts/{post}/highlight', [ProfilePostHighlightController::class, 'store'])
         ->scopeBindings()
         ->middleware('throttle:profile-highlights')
@@ -183,6 +188,9 @@ Route::middleware(['auth', 'account.active', 'verified'])->group(function () {
         ->middleware('throttle:space-creation')
         ->name('spaces.store');
     Route::get('spaces/{space:slug}', [SpaceController::class, 'show'])->name('spaces.show');
+    Route::match(['put', 'delete'], 'spaces/{space:slug}/favorite', [FavoritesController::class, 'space'])
+        ->middleware('throttle:content-management')
+        ->name('spaces.favorite');
     Route::get('spaces/{space:slug}/events', [SpaceEventController::class, 'index'])
         ->name('spaces.events.index');
     Route::post('spaces/{space:slug}/events', [SpaceEventController::class, 'store'])

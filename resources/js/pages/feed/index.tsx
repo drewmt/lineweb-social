@@ -13,6 +13,7 @@ import {
     Plus,
     Share2,
     Send,
+    Star,
     UserRoundCheck,
     UsersRound,
 } from 'lucide-react';
@@ -24,6 +25,7 @@ import { AvatarMark } from '@/components/social/avatar-mark';
 import { CommentThread } from '@/components/social/comment-thread';
 import type { SocialComment } from '@/components/social/comment-thread';
 import { CommunitySignal } from '@/components/social/community-signal';
+import { FavoriteButton } from '@/components/social/favorite-button';
 import { MentionText } from '@/components/social/mention-text';
 import type {
     ContentMention,
@@ -117,10 +119,40 @@ type FeedProps = {
     reportReasons: ReportReason[];
     reactionTypes: ReactionType[];
     selectedSpace: string | null;
-    viewMode?: 'feed' | 'saved' | 'following' | 'topic';
+    selectedSpaceIsFavorite?: boolean;
+    viewMode?: 'feed' | 'saved' | 'following' | 'favorites' | 'topic';
     topic?: FeedTopic;
     status?: string;
 };
+
+const timelineTabs = [
+    { mode: 'feed', href: '/feed', label: 'Community' },
+    { mode: 'following', href: '/following', label: 'Following' },
+    { mode: 'favorites', href: '/favorites', label: 'Favorites' },
+] as const;
+
+const sourceTimelines = {
+    following: {
+        eyebrow: 'People you chose',
+        title: 'Following',
+        description:
+            'Recent posts from people you follow — in chronological order.',
+        emptyTitle: 'Your Following feed is ready.',
+        emptyDescription:
+            'Follow people from their profiles to see their visible posts here.',
+        icon: UserRoundCheck,
+    },
+    favorites: {
+        eyebrow: 'Your chosen sources',
+        title: 'Favorites',
+        description:
+            'Recent posts from the people and spaces you marked as favorites, in chronological order.',
+        emptyTitle: 'No favorite posts yet.',
+        emptyDescription:
+            'Select Favorite on a profile or space to see its visible posts here. Only you can see your favorites.',
+        icon: Star,
+    },
+} as const;
 
 type StorySummary = {
     id: number;
@@ -1218,12 +1250,17 @@ export default function Feed({
     reportReasons,
     reactionTypes,
     selectedSpace,
+    selectedSpaceIsFavorite = false,
     viewMode = 'feed',
     topic,
     status,
 }: FeedProps) {
     const savedView = viewMode === 'saved';
     const followingView = viewMode === 'following';
+    const favoritesView = viewMode === 'favorites';
+    const sourceTimeline =
+        followingView || favoritesView ? sourceTimelines[viewMode] : null;
+    const SourceIcon = sourceTimeline?.icon;
     const topicView = viewMode === 'topic' && topic !== undefined;
     const selected = spaces.find((space) => space.slug === selectedSpace);
     const postingSpaces = selected
@@ -1247,13 +1284,9 @@ export default function Feed({
                 title={
                     savedView
                         ? 'Saved posts'
-                        : followingView
-                          ? 'Following'
-                          : topicView
-                            ? `#${topic.name}`
-                            : selected
-                              ? selected.name
-                              : 'Home'
+                        : topicView
+                          ? `#${topic.name}`
+                          : (sourceTimeline?.title ?? selected?.name ?? 'Home')
                 }
             />
             <main className="social-page">
@@ -1269,31 +1302,34 @@ export default function Feed({
                                             <CommunitySignal />
                                             {savedView
                                                 ? 'Your private library'
-                                                : followingView
-                                                  ? 'People you chose'
-                                                  : selected
-                                                    ? 'Inside this space'
-                                                    : 'Your social home'}
+                                                : (sourceTimeline?.eyebrow ??
+                                                  (selected
+                                                      ? 'Inside this space'
+                                                      : 'Your social home'))}
                                         </div>
                                         <h1 className="mt-1 text-2xl font-black tracking-[-0.035em] sm:text-[2rem]">
                                             {savedView
                                                 ? 'Saved posts'
-                                                : followingView
-                                                  ? 'Following'
-                                                  : (selected?.name ??
-                                                    'Good to see you.')}
+                                                : (sourceTimeline?.title ??
+                                                  selected?.name ??
+                                                  'Good to see you.')}
                                         </h1>
                                         <p className="mt-1 max-w-xl text-sm leading-6 text-muted-foreground">
                                             {savedView
                                                 ? 'A private reading list of conversations you want to revisit.'
-                                                : followingView
-                                                  ? 'Recent posts from people you follow — in chronological order.'
-                                                  : (selected?.description ??
-                                                    'Fresh conversations from the communities you chose — always chronological.')}
+                                                : (sourceTimeline?.description ??
+                                                  selected?.description ??
+                                                  'Fresh conversations from the communities you chose — always chronological.')}
                                         </p>
                                     </div>
                                     {selected && !savedView && (
                                         <div className="flex flex-wrap items-center gap-2">
+                                            <FavoriteButton
+                                                endpoint={`/spaces/${encodeURIComponent(selected.slug)}/favorite`}
+                                                isFavorite={
+                                                    selectedSpaceIsFavorite
+                                                }
+                                            />
                                             {selected.canManage && (
                                                 <Button
                                                     asChild
@@ -1338,41 +1374,33 @@ export default function Feed({
 
                         {!selected && !savedView && !topicView && (
                             <nav
-                                className="mb-4 flex w-fit rounded-full bg-secondary/70 p-1"
+                                className="mb-4 flex w-fit max-w-full flex-wrap rounded-2xl bg-secondary/70 p-1 sm:rounded-full"
                                 aria-label="Choose timeline"
                             >
-                                <Link
-                                    href="/feed"
-                                    aria-current={
-                                        !followingView ? 'page' : undefined
-                                    }
-                                    className={`social-focus rounded-full px-4 py-2 text-sm font-extrabold transition-colors ${
-                                        !followingView
-                                            ? 'bg-card text-foreground shadow-sm'
-                                            : 'text-muted-foreground hover:text-foreground'
-                                    }`}
-                                >
-                                    Community
-                                </Link>
-                                <Link
-                                    href="/following"
-                                    aria-current={
-                                        followingView ? 'page' : undefined
-                                    }
-                                    className={`social-focus rounded-full px-4 py-2 text-sm font-extrabold transition-colors ${
-                                        followingView
-                                            ? 'bg-card text-foreground shadow-sm'
-                                            : 'text-muted-foreground hover:text-foreground'
-                                    }`}
-                                >
-                                    Following
-                                </Link>
+                                {timelineTabs.map(({ mode, href, label }) => (
+                                    <Link
+                                        key={mode}
+                                        href={href}
+                                        aria-current={
+                                            viewMode === mode
+                                                ? 'page'
+                                                : undefined
+                                        }
+                                        className={`social-focus flex min-h-11 items-center rounded-full px-3 text-sm font-extrabold transition-colors sm:px-4 ${
+                                            viewMode === mode
+                                                ? 'bg-card text-foreground shadow-sm'
+                                                : 'text-muted-foreground hover:text-foreground'
+                                        }`}
+                                    >
+                                        {label}
+                                    </Link>
+                                ))}
                             </nav>
                         )}
 
                         {!selected &&
                             !savedView &&
-                            !followingView &&
+                            !sourceTimeline &&
                             !topicView && (
                                 <SpacePulse
                                     spaces={spaces.filter(
@@ -1380,7 +1408,7 @@ export default function Feed({
                                     )}
                                 />
                             )}
-                        {!savedView && !followingView && !topicView && (
+                        {!savedView && !sourceTimeline && !topicView && (
                             <StoryRail
                                 stories={stories}
                                 canCreate={postingSpaces.length > 0}
@@ -1413,14 +1441,14 @@ export default function Feed({
                             aria-label={
                                 savedView
                                     ? 'Saved posts'
-                                    : followingView
-                                      ? 'Following feed'
+                                    : sourceTimeline
+                                      ? `${sourceTimeline.title} feed`
                                       : topicView
                                         ? `Posts about ${topic.name}`
                                         : 'Community feed'
                             }
                         >
-                            {!savedView && !followingView && !topicView && (
+                            {!savedView && !sourceTimeline && !topicView && (
                                 <>
                                     <MobileComposerLauncher
                                         spaces={postingSpaces}
@@ -1438,8 +1466,8 @@ export default function Feed({
                                                 className="size-6"
                                                 aria-hidden="true"
                                             />
-                                        ) : followingView ? (
-                                            <UserRoundCheck
+                                        ) : SourceIcon ? (
+                                            <SourceIcon
                                                 className="size-6"
                                                 aria-hidden="true"
                                             />
@@ -1458,20 +1486,18 @@ export default function Feed({
                                     <h2 className="mt-4 text-lg font-extrabold">
                                         {savedView
                                             ? 'Nothing saved yet.'
-                                            : followingView
-                                              ? 'Your Following feed is ready.'
-                                              : topicView
-                                                ? `No visible posts for #${topic.name}.`
-                                                : 'The room is ready.'}
+                                            : (sourceTimeline?.emptyTitle ??
+                                              (topicView
+                                                  ? `No visible posts for #${topic.name}.`
+                                                  : 'The room is ready.'))}
                                     </h2>
                                     <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
                                         {savedView
                                             ? 'Use Save on any post to keep it here for later.'
-                                            : followingView
-                                              ? 'Follow people from their profiles to see their visible posts here.'
-                                              : topicView
-                                                ? 'Posts may have been removed, moderated, or moved outside your current community access.'
-                                                : 'Be the first member to start a thoughtful conversation here.'}
+                                            : (sourceTimeline?.emptyDescription ??
+                                              (topicView
+                                                  ? 'Posts may have been removed, moderated, or moved outside your current community access.'
+                                                  : 'Be the first member to start a thoughtful conversation here.'))}
                                     </p>
                                     {followingView && (
                                         <Button
@@ -1483,6 +1509,28 @@ export default function Feed({
                                                 Discover people
                                             </Link>
                                         </Button>
+                                    )}
+                                    {favoritesView && (
+                                        <div className="mt-5 flex flex-wrap justify-center gap-2">
+                                            <Button
+                                                asChild
+                                                variant="outline"
+                                                className="min-h-11 rounded-full"
+                                            >
+                                                <Link href="/people">
+                                                    Discover people
+                                                </Link>
+                                            </Button>
+                                            <Button
+                                                asChild
+                                                variant="outline"
+                                                className="min-h-11 rounded-full"
+                                            >
+                                                <Link href="/spaces">
+                                                    Browse spaces
+                                                </Link>
+                                            </Button>
+                                        </div>
                                     )}
                                 </div>
                             ) : (

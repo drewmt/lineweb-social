@@ -22,6 +22,8 @@ The export currently includes:
   metadata but no viewer identities, storage paths, or checksums;
 - published posts and private drafts, including publication state and safe image
   metadata, plus comments, reactions, saves, follows, and safety relationships;
+- the member's own account and Space favorites, with target IDs and creation
+  times but no target content or private metadata;
 - messages authored by the member;
 - notification metadata and notification preferences, including the member's
   daily-email choice but not the internal delivery cursor;
