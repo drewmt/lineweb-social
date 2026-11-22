@@ -7,6 +7,7 @@ import {
     FileText,
     Film,
     Home,
+    ListFilter,
     MessageCircle,
     Search,
     Settings2,
@@ -39,6 +40,12 @@ const navItems = [
         subtitle: 'People you chose',
         href: '/following',
         icon: UserRoundCheck,
+    },
+    {
+        title: 'My feeds',
+        subtitle: 'Your private timelines',
+        href: '/my-feeds',
+        icon: ListFilter,
     },
     {
         title: 'Search',

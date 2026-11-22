@@ -2,12 +2,16 @@
 
 namespace App\Privacy;
 
+use App\Community\PersonalFeedSources;
+use App\Models\PersonalFeed;
 use App\Models\User;
 use Generator;
 use Illuminate\Support\Facades\DB;
 
 class PersonalDataExport
 {
+    public function __construct(private readonly PersonalFeedSources $personalFeedSources) {}
+
     /**
      * Build the export structure. Large user-owned collections remain lazy so
      * the HTTP response can stream them without loading the full export.
@@ -68,6 +72,7 @@ class PersonalDataExport
             'saved_collection_posts' => $this->savedCollectionPosts($userId),
             'favorite_profiles' => $this->favoriteReferences('profile_favorites', 'profile_id', $userId),
             'favorite_spaces' => $this->favoriteReferences('space_favorites', 'space_id', $userId),
+            'personal_feeds' => $this->personalFeeds($user),
             'profile_highlights' => $this->profileHighlights($userId),
             'following' => $this->following($userId),
             'followers' => $this->followers($userId),
@@ -90,6 +95,20 @@ class PersonalDataExport
                 'sessions' => $this->sessions($userId),
             ],
         ];
+    }
+
+    /** @return Generator<int, array{name: string, sources: array{people: list<string>, spaces: list<string>, topics: list<string>}}> */
+    private function personalFeeds(User $user): Generator
+    {
+        foreach (PersonalFeed::query()->ownedBy($user)->orderBy('id')->cursor() as $feed) {
+            $selected = $this->personalFeedSources->selected($user, $feed);
+
+            yield ['name' => $feed->name, 'sources' => [
+                'people' => array_column($selected['people'], 'reference'),
+                'spaces' => array_column($selected['spaces'], 'reference'),
+                'topics' => array_column($selected['topics'], 'reference'),
+            ]];
+        }
     }
 
     /** @return Generator<int, array<string, mixed>> */

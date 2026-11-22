@@ -20,6 +20,7 @@ use App\Http\Controllers\FollowingFeedController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PeopleController;
+use App\Http\Controllers\PersonalFeedController;
 use App\Http\Controllers\PlatformAppealController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\PostDraftController;
@@ -137,6 +138,18 @@ Route::middleware(['auth', 'account.active', 'verified'])->group(function () {
     Route::get('topics/{topic:name}', TopicController::class)
         ->middleware('throttle:community-search')
         ->name('topics.show');
+    Route::prefix('my-feeds')->name('personal-feeds.')->controller(PersonalFeedController::class)->group(function (): void {
+        Route::get('/', 'index')->name('index');
+        Route::get('create', 'create')->name('create');
+        Route::get('sources', 'sources')->middleware('throttle:community-search')->name('sources');
+        Route::post('/', 'store')->middleware('throttle:content-management')->name('store');
+        Route::get('{personalFeed}', 'show')->where('personalFeed', '[1-9][0-9]{0,17}')->name('show');
+        Route::get('{personalFeed}/edit', 'edit')->where('personalFeed', '[1-9][0-9]{0,17}')->name('edit');
+        Route::patch('{personalFeed}', 'update')->where('personalFeed', '[1-9][0-9]{0,17}')
+            ->middleware('throttle:content-management')->name('update');
+        Route::delete('{personalFeed}', 'destroy')->where('personalFeed', '[1-9][0-9]{0,17}')
+            ->middleware('throttle:content-management')->name('destroy');
+    });
     Route::get('notifications', [NotificationController::class, 'index'])
         ->name('notifications.index');
     Route::post('notifications/{notification}/open', [NotificationController::class, 'open'])
