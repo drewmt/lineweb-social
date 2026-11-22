@@ -290,12 +290,12 @@ export default function ShowProfile({
                     </div>
 
                     <div className="relative px-5 pb-0 sm:px-8">
-                        <div className="-mt-14 flex items-end justify-between gap-4 sm:-mt-16">
+                        <div className="-mt-14 flex flex-wrap items-end justify-between gap-4 sm:-mt-16">
                             <AvatarMark
                                 name={profile.name}
                                 className="size-28 border-[5px] border-card text-2xl ring-0 sm:size-32 sm:text-3xl"
                             />
-                            <div className="mb-2 flex shrink-0 items-center gap-2">
+                            <div className="mb-2 flex max-w-full min-w-0 flex-wrap items-center gap-2">
                                 {profile.isSelf ? (
                                     <Button
                                         asChild
